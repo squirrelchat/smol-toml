@@ -1,0 +1,13 @@
+root=true
+
+[*]
+end_of_line=lf
+insert_final_newline=true
+indent_style=tab
+
+# YAML is a horrible format
+# We should get rid of it for literally ANYTHING else
+# FOR TOML FOR EXAMPLE HIHI ^^
+[*.{yml,yaml}]
+indent_style=space
+indent_size=2

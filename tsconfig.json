@@ -1,0 +1,13 @@
+{
+	"extends": [
+		"@tsconfig/node-lts/tsconfig.json",
+		"@tsconfig/esm/tsconfig.json",
+		"@tsconfig/strictest/tsconfig.json"
+	],
+	"compilerOptions": {
+		"declaration": true,
+		"verbatimModuleSyntax": false,
+		"outDir": "./dist"
+	},
+	"include": [ "src" ]
+}
