@@ -28,8 +28,8 @@
 
 import { skipVoid } from './util.js'
 
-let NUM_REGEX = /^[+-]?(0x|0b|0o)?[0-9a-f_]+(\.[0-9a-f_]+)?([e][+-]?[0-9a-f_]+)?$/i
-let INT_REGEX = /^[+-]?(0x|0b|0o)?[0-9a-f]+$/
+let NUM_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f_]+(\.[0-9a-f_]+)?([e][+-]?[0-9a-f_]+)?$/i
+let INT_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f]+$/
 let LEADING_ZERO = /^[+-]?0\d+/
 let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i
 
@@ -69,6 +69,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	let tmp
 	let isEscape
 	let parsed = ''
+	let sliceStart = ptr
 	while (ptr < endPtr - 1) {
 		let c = str[ptr++]!
 		if (!isMultiline && (c === '\n' || c === '\r')) {
@@ -104,15 +105,16 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 			} else {
 				throw [ tmp, `invalid escape ${JSON.stringify(c)}` ]
 			}
+
+			sliceStart = ptr
 		} else if (!isLiteral && c === '\\') {
 			tmp = ptr - 1
 			isEscape = true
-		} else {
-			parsed += c
+			parsed += str.slice(sliceStart, tmp)
 		}
 	}
 
-	return parsed
+	return parsed + str.slice(sliceStart, endPtr - 1)
 }
 
 export function parseValue (value: string, ptr = 0): boolean | number | Date {
@@ -122,13 +124,14 @@ export function parseValue (value: string, ptr = 0): boolean | number | Date {
 	// Numbers
 	if (NUM_REGEX.test(value)) {
 		if (LEADING_ZERO.test(value)) throw [ ptr, 'leading zeroes are not allowed' ]
-
 		value = value.replace(/_/g, '')
-		if (INT_REGEX.test(value) && !Number.isSafeInteger(+value)) {
+
+		let numeric = +value
+		if (INT_REGEX.test(value) && !Number.isSafeInteger(numeric)) {
 			throw [ ptr, 'integer value cannot be represented losslessly' ]
 		}
 
-		return +value
+		return numeric
 	}
 
 	// Date

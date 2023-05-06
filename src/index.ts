@@ -28,7 +28,7 @@
 
 import { parseKey } from './struct.js'
 import { extractKeyValue } from './parse.js'
-import { skipVoid, peekTable, assignTable } from './util.js'
+import { skipVoid, peekTable } from './util.js'
 
 export function parse (toml: string): unknown {
 	let res = {}
@@ -57,16 +57,14 @@ export function parse (toml: string): unknown {
 				let r = peekTable(res, k, seenValues, ptr, true)
 				let v = r[1][r[0]]
 
-				if (isTableArray && v !== void 0 && !Array.isArray(v))
+				if (!v) {
+					r[1][r[0]] = (v = isTableArray ? [] : {})
+				} else if (isTableArray && !Array.isArray(v)) {
 					throw [ ptr - 2, 'this table has already been declared as a normal table' ]
+				}
 
-				assignTable(
-					r[1],
-					r[0],
-					isTableArray
-						? [ ...(v ?? []), tbl = {} ]
-						: tbl = v ?? {}
-				)
+				tbl = v
+				if (isTableArray) v.push(tbl = {})
 
 				ptr = end + +isTableArray
 			} else {

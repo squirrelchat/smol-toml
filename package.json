@@ -5,6 +5,7 @@
 	"repository": "git@github.com:squirrelchat/smol-toml.git",
 	"author": "Cynthia <cyyynthia@borkenware.com>",
 	"license": "BSD-3-Clause",
+	"type": "module",
 	"engines": {
 		"node": ">= 18",
 		"pnpm": ">= 7.24"
@@ -17,13 +18,16 @@
 		"test": "vitest"
 	},
 	"devDependencies": {
+		"@iarna/toml": "3.0.0",
+		"@ltd/j-toml": "^1.38.0",
 		"@tsconfig/esm": "^1.0.3",
 		"@tsconfig/node-lts": "^18.12.1",
 		"@tsconfig/strictest": "^2.0.1",
-		"@types/node": "^18.16.3",
-		"@vitest/ui": "^0.30.1",
+		"@types/node": "^20.1.0",
+		"@vitest/ui": "^0.31.0",
+		"fast-toml": "^0.5.4",
 		"typescript": "^5.0.4",
-		"vitest": "^0.30.1"
+		"vitest": "^0.31.0"
 	},
 	"exports": {
 		".": {

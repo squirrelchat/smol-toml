@@ -28,7 +28,7 @@
 
 import { parseString, parseValue } from './primitive.js'
 import { parseKey, parseArray, parseInlineTable } from './struct.js'
-import { assignTable, peekTable, indexOfNewline, skipUntil, skipVoid } from './util.js'
+import { peekTable, indexOfNewline, skipUntil, skipVoid } from './util.js'
 
 function getStringEnd (str: string, seek: number) {
 	let first = str[seek]!
@@ -36,7 +36,7 @@ function getStringEnd (str: string, seek: number) {
 		? str.slice(seek, seek + 3)
 		: first
 
-	do seek = str.indexOf(target, seek += target.length)
+	do seek = str.indexOf(target, ++seek)
 	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
 
 	seek += target.length
@@ -70,14 +70,14 @@ function trimEndOf (value: string, at: number, allowNewLines?: boolean) {
 export function extractValue (str: string, ptr: number, end?: string, allowNewLines?: boolean): [ any, number ] {
 	let c = str[ptr], offset
 	if (c === '[' || c === '{') {
-		let [ value, newPtr ] = c === '['
+		let [ value, endPtr ] = c === '['
 			? parseArray(str, ptr)
 			: parseInlineTable(str, ptr)
 
-		newPtr = skipUntil(str, newPtr, end)
+		let newPtr = skipUntil(str, endPtr, end)
 		if (end && !allowNewLines) {
 			let nextNewLine = indexOfNewline(str, ptr)
-			if (nextNewLine > ptr && nextNewLine < newPtr) throw [ nextNewLine, 'unexpected newline' ]
+			if (nextNewLine > endPtr && nextNewLine < newPtr) throw [ nextNewLine, 'unexpected newline' ]
 		}
 
 		return [ value, newPtr ]
@@ -114,7 +114,7 @@ export function extractKeyValue (str: string, ptr: number, table: Record<string,
 	}
 
 	let e = extractValue(str, ptr, isInline ? '}' : void 0)
-	assignTable(t[1], t[0], e[0])
+	t[1][t[0]] = e[0]
 	seen.add(e[0])
 	return e[1]
 }

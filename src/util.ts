@@ -26,10 +26,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export function indexOfNewline (str: string, start?: number) {
-	let r = str.indexOf('\r', start)
-	let n = str.indexOf('\n', start)
-	return r === -1 || n < r ? n : r
+export function indexOfNewline (str: string, start = 0) {
+	for (let i = start; i < str.length; i++) {
+		if (str[i] === '\n' || str[i] === '\r')
+			return i
+	}
+
+	return -1
 }
 
 export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: true): number {
@@ -56,18 +59,18 @@ export function skipUntil (str: string, ptr: number, end?: string) {
 	return !nextSep || nextEnd < nextSep ? nextEnd : nextSep
 }
 
-export function assignTable (table: Record<string, any>, key: string, value: any) {
-	Object.defineProperty(table, key, { value: value, enumerable: true, configurable: true, writable: true })
-}
-
+let DESCRIPTOR = { enumerable: true, configurable: true, writable: true }
 export function peekTable (table: Record<string, any>, key: string[], seen: Set<any>, ptr = 0, allowSuper?: boolean): [ string, Record<string, any> ] {
 	let k = ''
-	let hasOwn
-	let wasCreated
 	let v
+	let hasOwn
+	let hadOwn
 	for (let i = 0; i < key.length; i++) {
 		if (i) {
-			if (!(wasCreated = Object.hasOwn(table, k))) assignTable(table, k, {})
+			if (!(hadOwn = hasOwn)) {
+				if (k === '__proto__') Object.defineProperty(table, k, DESCRIPTOR)
+				table[k] = {}
+			}
 
 			table = table[k]
 			if (Array.isArray(table)) table = table[table.length - 1]
@@ -76,14 +79,15 @@ export function peekTable (table: Record<string, any>, key: string[], seen: Set<
 		k = key[i]!
 		hasOwn = Object.hasOwn(table, k)
 		v = hasOwn ? table[k] : void 0
-		if (v !== void 0 && typeof v === 'object' && seen.has(v)) {
+		if (typeof v === 'object' && seen.has(v)) {
 			throw [ ptr, 'attempting to set value of an immutable structure' ]
 		}
 	}
 
-	if (hasOwn && (!allowSuper || (wasCreated && v !== void 0 && !Array.isArray(v)))) {
+	if (hasOwn && (!allowSuper || (hadOwn && !Array.isArray(v)))) {
 		throw [ ptr, 'attempting to override an already defined value' ]
 	}
 
+	if (!hasOwn && k === '__proto__') Object.defineProperty(table, k, DESCRIPTOR)
 	return [ k, table ]
 }
