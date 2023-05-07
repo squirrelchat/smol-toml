@@ -26,45 +26,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid, skipUntil } from '../src/util.js'
-import TomlError from '../src/error.js'
+type TomlErrorOptions = ErrorOptions & {
+	toml: string
+	ptr: number
+}
 
-it('gives the index of next line', () => {
-	expect(indexOfNewline('test\n')).toBe(4)
-	expect(indexOfNewline('test\r\n')).toBe(4)
-	expect(indexOfNewline('test\ruwu\n')).toBe(4)
-	expect(indexOfNewline('test\ruwu\n', 5)).toBe(8)
-	expect(indexOfNewline('test')).toBe(-1)
-})
+function getLineColFromPtr (string: string, ptr: number): [ number, number ] {
+	let lines = string.slice(0, ptr).split(/\r\n|\n|\r/g)
+	return [ lines.length, lines.pop()!.length + 1 ]
+}
 
-it('skips whitespace', () => {
-	expect(skipVoid('    uwu', 0)).toBe(4)
-	expect(skipVoid('    uwu', 2)).toBe(4)
-	expect(skipVoid('\t uwu', 0)).toBe(2)
-	expect(skipVoid('uwu', 0)).toBe(0)
-	expect(skipVoid('\r\nuwu', 0)).toBe(2)
-})
+function makeCodeBlock (string: string, line: number, column: number) {
+	let lines = string.split(/\r\n|\n|\r/g)
+	let codeblock = ''
 
-it('skips whitespace but not newlines', () => {
-	expect(skipVoid('    uwu', 0, true)).toBe(4)
-	expect(skipVoid('\r\nuwu', 0, true)).toBe(0)
-})
+	let numberLen = (Math.log10(line + 1) | 0) + 1
 
-it('skips comments', () => {
-	expect(skipVoid('    # this is a comment\n   uwu', 0)).toBe(27)
-	expect(skipVoid('    # this is a comment\n   uwu', 0, true)).toBe(23)
-})
+	for (let i = line - 1; i <= line + 1; i++) {
+		let l = lines[i - 1]
+		if (!l) continue
 
-it('skips until the next valuable token', () => {
-	expect(skipUntil('[ 3, 4, ]', 1, ']')).toBe(4)
-	expect(skipUntil('[ 3, 4, ]', 4, ']')).toBe(7)
-	expect(skipUntil('[ 3, 4, ]', 7, ']')).toBe(8)
+		codeblock += i.toString().padEnd(numberLen, ' ')
+		codeblock += ':  '
+		codeblock += l
+		codeblock += '\n'
 
-	expect(skipUntil('[ [ 1, 2 ], [ 3, 4 ] ]', 6, ']')).toBe(9)
-})
+		if (i === line) {
+			codeblock += ' '.repeat(numberLen + column + 2)
+			codeblock += '^\n'
+		}
+	}
 
-it('requires the presence of the final token', () => {
-	expect(() => skipUntil('[ 3, 4, ', 1, ']')).toThrowError(TomlError)
-	expect(() => skipUntil('[ [ 3 ], 4, ', 8, ']')).toThrowError(TomlError)
-})
+	return codeblock
+}
+
+export default class TomlError extends Error {
+	line: number
+	column: number
+	codeblock: string
+
+	constructor (message: string, options: TomlErrorOptions) {
+		const [ line, column ] = getLineColFromPtr(options.toml, options.ptr)
+		const codeblock = makeCodeBlock(options.toml, line, column)
+
+		super(`Invalid TOML document: ${message}\n\n${codeblock}`, options)
+		this.line = line
+		this.column = column
+		this.codeblock = codeblock
+	}
+}

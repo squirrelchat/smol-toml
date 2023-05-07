@@ -28,6 +28,7 @@
 
 import { it, expect } from 'vitest'
 import { extractValue, extractKeyValue } from '../src/parse.js'
+import TomlError from '../src/error.js'
 
 it('extracts value of correct type', () => {
 	expect(extractValue('[ 1, 2 ]', 2, ']')).toStrictEqual([ 1, 4 ])
@@ -60,9 +61,9 @@ it('extracts key-value', () => {
 })
 
 it('rejects multi-line key-value', () => {
-	expect(() => extractKeyValue('key1 = \n "uwu"', 0, {}, new Set())).toThrow()
-	expect(() => extractKeyValue('key1\n= "uwu"', 0, {}, new Set())).toThrow()
-	expect(() => extractKeyValue('key1 =\r "uwu"', 0, {}, new Set())).toThrow()
+	expect(() => extractKeyValue('key1 = \n "uwu"', 0, {}, new Set())).toThrowError(TomlError)
+	expect(() => extractKeyValue('key1\n= "uwu"', 0, {}, new Set())).toThrowError(TomlError)
+	expect(() => extractKeyValue('key1 =\r "uwu"', 0, {}, new Set())).toThrowError(TomlError)
 })
 
 it('extracts valid multi-line key-value', () => {
@@ -87,9 +88,9 @@ it('handles inline key-value', () => {
 
 it('rejects duplicate keys', () => {
 	const tbl = { uwu: 10, owo: { hehe: 'cute' } }
-	expect(() => extractKeyValue('uwu = "owo"\n', 0, tbl, new Set())).toThrow()
-	expect(() => extractKeyValue('uwu.test = "uwu"\n', 0, tbl, new Set())).toThrow()
-	expect(() => extractKeyValue('owo = "uwu"\n', 0, tbl, new Set())).toThrow()
+	expect(() => extractKeyValue('uwu = "owo"\n', 0, tbl, new Set())).toThrowError(TomlError)
+	expect(() => extractKeyValue('uwu.test = "uwu"\n', 0, tbl, new Set())).toThrowError(TomlError)
+	expect(() => extractKeyValue('owo = "uwu"\n', 0, tbl, new Set())).toThrowError(TomlError)
 })
 
 it('handles comments', () => {
@@ -107,9 +108,9 @@ it('handles comments', () => {
 })
 
 it('rejects incomplete key-value', () => {
-	expect(() => extractKeyValue('uwu', 0, {}, new Set())).toThrow()
-	expect(() => extractKeyValue('uwu.test =\n', 0, {}, new Set())).toThrow()
-	expect(() => extractKeyValue('owo =', 0, {}, new Set())).toThrow()
+	expect(() => extractKeyValue('uwu', 0, {}, new Set())).toThrowError(TomlError)
+	expect(() => extractKeyValue('uwu.test =\n', 0, {}, new Set())).toThrowError(TomlError)
+	expect(() => extractKeyValue('owo =', 0, {}, new Set())).toThrowError(TomlError)
 })
 
 it('deals with JS quirks', () => {
@@ -125,7 +126,7 @@ it('respects the immutable property of inline tables', () => {
 	const tbl = {}
 	const seen = new Set()
 	extractKeyValue('uwu = { a = 1 }', 0, tbl, seen)
-	expect(() => extractKeyValue('uwu.test = "uwu"\n', 0, tbl, seen)).toThrow()
+	expect(() => extractKeyValue('uwu.test = "uwu"\n', 0, tbl, seen)).toThrowError(TomlError)
 })
 
 it('gracefully handles invalid multiple key-value on the same line', () => {

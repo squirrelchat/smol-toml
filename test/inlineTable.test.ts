@@ -28,6 +28,7 @@
 
 import { it, expect } from 'vitest'
 import { parseInlineTable } from '../src/struct.js'
+import TomlError from '../src/error.js'
 
 it('parses inline tables', () => {
 	expect(parseInlineTable('{ first = "Tom", last = "Preston-Werner" }', 0))
@@ -53,31 +54,31 @@ it('parses nested structures', () => {
 })
 
 it('rejects duplicate keys', () => {
-	expect(() => parseInlineTable('{ uwu = false, uwu = true }', 0)).toThrow()
-	expect(() => parseInlineTable('{ uwu.hehe = "owo", uwu = false }', 0)).toThrow()
-	expect(() => parseInlineTable('{ uwu = "owo", uwu.hehe = false }', 0)).toThrow()
+	expect(() => parseInlineTable('{ uwu = false, uwu = true }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ uwu.hehe = "owo", uwu = false }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ uwu = "owo", uwu.hehe = false }', 0)).toThrowError(TomlError)
 })
 
 it('rejects multiline tables', () => {
-	expect(() => parseInlineTable('{ first = "Tom", last = "Preston-Werner"\n}', 0)).toThrow()
-	expect(() => parseInlineTable('{\n  first = "Tom",\n  last = "Preston-Werner"\n}', 0)).toThrow()
-	expect(() => parseInlineTable('{ first = "Tom", last = \n "Preston-Werner" }', 0)).toThrow()
-	expect(() => parseInlineTable('{ first = "Tom" \n, last = "Preston-Werner" }', 0)).toThrow()
-	expect(() => parseInlineTable('{ first = "Tom",  last  \n = "Preston-Werner" }', 0)).toThrow()
-	expect(() => parseInlineTable('{ test = 0 \n  }', 0)).toThrow()
-	expect(() => parseInlineTable('{ test = {} \n  }', 0)).toThrow()
-	expect(() => parseInlineTable('{ test = [] \n  }', 0)).toThrow()
+	expect(() => parseInlineTable('{ first = "Tom", last = "Preston-Werner"\n}', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{\n  first = "Tom",\n  last = "Preston-Werner"\n}', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ first = "Tom", last = \n "Preston-Werner" }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ first = "Tom" \n, last = "Preston-Werner" }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ first = "Tom",  last  \n = "Preston-Werner" }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ test = 0 \n  }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ test = {} \n  }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ test = [] \n  }', 0)).toThrowError(TomlError)
 })
 
 it('rejects tables that are not finished', () => {
-	expect(() => parseInlineTable('{ first = "Tom", last = "Preston-Werner"\n', 0)).toThrow()
-	expect(() => parseInlineTable('{', 0)).toThrow()
+	expect(() => parseInlineTable('{ first = "Tom", last = "Preston-Werner"\n', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{', 0)).toThrowError(TomlError)
 })
 
 it('rejects invalid tables', () => {
-	expect(() => parseInlineTable('{ first = "Tom",, last = "Preston-Werner" }', 0)).toThrow()
-	expect(() => parseInlineTable('{ first = "Tom", # }', 0)).toThrow()
-	expect(() => parseInlineTable('{ first = "Tom", }', 0)).toThrow()
+	expect(() => parseInlineTable('{ first = "Tom",, last = "Preston-Werner" }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ first = "Tom", # }', 0)).toThrowError(TomlError)
+	expect(() => parseInlineTable('{ first = "Tom", }', 0)).toThrowError(TomlError)
 })
 
 it('handles JS quirks', () => {

@@ -27,6 +27,7 @@
  */
 
 import { skipVoid } from './util.js'
+import TomlError from './error.js'
 
 let NUM_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f_]+(\.[0-9a-f_]+)?([e][+-]?[0-9a-f_]+)?$/i
 let INT_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f]+$/
@@ -66,18 +67,24 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 		if (str[ptr] === '\n') ptr++
 	}
 
-	let tmp
+	let tmp = 0
 	let isEscape
 	let parsed = ''
 	let sliceStart = ptr
 	while (ptr < endPtr - 1) {
 		let c = str[ptr++]!
 		if (!isMultiline && (c === '\n' || c === '\r')) {
-			throw [ ptr - 1, 'newlines are not permitted in strings' ]
+			throw new TomlError('newlines are not allowed in strings', {
+				toml: str,
+				ptr: ptr - 1
+			})
 		}
 
 		if (c < '\t' || c === '\x0b' || c === '\x0c' || c === '\x7f' || (c > '\x0d' && c < '\x20')) {
-			throw [ ptr - 1, 'control characters are not allowed in strings' ]
+			throw new TomlError('control characters are not allowed in strings', {
+				toml: str,
+				ptr: ptr - 1
+			})
 		}
 
 		if (isEscape) {
@@ -85,25 +92,39 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 			if (c === 'u' || c === 'U') {
 				// Unicode escape
 				let code = str.slice(ptr, (ptr += (c === 'u' ? 4 : 8)))
-				if (!ESCAPE_REGEX.test(code)) throw [ tmp, `invalid unicode escape "\\${c}${code.toUpperCase()}"` ]
+				if (!ESCAPE_REGEX.test(code)) {
+					throw new TomlError('invalid unicode escape', {
+						toml: str,
+						ptr: tmp
+					})
+				}
 
 				try {
 					parsed += String.fromCodePoint(+`0x${code}`)
 				} catch {
-					throw [ tmp, `invalid unicode escape "\\${c}${code.toUpperCase()}"` ]
+					throw new TomlError('invalid unicode escape', {
+						toml: str,
+						ptr: tmp
+					})
 				}
 			} else if (isMultiline && (c === '\n' || c === ' ' || c === '\t' ||  c === '\r')) {
 				// Multiline escape
 				ptr = skipVoid(str, ptr - 1, true)
 				if (str[ptr] !== '\n' && str[ptr] !== '\r') {
-					throw [ tmp, `invalid escape: only line-ending whitespace may be escaped` ]
+					throw new TomlError('invalid escape: only line-ending whitespace may be escaped', {
+						toml: str,
+						ptr: tmp
+					})
 				}
 				ptr = skipVoid(str, ptr)
 			} else if (c in ESC_MAP) {
 				// Classic escape
 				parsed += ESC_MAP[c as keyof typeof ESC_MAP]
 			} else {
-				throw [ tmp, `invalid escape ${JSON.stringify(c)}` ]
+				throw new TomlError('unrecognized escape sequence', {
+					toml: str,
+					ptr: tmp
+				})
 			}
 
 			sliceStart = ptr
@@ -117,18 +138,27 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	return parsed + str.slice(sliceStart, endPtr - 1)
 }
 
-export function parseValue (value: string, ptr = 0): boolean | number | Date {
+export function parseValue (value: string, toml: string, ptr: number): boolean | number | Date {
 	if (Object.hasOwn(VALUES_MAP, value))
 		return VALUES_MAP[value as keyof typeof VALUES_MAP]
 
 	// Numbers
 	if (NUM_REGEX.test(value)) {
-		if (LEADING_ZERO.test(value)) throw [ ptr, 'leading zeroes are not allowed' ]
+		if (LEADING_ZERO.test(value)) {
+			throw new TomlError('leading zeroes are not allowed', {
+				toml: toml,
+				ptr: ptr
+			})
+		}
+
 		value = value.replace(/_/g, '')
 
 		let numeric = +value
 		if (INT_REGEX.test(value) && !Number.isSafeInteger(numeric)) {
-			throw [ ptr, 'integer value cannot be represented losslessly' ]
+			throw new TomlError('integer value cannot be represented losslessly', {
+				toml: toml,
+				ptr: ptr
+			})
 		}
 
 		return numeric
@@ -136,7 +166,12 @@ export function parseValue (value: string, ptr = 0): boolean | number | Date {
 
 	// Date
 	let date = new Date(value.includes('-') ? value : `0000-01-01T${value}`)
-	if (isNaN(date.getTime())) throw [ ptr, 'invalid value' ] // TODO: better error message
+	if (isNaN(date.getTime())) {
+		throw new TomlError('invalid value', {
+			toml: toml,
+			ptr: ptr
+		})
+	}
 
 	return date
 }

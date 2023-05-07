@@ -28,6 +28,7 @@
 
 import { it, expect } from 'vitest'
 import { parseString } from '../src/primitive.js'
+import TomlError from '../src/error.js'
 
 it('parses a string', () => {
 	expect(parseString('"this is a string"')).toBe('this is a string')
@@ -51,21 +52,21 @@ it('ignores escapes in literal strings', () => {
 })
 
 it('rejects invalid escapes', () => {
-	expect(() => parseString('"uwu \\x uwu"')).toThrow()
-	expect(() => parseString('"uwu \\\' uwu"')).toThrow()
-	expect(() => parseString('"uwu \\\n uwu"')).toThrow()
-	expect(() => parseString('"uwu \\ uwu"')).toThrow()
-	expect(() => parseString('"""uwu \\ uwu"""')).toThrow()
-	expect(() => parseString('"uwu \\UFFFFFFFF uwu"')).toThrow()
+	expect(() => parseString('"uwu \\x uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\\' uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\\n uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\ uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"""uwu \\ uwu"""')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\UFFFFFFFF uwu"')).toThrowError(TomlError)
 
-	expect(() => parseString('"uwu \\u276 uwu"')).toThrow()
-	expect(() => parseString('"uwu \\U0001F43 uwu"')).toThrow()
+	expect(() => parseString('"uwu \\u276 uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\U0001F43 uwu"')).toThrowError(TomlError)
 })
 
 it('rejects control characters', () => {
-	expect(() => parseString('"uwu \x00 uwu')).toThrow()
-	expect(() => parseString('"uwu \b uwu"')).toThrow()
-	expect(() => parseString('"uwu \x1f uwu"')).toThrow()
+	expect(() => parseString('"uwu \x00 uwu')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \b uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \x1f uwu"')).toThrowError(TomlError)
 })
 
 it('parses multiline strings', () => {

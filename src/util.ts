@@ -26,8 +26,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export function indexOfNewline (str: string, start = 0) {
-	for (let i = start; i < str.length; i++) {
+import TomlError from './error.js'
+
+export function indexOfNewline (str: string, start = 0, end = str.length) {
+	for (let i = start; i < end; i++) {
 		if (str[i] === '\n' || str[i] === '\r')
 			return i
 	}
@@ -35,7 +37,7 @@ export function indexOfNewline (str: string, start = 0) {
 	return -1
 }
 
-export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: true): number {
+export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
 	let c
 	while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r'))) ptr++
 
@@ -52,15 +54,20 @@ export function skipUntil (str: string, ptr: number, end?: string) {
 	}
 
 	let nextEnd = str.indexOf(end, ptr)
-	// TODO: point to start of structure instead?
-	if (nextEnd < 0) throw [ ptr, `cannot find end of structure "${end}"` ]
+	if (nextEnd < 0) {
+		// TODO: point to start of structure instead?
+		throw new TomlError('cannot find end of structure', {
+			toml: str,
+			ptr: ptr
+		})
+	}
 
 	let nextSep = str.indexOf(',', ptr) + 1
 	return !nextSep || nextEnd < nextSep ? nextEnd : nextSep
 }
 
 let DESCRIPTOR = { enumerable: true, configurable: true, writable: true }
-export function peekTable (table: Record<string, any>, key: string[], seen: Set<any>, ptr = 0, allowSuper?: boolean): [ string, Record<string, any> ] {
+export function peekTable (table: Record<string, any>, key: string[], seen: Set<any>, allowSuper?: boolean): [ string, Record<string, any> ] | null {
 	let k = ''
 	let v
 	let hasOwn
@@ -79,13 +86,13 @@ export function peekTable (table: Record<string, any>, key: string[], seen: Set<
 		k = key[i]!
 		hasOwn = Object.hasOwn(table, k)
 		v = hasOwn ? table[k] : void 0
-		if (typeof v === 'object' && seen.has(v)) {
-			throw [ ptr, 'attempting to set value of an immutable structure' ]
+		if (v !== void 0 && (typeof v !== 'object' || seen.has(v))) {
+			return null
 		}
 	}
 
 	if (hasOwn && (!allowSuper || (hadOwn && !Array.isArray(v)))) {
-		throw [ ptr, 'attempting to override an already defined value' ]
+		return null
 	}
 
 	if (!hasOwn && k === '__proto__') Object.defineProperty(table, k, DESCRIPTOR)

@@ -29,13 +29,16 @@
 import { parseString } from './primitive.js'
 import { extractValue, extractKeyValue } from './parse.js'
 import { indexOfNewline } from './util.js'
+import TomlError from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_ \t]+$/
 
-export function parseKey (key: string, ptrOffset = 0): string[] {
+export function parseKey (str: string, startPtr = 0, endPtr = str.length): string[] {
 	let ptr
 	let dot = -1
 	let parsed = []
+
+	let key = str.slice(startPtr, endPtr)
 
 	do {
 		let c = key[ptr = ++dot]
@@ -44,21 +47,43 @@ export function parseKey (key: string, ptrOffset = 0): string[] {
 			// If it's a string
 			if (c === '"' || c === "'") {
 				let eos = key.indexOf(c, ptr + 1) + 1
-				if (!eos) throw [ ptrOffset + ptr, '' ]
+				if (!eos) {
+					throw new TomlError('unfinished string encountered', {
+						toml: str,
+						ptr: ptr
+					})
+				}
 
 				dot = key.indexOf('.', eos)
 				let end = key.slice(eos, dot < 0 ? void 0 : dot)
 
 				let newLine = indexOfNewline(end)
-				if (newLine > -1) throw [ ptrOffset + ptr + dot + newLine - 1, 'unexpected newline' ]
-				if (end.trimStart()) throw [ ptrOffset + eos, 'unexpected token: expected whitespace or dot' ]
+				if (newLine > -1) {
+					throw new TomlError('newlines are not allowed in keys', {
+						toml: str,
+						ptr: ptr + dot + newLine
+					})
+				}
 
-				parsed.push(parseString(key.slice(ptr, eos)))
+				if (end.trimStart()) {
+					throw new TomlError('found extra tokens after the string part', {
+						toml: str,
+						ptr: eos
+					})
+				}
+
+				parsed.push(parseString(key, ptr, eos))
 			} else {
 				// Normal raw key part consumption and validation
 				dot = key.indexOf('.', ptr)
 				let part = key.slice(ptr, dot < 0 ? void 0 : dot)
-				if (!KEY_PART_RE.test(part)) throw [ ptrOffset + ptr, 'invalid key part: only letter, numbers, dashes and underscores are allowed' ]
+				if (!KEY_PART_RE.test(part)) {
+					throw new TomlError('only letter, numbers, dashes and underscores are allowed in keys', {
+						toml: str,
+						ptr: ptr
+					})
+				}
+
 				parsed.push(part.trimEnd())
 			}
 		}
@@ -68,43 +93,82 @@ export function parseKey (key: string, ptrOffset = 0): string[] {
 	return parsed
 }
 
-export function parseInlineTable (tbl: string, ptr: number): [ Record<string, any>, number ] {
+export function parseInlineTable (str: string, ptr: number): [ Record<string, any>, number ] {
 	let res: Record<string, any> = {}
 	let seen = new Set()
 	let c: string
 	let comma = 0
 
 	ptr++
-	while ((c = tbl[ptr++]!) !== '}' && c) {
-		if (c === '\n' || c === '\r') throw [ ptr - 1, 'unexpected newline' ]
-		else if (c === '#') throw [ ptr - 1, 'unexpected comment' ]
-		else if (c === ',') throw [ ptr - 1, 'unexpected comma' ]
+	while ((c = str[ptr++]!) !== '}' && c) {
+		if (c === '\n' || c === '\r') {
+			throw new TomlError('newlines are not allowed in inline tables', {
+				toml: str,
+				ptr: ptr - 1
+			})
+		}
+		else if (c === '#') {
+			throw new TomlError('inline tables cannot contain comments', {
+				toml: str,
+				ptr: ptr - 1
+			})
+		}
+		else if (c === ',') {
+			throw new TomlError('expected key-value, found comma', {
+				toml: str,
+				ptr: ptr - 1
+			})
+		}
 		else if (c !== ' ' && c !== '\t') {
-			ptr = extractKeyValue(tbl, ptr - 1, res, seen, true)
-			comma = tbl[ptr - 1] === ',' ? ptr - 1 : 0
+			ptr = extractKeyValue(str, ptr - 1, res, seen, true)
+			comma = str[ptr - 1] === ',' ? ptr - 1 : 0
 		}
 	}
 
-	if (comma) throw [ comma, 'unexpected trailing comma' ]
-	if (!c) throw [ ptr, 'unfinished table' ]
+	if (comma) {
+		throw new TomlError('trailing commas are not allowed in inline tables', {
+			toml: str,
+			ptr: comma
+		})
+	}
+
+	if (!c) {
+		throw new TomlError('unfinished table encountered', {
+			toml: str,
+			ptr: ptr
+		})
+	}
+
 	return [ res, ptr ]
 }
 
-export function parseArray (array: string, ptr: number): [ any[], number ] {
+export function parseArray (str: string, ptr: number): [ any[], number ] {
 	let res: any[] = []
 	let c
 
 	ptr++
-	while((c = array[ptr++]) !== ']' && c) {
-		if (c === ',') throw [ ptr - 1, 'unexpected comma' ]
-		else if (c === '#') ptr = indexOfNewline(array, ptr)
+	while((c = str[ptr++]) !== ']' && c) {
+		if (c === ',') {
+			throw new TomlError('expected value, found comma', {
+				toml: str,
+				ptr: ptr - 1
+			})
+		}
+
+		else if (c === '#') ptr = indexOfNewline(str, ptr)
 		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
-			let e = extractValue(array, ptr - 1, ']', true)
+			let e = extractValue(str, ptr - 1, ']')
 			res.push(e[0])
 			ptr = e[1]
 		}
 	}
 
-	if (!c) throw [ ptr, 'unfinished array' ]
+	if (!c) {
+		throw new TomlError('unfinished array encountered', {
+			toml: str,
+			ptr: ptr
+		})
+	}
+
 	return [ res, ptr ]
 }

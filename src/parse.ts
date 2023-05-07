@@ -29,6 +29,7 @@
 import { parseString, parseValue } from './primitive.js'
 import { parseKey, parseArray, parseInlineTable } from './struct.js'
 import { peekTable, indexOfNewline, skipUntil, skipVoid } from './util.js'
+import TomlError from './error.js'
 
 function getStringEnd (str: string, seek: number) {
 	let first = str[seek]!
@@ -36,6 +37,7 @@ function getStringEnd (str: string, seek: number) {
 		? str.slice(seek, seek + 3)
 		: first
 
+	seek += target.length - 1
 	do seek = str.indexOf(target, ++seek)
 	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
 
@@ -48,9 +50,11 @@ function getStringEnd (str: string, seek: number) {
 	return seek
 }
 
-function trimEndOf (value: string, at: number, allowNewLines?: boolean) {
+function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean) {
+	let value = str.slice(startPtr, endPtr)
+
 	let newlineIdx
-	let commentIdx = value.indexOf('#', at)
+	let commentIdx = value.indexOf('#')
 	if (commentIdx > -1) {
 		value = value.slice(0, commentIdx)
 	}
@@ -61,13 +65,18 @@ function trimEndOf (value: string, at: number, allowNewLines?: boolean) {
 		let s = '\n'
 		newlineIdx = value.lastIndexOf('\n')
 		if (newlineIdx < 0) newlineIdx = value.lastIndexOf(s = '\r')
-		if (trimmed.lastIndexOf(s) !== newlineIdx) throw [ newlineIdx, 'unexpected newline' ]
+		if (trimmed.lastIndexOf(s) !== newlineIdx) {
+			throw new TomlError('newlines are not allowed in inline tables', {
+				toml: str,
+				ptr: startPtr + newlineIdx
+			})
+		}
 	}
 
 	return trimmed
 }
 
-export function extractValue (str: string, ptr: number, end?: string, allowNewLines?: boolean): [ any, number ] {
+export function extractValue (str: string, ptr: number, end?: string): [ any, number ] {
 	let c = str[ptr], offset
 	if (c === '[' || c === '{') {
 		let [ value, endPtr ] = c === '['
@@ -75,9 +84,14 @@ export function extractValue (str: string, ptr: number, end?: string, allowNewLi
 			: parseInlineTable(str, ptr)
 
 		let newPtr = skipUntil(str, endPtr, end)
-		if (end && !allowNewLines) {
-			let nextNewLine = indexOfNewline(str, ptr)
-			if (nextNewLine > endPtr && nextNewLine < newPtr) throw [ nextNewLine, 'unexpected newline' ]
+		if (end === '}') {
+			let nextNewLine = indexOfNewline(str, endPtr, newPtr)
+			if (nextNewLine > -1) {
+				throw new TomlError('newlines are not allowed in inline tables', {
+					toml: str,
+					ptr: nextNewLine
+				})
+			}
 		}
 
 		return [ value, newPtr ]
@@ -91,26 +105,45 @@ export function extractValue (str: string, ptr: number, end?: string, allowNewLi
 	}
 
 	endPtr = skipUntil(str, ptr, end)
-	let valStr = trimEndOf(str.slice(ptr, endPtr - (+(str[endPtr - 1] === ','))), 0, allowNewLines)
-	if (!valStr) throw [ ptr, 'expected value' ]
+	let valStr = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']')
+	if (!valStr) {
+		throw new TomlError('incomplete key-value declaration: no value specified', {
+			toml: str,
+			ptr: ptr
+		})
+	}
 
 	return [
-		parseValue(valStr, ptr),
+		parseValue(valStr, str, ptr),
 		endPtr
 	]
 }
 
 export function extractKeyValue (str: string, ptr: number, table: Record<string, any>, seen: Set<any>, isInline?: boolean) {
 	let equalIdx = str.indexOf('=', ptr)
-	if (equalIdx < 0) throw [ ptr, 'expected to find equals after the key' ]
+	if (equalIdx < 0) {
+		throw new TomlError('incomplete key-value declaration: no equals sign after the key', {
+			toml: str,
+			ptr: ptr
+		})
+	}
 
 	// KEY
-	let t = peekTable(table, parseKey(str.slice(ptr, equalIdx)), seen, ptr)
+	let t = peekTable(table, parseKey(str, ptr, equalIdx), seen)
+	if (!t) {
+		throw new TomlError('trying to redefine an already defined value', {
+			toml: str,
+			ptr: ptr
+		})
+	}
 
 	// VALUE
 	ptr = skipVoid(str, equalIdx + 1, true, true)
 	if (str[ptr] === '\n' || str[ptr] === '\r') {
-		throw [ ptr, 'unexpected newline' ]
+		throw new TomlError('newlines are not allowed in key-value declarations', {
+			toml: str,
+			ptr: ptr
+		})
 	}
 
 	let e = extractValue(str, ptr, isInline ? '}' : void 0)

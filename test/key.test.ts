@@ -28,6 +28,7 @@
 
 import { it, expect } from 'vitest'
 import { parseKey } from '../src/struct.js'
+import TomlError from '../src/error.js'
 
 it('parses simple keys', () => {
 	expect(parseKey('key')).toStrictEqual([ 'key' ])
@@ -45,7 +46,7 @@ it('parses quoted keys', () => {
 })
 
 it('parses empty keys', () => {
-	expect(() => parseKey('')).toThrow()
+	expect(() => parseKey('')).toThrowError(TomlError)
 	expect(parseKey('""')).toStrictEqual([ '' ])
 	expect(parseKey("''")).toStrictEqual([ '' ])
 })
@@ -66,14 +67,15 @@ it('ignores whitespace', () => {
 })
 
 it('rejects invalid keys', () => {
-	expect(() => parseKey('uwu.')).toThrow()
-	expect(() => parseKey('éwé')).toThrow()
-	expect(() => parseKey('uwu..owo')).toThrow()
-	expect(() => parseKey('uwu.\nowo')).toThrow()
-	expect(() => parseKey('uwu\n.owo')).toThrow()
-	expect(() => parseKey('"uwu"\n.owo')).toThrow()
-	expect(() => parseKey('uwu\n')).toThrow()
-	expect(() => parseKey('"uwu')).toThrow()
+	expect(() => parseKey('"uwu"\n')).toThrowError(TomlError)
+	expect(() => parseKey('uwu.')).toThrowError(TomlError)
+	expect(() => parseKey('éwé')).toThrowError(TomlError)
+	expect(() => parseKey('uwu..owo')).toThrowError(TomlError)
+	expect(() => parseKey('uwu.\nowo')).toThrowError(TomlError)
+	expect(() => parseKey('uwu\n.owo')).toThrowError(TomlError)
+	expect(() => parseKey('"uwu"\n.owo')).toThrowError(TomlError)
+	expect(() => parseKey('uwu\n')).toThrowError(TomlError)
+	expect(() => parseKey('"uwu')).toThrowError(TomlError)
 
-	expect(() => parseKey('uwu."owo"hehe')).toThrow()
+	expect(() => parseKey('uwu."owo"hehe')).toThrowError(TomlError)
 })

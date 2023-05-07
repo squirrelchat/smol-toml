@@ -15,6 +15,8 @@ smol-toml only fails to comply with the spec in 2 (minor) ways:
 - integers can only be between -9_007_199_254_740_991 and 9_007_199_254_740_991 instead of the recommended full 64-bit range
 	- integers outside of this range do raise an error, complying with the specification on this regard
 
+Otherwise, smol-toml produces valid results (or errors) for all the test TOML files in https://github.com/iarna/toml-spec-tests
+
 ## Installation
 ```
 [pnpm | yarn | npm] i smol-toml

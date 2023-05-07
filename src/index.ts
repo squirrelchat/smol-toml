@@ -29,61 +29,71 @@
 import { parseKey } from './struct.js'
 import { extractKeyValue } from './parse.js'
 import { skipVoid, peekTable } from './util.js'
+import TomlError from './error.js'
 
-export function parse (toml: string): unknown {
+export function parse (toml: string) {
 	let res = {}
 	let tbl = res
 	let seenTables = new Set()
 	let seenValues = new Set()
 
 	toml = toml.trim()
-	try {
-		for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
-			// console.log(res)
-			// console.dir(toml.slice(ptr))
-			if (toml[ptr] === '[') {
-				let isTableArray = toml[ptr + 1] === '['
-				let end = toml.indexOf(']', ptr)
-				if (end === -1)
-					throw [ ptr, 'unfinished table declaration' ]
+	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
+		if (toml[ptr] === '[') {
+			let isTableArray = toml[ptr + 1] === '['
+			let end = toml.indexOf(']', ptr)
+			if (end === -1)
+				throw new TomlError('unfinished table encountered', {
+					toml: toml,
+					ptr: ptr
+				})
 
-				let k = parseKey(toml.slice(ptr += +isTableArray + 1, end++), ptr)
+			let k = parseKey(toml, ptr += +isTableArray + 1, end++)
 
-				let strKey = k.join('"."')
-				if (!isTableArray && seenTables.has(strKey))
-					throw [ ptr - 1, 'this table has already been declared' ]
+			let strKey = k.join('"."')
+			if (!isTableArray && seenTables.has(strKey))
+				throw new TomlError('trying to redefine an already defined table', {
+					toml: toml,
+					ptr: ptr - 1
+				})
 
-				seenTables.add(strKey)
-				let r = peekTable(res, k, seenValues, ptr, true)
-				let v = r[1][r[0]]
-
-				if (!v) {
-					r[1][r[0]] = (v = isTableArray ? [] : {})
-				} else if (isTableArray && !Array.isArray(v)) {
-					throw [ ptr - 2, 'this table has already been declared as a normal table' ]
-				}
-
-				tbl = v
-				if (isTableArray) v.push(tbl = {})
-
-				ptr = end + +isTableArray
-			} else {
-				ptr = extractKeyValue(toml, ptr, tbl, seenValues)
+			seenTables.add(strKey)
+			let r = peekTable(res, k, seenValues, true)
+			if (!r) {
+				throw new TomlError('trying to redefine an already defined value', {
+					toml: toml,
+					ptr: ptr - 1
+				})
 			}
 
-			ptr = skipVoid(toml, ptr, true)
-			if (toml[ptr] && toml[ptr] !== '\n' && toml[ptr] !== '\r') throw [ ptr, 'expected newline' ]
-			ptr = skipVoid(toml, ptr)
+			let v = r[1][r[0]]
+
+			if (!v) {
+				r[1][r[0]] = (v = isTableArray ? [] : {})
+			} else if (isTableArray && !Array.isArray(v)) {
+				throw new TomlError('trying to define an array of tables, but a table already exists for this identifier', {
+					toml: toml,
+					ptr: ptr - 2
+				})
+			}
+
+			tbl = v
+			if (isTableArray) v.push(tbl = {})
+
+			ptr = end + +isTableArray
+		} else {
+			ptr = extractKeyValue(toml, ptr, tbl, seenValues)
 		}
-	} catch (e) {
-		if (Array.isArray(e)) {
-			let lines = toml.slice(0, e[0]).split(/\r\n|\n|\r/g)
-			throw new Error(`Invalid TOML document: ${e[1]} at line ${lines.length + 1}:${lines.pop()!.length + 1}`)
-			/* c8 ignore next 3 */
+
+		ptr = skipVoid(toml, ptr, true)
+		if (toml[ptr] && toml[ptr] !== '\n' && toml[ptr] !== '\r') {
+			throw new TomlError('each key-value declaration must be followed by an end-of-line', {
+				toml: toml,
+				ptr: ptr
+			})
 		}
-		throw e
+		ptr = skipVoid(toml, ptr)
 	}
 
-	// console.log(res)
 	return res
 }

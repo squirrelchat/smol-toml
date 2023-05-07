@@ -28,6 +28,7 @@
 
 import { it, expect } from 'vitest'
 import { parseArray } from '../src/struct.js'
+import TomlError from '../src/error.js'
 
 it('parses arrays', () => {
 	expect(parseArray('[ 1, 2, 3 ]', 0)).toStrictEqual([ [ 1, 2, 3 ], 11 ])
@@ -72,8 +73,8 @@ it('is not bothered by comments', () => {
 })
 
 it('rejects invalid arrays', () => {
-	expect(() => parseArray('[ 1,, 2]', 0)).toThrow()
-	expect(() => parseArray('[ 1, 2, 3 ', 0)).toThrow()
+	expect(() => parseArray('[ 1,, 2]', 0)).toThrowError(TomlError)
+	expect(() => parseArray('[ 1, 2, 3 ', 0)).toThrowError(TomlError)
 })
 
 it('consumes only an array and aborts', () => {
