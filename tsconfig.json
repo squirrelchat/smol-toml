@@ -6,7 +6,6 @@
 	],
 	"compilerOptions": {
 		"declaration": true,
-		"verbatimModuleSyntax": false,
 		"outDir": "./dist"
 	},
 	"include": [ "src" ]

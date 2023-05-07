@@ -1,6 +1,7 @@
 {
 	"name": "smol-toml",
 	"version": "0.1.0",
+	"keywords": [ "toml", "parser" ],
 	"description": "A small, fast, and correct TOML parser",
 	"repository": "git@github.com:squirrelchat/smol-toml.git",
 	"author": "Cynthia <cyyynthia@borkenware.com>",
@@ -11,11 +12,10 @@
 		"pnpm": ">= 7.24"
 	},
 	"scripts": {
-		"start": "node ./dist/index.js",
-		"dev": "tsc-watch --onSuccess \"node ./dist/index.js\"",
 		"build": "tsc",
-		"vitest": "vitest --ui",
-		"test": "vitest"
+		"test": "vitest",
+		"test-ui": "vitest --ui",
+		"bench": "vitest --bench"
 	},
 	"devDependencies": {
 		"@iarna/toml": "3.0.0",
@@ -33,7 +33,6 @@
 		".": {
 			"default": "./dist/index.js",
 			"types": "./dist/index.d.ts"
-		},
-		"./package.json": "./package.json"
+		}
 	}
 }
