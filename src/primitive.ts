@@ -27,11 +27,12 @@
  */
 
 import { skipVoid } from './util.js'
+import TomlDate, { DATE_TIME_RE } from './date.js'
 import TomlError from './error.js'
 
 let NUM_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f_]+(\.[0-9a-f_]+)?([e][+-]?[0-9a-f_]+)?$/i
 let INT_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f]+$/
-let LEADING_ZERO = /^[+-]?0\d+/
+let LEADING_ZERO = /^[+-]?0\d/
 let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i
 
 let ESC_MAP = {
@@ -100,7 +101,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 				}
 
 				try {
-					parsed += String.fromCodePoint(+`0x${code}`)
+					parsed += String.fromCodePoint(parseInt(code, 16))
 				} catch {
 					throw new TomlError('invalid unicode escape', {
 						toml: str,
@@ -138,7 +139,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	return parsed + str.slice(sliceStart, endPtr - 1)
 }
 
-export function parseValue (value: string, toml: string, ptr: number): boolean | number | Date {
+export function parseValue (value: string, toml: string, ptr: number): boolean | number | TomlDate {
 	if (Object.hasOwn(VALUES_MAP, value))
 		return VALUES_MAP[value as keyof typeof VALUES_MAP]
 
@@ -165,13 +166,20 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 	}
 
 	// Date
-	let date = new Date(value.includes('-') ? value : `0000-01-01T${value}`)
-	if (isNaN(date.getTime())) {
-		throw new TomlError('invalid value', {
-			toml: toml,
-			ptr: ptr
-		})
+	if (DATE_TIME_RE.test(value)) {
+		let date = new TomlDate(value)
+		if (isNaN(date.getTime())) {
+			throw new TomlError('invalid date', {
+				toml: toml,
+				ptr: ptr
+			})
+		}
+
+		return date
 	}
 
-	return date
+	throw new TomlError('invalid value', {
+		toml: toml,
+		ptr: ptr
+	})
 }

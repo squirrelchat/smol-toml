@@ -26,11 +26,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import TomlDate from './date.js'
 import TomlError from './error.js'
+
+export type TomlPrimitive =
+	| string
+	| number
+	| boolean
+	| TomlDate
+	| { [key: string]: TomlPrimitive }
+	| TomlPrimitive[]
 
 export function indexOfNewline (str: string, start = 0, end = str.length) {
 	for (let i = start; i < end; i++) {
 		if (str[i] === '\n' || str[i] === '\r')
+			return i
+	}
+
+	return -1
+}
+
+export function skipComment (str: string, ptr: number) {
+	for (let i = ptr; i < str.length; i++) {
+		let c = str[i]!
+		if (c < '\t' || c === '\x0b' || c === '\x0c' || c === '\x7f' || (c > '\x0d' && c < '\x20')) {
+			throw new TomlError('control characters are not allowed in commebts', {
+				toml: str,
+				ptr: ptr,
+			})
+		}
+
+		if (c === '\n' || c === '\r')
 			return i
 	}
 
@@ -43,7 +69,7 @@ export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banCo
 
 	if (banComments || c !== '#') return ptr
 
-	ptr = indexOfNewline(str, ptr)
+	ptr = skipComment(str, ptr)
 	return ptr < 0 ? str.length : skipVoid(str, ptr, banNewLines)
 }
 

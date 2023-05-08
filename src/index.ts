@@ -28,16 +28,17 @@
 
 import { parseKey } from './struct.js'
 import { extractKeyValue } from './parse.js'
-import { skipVoid, peekTable } from './util.js'
+import { type TomlPrimitive, skipVoid, peekTable } from './util.js'
 import TomlError from './error.js'
 
-export function parse (toml: string) {
+export { default as TomlDate } from './date.js'
+
+export function parse (toml: string): Record<string, TomlPrimitive> {
 	let res = {}
 	let tbl = res
 	let seenTables = new Set()
 	let seenValues = new Set()
 
-	toml = toml.trim()
 	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
 		if (toml[ptr] === '[') {
 			let isTableArray = toml[ptr + 1] === '['

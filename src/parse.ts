@@ -28,7 +28,7 @@
 
 import { parseString, parseValue } from './primitive.js'
 import { parseKey, parseArray, parseInlineTable } from './struct.js'
-import { peekTable, indexOfNewline, skipUntil, skipVoid } from './util.js'
+import { type TomlPrimitive, peekTable, indexOfNewline, skipUntil, skipComment, skipVoid } from './util.js'
 import TomlError from './error.js'
 
 function getStringEnd (str: string, seek: number) {
@@ -56,6 +56,7 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 	let newlineIdx
 	let commentIdx = value.indexOf('#')
 	if (commentIdx > -1) {
+		skipComment(str, commentIdx)
 		value = value.slice(0, commentIdx)
 	}
 
@@ -76,8 +77,8 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 	return trimmed
 }
 
-export function extractValue (str: string, ptr: number, end?: string): [ any, number ] {
-	let c = str[ptr], offset
+export function extractValue (str: string, ptr: number, end?: string): [ TomlPrimitive, number ] {
+	let c = str[ptr]
 	if (c === '[' || c === '{') {
 		let [ value, endPtr ] = c === '['
 			? parseArray(str, ptr)
@@ -100,8 +101,7 @@ export function extractValue (str: string, ptr: number, end?: string): [ any, nu
 	let endPtr
 	if (c === '"' || c === "'") {
 		endPtr = getStringEnd(str, ptr)
-		offset = !!end && str[endPtr] === ','
-		return [ parseString(str, ptr, endPtr), endPtr + +offset ]
+		return [ parseString(str, ptr, endPtr), endPtr + +(!!end && str[endPtr] === ',') ]
 	}
 
 	endPtr = skipUntil(str, ptr, end)
@@ -119,7 +119,7 @@ export function extractValue (str: string, ptr: number, end?: string): [ any, nu
 	]
 }
 
-export function extractKeyValue (str: string, ptr: number, table: Record<string, any>, seen: Set<any>, isInline?: boolean) {
+export function extractKeyValue (str: string, ptr: number, table: Record<string, TomlPrimitive>, seen: Set<any>, isInline?: boolean) {
 	let equalIdx = str.indexOf('=', ptr)
 	if (equalIdx < 0) {
 		throw new TomlError('incomplete key-value declaration: no equals sign after the key', {

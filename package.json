@@ -1,7 +1,10 @@
 {
 	"name": "smol-toml",
 	"version": "0.1.0",
-	"keywords": [ "toml", "parser" ],
+	"keywords": [
+		"toml",
+		"parser"
+	],
 	"description": "A small, fast, and correct TOML parser",
 	"repository": "git@github.com:squirrelchat/smol-toml.git",
 	"author": "Cynthia <cyyynthia@borkenware.com>",
@@ -34,5 +37,10 @@
 			"default": "./dist/index.js",
 			"types": "./dist/index.d.ts"
 		}
-	}
+	},
+	"files": [
+		"README.md",
+		"LICENSE",
+		"dist"
+	]
 }

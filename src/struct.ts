@@ -28,7 +28,7 @@
 
 import { parseString } from './primitive.js'
 import { extractValue, extractKeyValue } from './parse.js'
-import { indexOfNewline } from './util.js'
+import { type TomlPrimitive, indexOfNewline, skipComment } from './util.js'
 import TomlError from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_ \t]+$/
@@ -93,8 +93,8 @@ export function parseKey (str: string, startPtr = 0, endPtr = str.length): strin
 	return parsed
 }
 
-export function parseInlineTable (str: string, ptr: number): [ Record<string, any>, number ] {
-	let res: Record<string, any> = {}
+export function parseInlineTable (str: string, ptr: number): [ Record<string, TomlPrimitive>, number ] {
+	let res: Record<string, TomlPrimitive> = {}
 	let seen = new Set()
 	let c: string
 	let comma = 0
@@ -142,8 +142,8 @@ export function parseInlineTable (str: string, ptr: number): [ Record<string, an
 	return [ res, ptr ]
 }
 
-export function parseArray (str: string, ptr: number): [ any[], number ] {
-	let res: any[] = []
+export function parseArray (str: string, ptr: number): [ TomlPrimitive[], number ] {
+	let res: TomlPrimitive[] = []
 	let c
 
 	ptr++
@@ -155,7 +155,7 @@ export function parseArray (str: string, ptr: number): [ any[], number ] {
 			})
 		}
 
-		else if (c === '#') ptr = indexOfNewline(str, ptr)
+		else if (c === '#') ptr = skipComment(str, ptr)
 		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
 			let e = extractValue(str, ptr - 1, ']')
 			res.push(e[0])
