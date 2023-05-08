@@ -38,28 +38,41 @@ The large TOML generator can be found [here](https://gist.github.com/cyyynthia/e
 
 |                | smol-toml           | @iarna/toml@3.0.0 | @ltd/j-toml    | fast-toml      |
 |----------------|---------------------|-------------------|----------------|----------------|
-| Spec example   | **37,009.05 op/s**  | 29,203.53 op/s    | 16,225.50 op/s | 23,886.25 op/s |
-| ~5MB test file | **4.6007 op/s**     | *DNF*             | 2.4919 op/s    | 2.5952 op/s    |
+| Spec example   | **60,733.91 op/s**  | 32,565.20 op/s    | 16,781.03 op/s | 31,336.67 op/s |
+| ~5MB test file | **4.2567 op/s**     | *DNF*             | 2.4873 op/s    | 2.5790 op/s    |
 
 <details>
 <summary>Detailed benchmark data</summary>
 
-Tests ran using Vitest v0.31.0 on commit bd69ffb52920ee6f2843356dff3325fc2e868821
+Tests ran using Vitest v0.31.0 on commit 361089f3dbc30d994494bf6ec1e8e2f135531247
 
 CPU: Intel Core i7 7700K (4.2GHz)
 
 ```
-✓ bench/parse.bench.ts (7) 17780ms
-   ✓ TOML spec example (4) 17778ms
+ RUN  v0.31.0
+
+ ✓ bench/parseSpecExample.bench.ts (4) 2466ms
      name                hz     min     max    mean     p75     p99    p995    p999     rme  samples
-   · smol-toml    37,009.05  0.0231  4.1194  0.0270  0.0260  0.0445  0.0500  0.0622  ±2.88%    18505   fastest
-   · @iarna/toml  29,203.53  0.0308  2.1478  0.0342  0.0325  0.0687  0.0714  0.2747  ±1.08%    14602
-   · @ltd/j-toml  16,225.50  0.0519  2.8481  0.0616  0.0545  0.1015  0.1193  1.9987  ±3.20%     8113   slowest
-   · fast-toml    23,886.25  0.0366  1.7331  0.0419  0.0391  0.0758  0.0818  1.1500  ±1.84%    11944
-   ✓ 5MB of TOML (all structures) (3) 17268ms
+   · smol-toml    60,733.91  0.0145  0.2580  0.0165  0.0152  0.0319  0.0345  0.1383  ±0.46%    30367   fastest
+   · @iarna/toml  32,565.20  0.0268  0.3208  0.0307  0.0284  0.0580  0.0619  0.1699  ±0.54%    16283
+   · @ltd/j-toml  16,781.03  0.0505  1.0392  0.0596  0.0540  0.1147  0.1360  0.7657  ±1.52%     8391   slowest
+   · fast-toml    31,336.67  0.0298  0.3357  0.0319  0.0305  0.0578  0.0622  0.1580  ±0.41%    15669
+ ✓ bench/parseLargeMixed.bench.ts (3) 15752ms
      name             hz     min     max    mean     p75     p99    p995    p999     rme  samples
-   · smol-toml    4.6007  208.19  238.94  217.36  229.56  238.94  238.94  238.94  ±4.10%       10   fastest
-   · @ltd/j-toml  2.4919  379.85  428.13  401.31  416.64  428.13  428.13  428.13  ±2.82%       10   slowest
-   · fast-toml    2.5952  375.28  416.15  385.33  393.15  416.15  416.15  416.15  ±2.60%       10
+   · smol-toml    4.2567  225.85  257.42  234.92  242.74  257.42  257.42  257.42  ±3.35%       10   fastest
+   · @ltd/j-toml  2.4873  382.66  441.12  402.05  416.25  441.12  441.12  441.12  ±3.40%       10   slowest
+   · fast-toml    2.5790  377.86  409.32  387.75  392.90  409.32  409.32  409.32  ±2.07%       10
+
+
+ BENCH  Summary
+
+  smol-toml - bench/parseLargeMixed.bench.ts >
+    1.65x faster than fast-toml
+    1.71x faster than @ltd/j-toml
+
+  smol-toml - bench/parseSpecExample.bench.ts >
+    1.86x faster than @iarna/toml
+    1.94x faster than fast-toml
+    3.62x faster than @ltd/j-toml
 ```
 </details>
