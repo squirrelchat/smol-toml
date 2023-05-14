@@ -27,12 +27,13 @@
  */
 
 import { skipVoid } from './util.js'
-import TomlDate, { DATE_TIME_RE } from './date.js'
+import TomlDate from './date.js'
 import TomlError from './error.js'
 
-let NUM_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f_]+(\.[0-9a-f_]+)?([e][+-]?[0-9a-f_]+)?$/i
-let INT_REGEX = /^(0x|0b|0o|[+-])?[0-9a-f]+$/
-let LEADING_ZERO = /^[+-]?0\d/
+let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[Tt ]?(\d{2}:\d{2}:\d{2}(?:\.\d+)?)?(Z|[-+]\d{2}:\d{2})?$/
+let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(0o[0-7](_?[0-7])*)|(0b[01](_?[01])*)|[+-]?(\d(_?\d)*))$/
+let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?(e[+-]?\d(_?\d)*)?$/i
+let LEADING_ZERO = /^[+-]?0[0-9_]/
 let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i
 
 let ESC_MAP = {
@@ -144,7 +145,9 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 		return VALUES_MAP[value as keyof typeof VALUES_MAP]
 
 	// Numbers
-	if (NUM_REGEX.test(value)) {
+	let isInt
+	if ((isInt = INT_REGEX.test(value)) || FLOAT_REGEX.test(value)) {
+		value = value.replace(/_/g, '')
 		if (LEADING_ZERO.test(value)) {
 			throw new TomlError('leading zeroes are not allowed', {
 				toml: toml,
@@ -152,10 +155,8 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 			})
 		}
 
-		value = value.replace(/_/g, '')
-
 		let numeric = +value
-		if (INT_REGEX.test(value) && !Number.isSafeInteger(numeric)) {
+		if (isInt && !Number.isSafeInteger(numeric)) {
 			throw new TomlError('integer value cannot be represented losslessly', {
 				toml: toml,
 				ptr: ptr

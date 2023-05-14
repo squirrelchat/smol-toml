@@ -94,7 +94,7 @@ it('rejects duplicate keys', () => {
 })
 
 it('handles comments', () => {
-	const tbl = {}
+	let tbl = {}
 
 	extractKeyValue('key1 = 3 # comment', 0, tbl, new Set())
 	extractKeyValue('key2 = false # comment', 0, tbl, new Set())
@@ -103,6 +103,17 @@ it('handles comments', () => {
 	extractKeyValue('key5 = """uwu""" # comment', 0, tbl, new Set())
 	extractKeyValue("key6 = 'uwu' # comment", 0, tbl, new Set())
 	extractKeyValue("key7 = '''uwu''' # comment", 0, tbl, new Set())
+
+	expect(tbl).toStrictEqual({ key1: 3, key2: false, key3: 'uwu', key4: 'uw"u', key5: 'uwu', key6: 'uwu', key7: 'uwu' })
+
+	tbl = {}
+	extractKeyValue('key1 = 3# comment', 0, tbl, new Set())
+	extractKeyValue('key2 = false# comment', 0, tbl, new Set())
+	extractKeyValue('key3 = "uwu"# comment', 0, tbl, new Set())
+	extractKeyValue('key4 = "uw\\"u"# comment', 0, tbl, new Set())
+	extractKeyValue('key5 = """uwu"""# comment', 0, tbl, new Set())
+	extractKeyValue("key6 = 'uwu'# comment", 0, tbl, new Set())
+	extractKeyValue("key7 = '''uwu'''# comment", 0, tbl, new Set())
 
 	expect(tbl).toStrictEqual({ key1: 3, key2: false, key3: 'uwu', key4: 'uw"u', key5: 'uwu', key6: 'uwu', key7: 'uwu' })
 })

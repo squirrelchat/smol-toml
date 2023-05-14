@@ -31,7 +31,7 @@
 
 type Offset = string | null
 
-export let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[Tt ]?(\d{2}:\d{2}:\d{2}(?:\.\d{3,})?)?(Z|[-+]\d{2}:\d{2})?$/
+let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?((?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?)?(Z|[-+]\d{2}:[0-5]\d)?$/i
 
 export default class TomlDate extends Date {
 	#hasDate: boolean
@@ -53,6 +53,7 @@ export default class TomlDate extends Date {
 
 				hasTime = !!match[2]
 				offset = match[3] || null
+				date = date.toUpperCase()
 			}
 		}
 
@@ -73,7 +74,7 @@ export default class TomlDate extends Date {
 	}
 
 	isLocal () {
-		return !this.#hasTime || !this.#hasTime || !this.#offset
+		return !this.#hasDate || !this.#hasTime || !this.#offset
 	}
 
 	isDate () {

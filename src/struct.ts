@@ -31,7 +31,7 @@ import { extractValue, extractKeyValue } from './parse.js'
 import { type TomlPrimitive, indexOfNewline, skipComment } from './util.js'
 import TomlError from './error.js'
 
-let KEY_PART_RE = /^[a-zA-Z0-9-_ \t]+$/
+let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
 
 export function parseKey (str: string, startPtr = 0, endPtr = str.length): string[] {
 	let ptr

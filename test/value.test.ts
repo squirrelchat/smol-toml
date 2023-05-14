@@ -69,6 +69,7 @@ it('rejects numbers too large', () => {
 it('rejects leading zeroes', () => {
 	expect(() => parseValue('0123', '', 0)).toThrowError(TomlError)
 	expect(() => parseValue('01.10', '', 0)).toThrowError(TomlError)
+	expect(() => parseValue('0_1.10', '', 0)).toThrowError(TomlError)
 })
 
 it('rejects invalid numbers', () => {
@@ -76,6 +77,15 @@ it('rejects invalid numbers', () => {
 	expect(() => parseValue('NaN', '', 0)).toThrowError(TomlError)
 	expect(() => parseValue('+0x01', '', 0)).toThrowError(TomlError)
 	expect(() => parseValue('-0x01', '', 0)).toThrowError(TomlError)
+})
+
+it('rejects invalid underscores', () => {
+	expect(() => parseValue('_10', '', 0)).toThrowError(TomlError)
+	expect(() => parseValue('10_', '', 0)).toThrowError(TomlError)
+	expect(() => parseValue('1__0', '', 0)).toThrowError(TomlError)
+
+	expect(() => parseValue('+_10', '', 0)).toThrowError(TomlError)
+	expect(() => parseValue('0x_10', '', 0)).toThrowError(TomlError)
 })
 
 it('parses floats', () => {
@@ -139,6 +149,10 @@ it('parses datetimes', () => {
 
 it('parses datetimes with a space instead of T', () => {
 	expect(parseValue('1979-05-27 07:32:00Z', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+})
+
+it('parses datetimes with lowercase T', () => {
+	expect(parseValue('1979-05-27t07:32:00Z', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
 })
 
 it('parses dates', () => {
