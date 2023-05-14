@@ -44,6 +44,17 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 			let isTableArray = toml[++ptr] === '['
 			let k = parseKey(toml, ptr += +isTableArray, ']')
 
+			if (isTableArray) {
+				if (toml[k[1] - 1] !== ']') {
+					throw new TomlError('expected end of table declaration', {
+						toml: toml,
+						ptr: k[1] - 1,
+					})
+				}
+
+				k[1]++
+			}
+
 			let strKey = JSON.stringify(k[0])
 			if (!isTableArray && seenTables.has(strKey)) {
 				throw new TomlError('trying to redefine an already defined table', {
@@ -74,8 +85,7 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 
 			tbl = v
 			if (isTableArray) v.push(tbl = {})
-
-			ptr = k[1] + +isTableArray
+			ptr = k[1]
 		} else {
 			ptr = extractKeyValue(toml, ptr, tbl, seenValues)
 		}

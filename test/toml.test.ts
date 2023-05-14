@@ -240,6 +240,10 @@ color = "gray"
 	})
 })
 
+it('rejects invalid arrays of table', () => {
+	expect(() => parse('[[uwu] ]')).toThrowError(TomlError)
+})
+
 it('parses arrays of tables with subtables', () => {
 	const doc = `
 [[fruits]]

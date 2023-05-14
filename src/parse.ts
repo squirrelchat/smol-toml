@@ -28,10 +28,10 @@
 
 import { parseString, parseValue } from './primitive.js'
 import { parseKey, parseArray, parseInlineTable } from './struct.js'
-import { type TomlPrimitive, peekTable, indexOfNewline, skipUntil, skipComment, getStringEnd } from './util.js'
+import { type TomlPrimitive, peekTable, indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd } from './util.js'
 import TomlError from './error.js'
 
-function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean) {
+function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean): [ string, number ] {
 	let value = str.slice(startPtr, endPtr)
 
 	let newlineIdx
@@ -55,7 +55,7 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 		}
 	}
 
-	return trimmed
+	return [ trimmed, commentIdx ]
 }
 
 export function extractValue (str: string, ptr: number, end?: string): [ TomlPrimitive, number ] {
@@ -86,17 +86,22 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 	}
 
 	endPtr = skipUntil(str, ptr, ',', end)
-	let valStr = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']')
-	if (!valStr) {
+	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']')
+	if (!slice[0]) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {
 			toml: str,
 			ptr: ptr
 		})
 	}
 
+	if (end && slice[1] > -1) {
+		endPtr = skipVoid(str, ptr + slice[1])
+		endPtr += +(str[endPtr] === ',')
+	}
+
 	return [
-		parseValue(valStr, str, ptr),
-		endPtr
+		parseValue(slice[0], str, ptr),
+		endPtr,
 	]
 }
 

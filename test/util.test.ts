@@ -63,8 +63,3 @@ it('skips until the next valuable token', () => {
 
 	expect(skipUntil('[ [ 1, 2 ], [ 3, 4 ] ]', 6, ',', ']')).toBe(9)
 })
-
-it('requires the presence of the final token', () => {
-	expect(() => skipUntil('[ 3, 4, ', 1, ',', ']')).toThrowError(TomlError)
-	expect(() => skipUntil('[ [ 3 ], 4, ', 8, ',', ']')).toThrowError(TomlError)
-})

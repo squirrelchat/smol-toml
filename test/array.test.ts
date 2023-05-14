@@ -70,6 +70,10 @@ it('tolerates trailing commas', () => {
 it('is not bothered by comments', () => {
 	expect(parseArray('[\n  1,\n  2, # uwu\n  # hehe 3,\n  4,\n  # owo\n]', 0)[0]).toStrictEqual([ 1, 2, 4 ])
 	expect(parseArray('[\r\n  1,\r\n  2, # uwu\r\n  # hehe 3,\r\n  4,\r\n  # owo\r\n]', 0)[0]).toStrictEqual([ 1, 2, 4 ])
+
+	expect(parseArray('[ 1,# 9, 9,\n2#,9\n,#9\n3#]\n,4]', 0)).toStrictEqual([ [ 1, 2, 3, 4 ], 28 ])
+	expect(parseArray('[ 1,# 9, 9,\n2#,9\n]', 0)).toStrictEqual([ [ 1, 2 ], 18 ])
+	expect(parseArray('[[[[#["#"],\n["#"]]]]#]\n]', 0)).toStrictEqual([ [ [ [ [ [ "#" ] ] ] ] ], 24 ])
 })
 
 it('rejects invalid arrays', () => {

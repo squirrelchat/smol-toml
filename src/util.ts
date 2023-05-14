@@ -79,17 +79,21 @@ export function skipUntil (str: string, ptr: number, sep: string, end?: string) 
 		return ptr < 0 ? str.length : ptr
 	}
 
-	let nextEnd = str.indexOf(end, ptr)
-	if (nextEnd < 0) {
-		// TODO: point to start of structure instead?
-		throw new TomlError('cannot find end of structure', {
-			toml: str,
-			ptr: ptr
-		})
+	for (let i = ptr; i < str.length; i++) {
+		let c = str[i]
+		if (c === '#') {
+			i = indexOfNewline(str, i)
+		} else if (c === sep) {
+			return i + 1
+		} else if (c === end) {
+			return i
+		}
 	}
 
-	let nextSep = str.indexOf(sep, ptr) + 1
-	return !nextSep || nextEnd < nextSep ? nextEnd : nextSep
+	throw new TomlError('cannot find end of structure', {
+		toml: str,
+		ptr: ptr
+	})
 }
 
 export function getStringEnd (str: string, seek: number) {
