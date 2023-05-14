@@ -106,8 +106,8 @@ export default class TomlDate extends Date {
 		// This part is quite annoying: JS strips the original timezone from the ISO string representation
 		// Instead of using a "modified" date and "Z", we restore the representation "as authored"
 
-		let rawOffset = (+(this.#offset.slice(1, 3)) * 60) + +(this.#offset.slice(4, 6))
-		let offset = this.#offset[0] === '-' ? rawOffset : -rawOffset
+		let offset = (+(this.#offset.slice(1, 3)) * 60) + +(this.#offset.slice(4, 6))
+		offset = this.#offset[0] === '-' ? offset : -offset
 
 		let offsetDate = new Date(this.getTime() - (offset * 60e3))
 		return offsetDate.toISOString().slice(0, -1) + this.#offset

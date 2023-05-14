@@ -29,6 +29,7 @@
 import { it, expect } from 'vitest'
 import { parseValue } from '../src/primitive.js'
 import TomlError from '../src/error.js'
+import TomlDate from '../src/date.js'
 
 it('parses integers', () => {
 	expect(parseValue('+99', '', 0)).toBe(99)
@@ -129,24 +130,24 @@ it('parses booleans', () => {
 })
 
 it('parses datetimes', () => {
-	expect(parseValue('1979-05-27T07:32:00', '', 0)).toStrictEqual(new Date ('1979-05-27T07:32:00'))
-	expect(parseValue('1979-05-27T00:32:00.999999', '', 0)).toStrictEqual(new Date ('1979-05-27T00:32:00.999999'))
-	expect(parseValue('1979-05-27T07:32:00Z', '', 0)).toStrictEqual(new Date ('1979-05-27T07:32:00Z'))
-	expect(parseValue('1979-05-27T00:32:00-07:00', '', 0)).toStrictEqual(new Date ('1979-05-27T00:32:00-07:00'))
-	expect(parseValue('1979-05-27T00:32:00.999999-07:00', '', 0)).toStrictEqual(new Date ('1979-05-27T00:32:00.999999-07:00'))
+	expect(parseValue('1979-05-27T07:32:00', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00'))
+	expect(parseValue('1979-05-27T00:32:00.999999', '', 0)).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999'))
+	expect(parseValue('1979-05-27T07:32:00Z', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27T00:32:00-07:00', '', 0)).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
+	expect(parseValue('1979-05-27T00:32:00.999999-07:00', '', 0)).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999-07:00'))
 })
 
 it('parses datetimes with a space instead of T', () => {
-	expect(parseValue('1979-05-27 07:32:00Z', '', 0)).toStrictEqual(new Date('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27 07:32:00Z', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
 })
 
 it('parses dates', () => {
-	expect(parseValue('1979-05-27', '', 0)).toStrictEqual(new Date('1979-05-27'))
+	expect(parseValue('1979-05-27', '', 0)).toStrictEqual(new TomlDate('1979-05-27'))
 })
 
 it('parses times', () => {
-	expect(parseValue('07:32:00', '', 0)).toStrictEqual(new Date('0000-01-01T07:32:00'))
-	expect(parseValue('00:32:00.999999', '', 0)).toStrictEqual(new Date('0000-01-01T00:32:00.999999'))
+	expect(parseValue('07:32:00', '', 0)).toStrictEqual(new TomlDate('07:32:00'))
+	expect(parseValue('00:32:00.999999', '', 0)).toStrictEqual(new TomlDate('00:32:00.999999'))
 })
 
 it('rejects invalid dates', () => {
