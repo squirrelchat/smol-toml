@@ -28,27 +28,8 @@
 
 import { parseString, parseValue } from './primitive.js'
 import { parseKey, parseArray, parseInlineTable } from './struct.js'
-import { type TomlPrimitive, peekTable, indexOfNewline, skipUntil, skipComment, skipVoid } from './util.js'
+import { type TomlPrimitive, peekTable, indexOfNewline, skipUntil, skipComment, getStringEnd } from './util.js'
 import TomlError from './error.js'
-
-function getStringEnd (str: string, seek: number) {
-	let first = str[seek]!
-	let target = first === str[seek + 1] && str[seek + 1] === str[seek + 2]
-		? str.slice(seek, seek + 3)
-		: first
-
-	seek += target.length - 1
-	do seek = str.indexOf(target, ++seek)
-	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
-
-	seek += target.length
-	if (target.length > 1) {
-		if (str[seek] === first) seek++
-		if (str[seek] === first) seek++
-	}
-
-	return seek
-}
 
 function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean) {
 	let value = str.slice(startPtr, endPtr)
@@ -84,7 +65,7 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 			? parseArray(str, ptr)
 			: parseInlineTable(str, ptr)
 
-		let newPtr = skipUntil(str, endPtr, end)
+		let newPtr = skipUntil(str, endPtr, ',', end)
 		if (end === '}') {
 			let nextNewLine = indexOfNewline(str, endPtr, newPtr)
 			if (nextNewLine > -1) {
@@ -104,7 +85,7 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 		return [ parseString(str, ptr, endPtr), endPtr + +(!!end && str[endPtr] === ',') ]
 	}
 
-	endPtr = skipUntil(str, ptr, end)
+	endPtr = skipUntil(str, ptr, ',', end)
 	let valStr = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']')
 	if (!valStr) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {
@@ -120,33 +101,20 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 }
 
 export function extractKeyValue (str: string, ptr: number, table: Record<string, TomlPrimitive>, seen: Set<any>, isInline?: boolean) {
-	let equalIdx = str.indexOf('=', ptr)
-	if (equalIdx < 0) {
-		throw new TomlError('incomplete key-value declaration: no equals sign after the key', {
-			toml: str,
-			ptr: ptr
-		})
-	}
-
 	// KEY
-	let t = peekTable(table, parseKey(str, ptr, equalIdx), seen)
+	let k = parseKey(str, ptr)
+
+	// TABLE
+	let t = peekTable(table, k[0], seen)
 	if (!t) {
 		throw new TomlError('trying to redefine an already defined value', {
 			toml: str,
-			ptr: ptr
+			ptr: k[1]
 		})
 	}
 
 	// VALUE
-	ptr = skipVoid(str, equalIdx + 1, true, true)
-	if (str[ptr] === '\n' || str[ptr] === '\r') {
-		throw new TomlError('newlines are not allowed in key-value declarations', {
-			toml: str,
-			ptr: ptr
-		})
-	}
-
-	let e = extractValue(str, ptr, isInline ? '}' : void 0)
+	let e = extractValue(str, k[1], isInline ? '}' : void 0)
 	t[1][t[0]] = e[0]
 	seen.add(e[0])
 	return e[1]

@@ -54,6 +54,8 @@ export default class TomlDate extends Date {
 				hasTime = !!match[2]
 				offset = match[3] || null
 				date = date.toUpperCase()
+			} else {
+				date = 'NaN'
 			}
 		}
 

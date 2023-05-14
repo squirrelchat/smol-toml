@@ -57,14 +57,14 @@ it('skips comments', () => {
 })
 
 it('skips until the next valuable token', () => {
-	expect(skipUntil('[ 3, 4, ]', 1, ']')).toBe(4)
-	expect(skipUntil('[ 3, 4, ]', 4, ']')).toBe(7)
-	expect(skipUntil('[ 3, 4, ]', 7, ']')).toBe(8)
+	expect(skipUntil('[ 3, 4, ]', 1, ',', ']')).toBe(4)
+	expect(skipUntil('[ 3, 4, ]', 4, ',', ']')).toBe(7)
+	expect(skipUntil('[ 3, 4, ]', 7, ',', ']')).toBe(8)
 
-	expect(skipUntil('[ [ 1, 2 ], [ 3, 4 ] ]', 6, ']')).toBe(9)
+	expect(skipUntil('[ [ 1, 2 ], [ 3, 4 ] ]', 6, ',', ']')).toBe(9)
 })
 
 it('requires the presence of the final token', () => {
-	expect(() => skipUntil('[ 3, 4, ', 1, ']')).toThrowError(TomlError)
-	expect(() => skipUntil('[ [ 3 ], 4, ', 8, ']')).toThrowError(TomlError)
+	expect(() => skipUntil('[ 3, 4, ', 1, ',', ']')).toThrowError(TomlError)
+	expect(() => skipUntil('[ [ 3 ], 4, ', 8, ',', ']')).toThrowError(TomlError)
 })

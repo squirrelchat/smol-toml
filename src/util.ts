@@ -50,7 +50,7 @@ export function skipComment (str: string, ptr: number) {
 	for (let i = ptr; i < str.length; i++) {
 		let c = str[i]!
 		if (c < '\t' || c === '\x0b' || c === '\x0c' || c === '\x7f' || (c > '\x0d' && c < '\x20')) {
-			throw new TomlError('control characters are not allowed in commebts', {
+			throw new TomlError('control characters are not allowed in comments', {
 				toml: str,
 				ptr: ptr,
 			})
@@ -73,7 +73,7 @@ export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banCo
 	return ptr < 0 ? str.length : skipVoid(str, ptr, banNewLines)
 }
 
-export function skipUntil (str: string, ptr: number, end?: string) {
+export function skipUntil (str: string, ptr: number, sep: string, end?: string) {
 	if (!end) {
 		ptr = indexOfNewline(str, ptr)
 		return ptr < 0 ? str.length : ptr
@@ -88,8 +88,29 @@ export function skipUntil (str: string, ptr: number, end?: string) {
 		})
 	}
 
-	let nextSep = str.indexOf(',', ptr) + 1
+	let nextSep = str.indexOf(sep, ptr) + 1
 	return !nextSep || nextEnd < nextSep ? nextEnd : nextSep
+}
+
+export function getStringEnd (str: string, seek: number) {
+	let first = str[seek]!
+	let target = first === str[seek + 1] && str[seek + 1] === str[seek + 2]
+		? str.slice(seek, seek + 3)
+		: first
+
+	seek += target.length - 1
+	do seek = str.indexOf(target, ++seek)
+	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
+
+	if (seek > -1) {
+		seek += target.length
+		if (target.length > 1) {
+			if (str[seek] === first) seek++
+			if (str[seek] === first) seek++
+		}
+	}
+
+	return seek
 }
 
 let DESCRIPTOR = { enumerable: true, configurable: true, writable: true }

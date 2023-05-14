@@ -41,29 +41,23 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 
 	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
 		if (toml[ptr] === '[') {
-			let isTableArray = toml[ptr + 1] === '['
-			let end = toml.indexOf(']', ptr)
-			if (end === -1)
-				throw new TomlError('unfinished table encountered', {
-					toml: toml,
-					ptr: ptr
-				})
+			let isTableArray = toml[++ptr] === '['
+			let k = parseKey(toml, ptr += +isTableArray, ']')
 
-			let k = parseKey(toml, ptr += +isTableArray + 1, end++)
-
-			let strKey = k.join('"."')
-			if (!isTableArray && seenTables.has(strKey))
+			let strKey = JSON.stringify(k[0])
+			if (!isTableArray && seenTables.has(strKey)) {
 				throw new TomlError('trying to redefine an already defined table', {
 					toml: toml,
-					ptr: ptr - 1
+					ptr: ptr,
 				})
+			}
 
 			seenTables.add(strKey)
-			let r = peekTable(res, k, seenValues, true)
+			let r = peekTable(res, k[0], seenValues, true)
 			if (!r) {
 				throw new TomlError('trying to redefine an already defined value', {
 					toml: toml,
-					ptr: ptr - 1
+					ptr: ptr,
 				})
 			}
 
@@ -81,7 +75,7 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 			tbl = v
 			if (isTableArray) v.push(tbl = {})
 
-			ptr = end + +isTableArray
+			ptr = k[1] + +isTableArray
 		} else {
 			ptr = extractKeyValue(toml, ptr, tbl, seenValues)
 		}

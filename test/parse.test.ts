@@ -60,6 +60,12 @@ it('extracts key-value', () => {
 	expect(extractKeyValue('key1 = [ 1 ]\n', 0, {}, new Set())).toBe(12)
 })
 
+it('extracts key-value with confusing equals', () => {
+	const tbl = {}
+	expect(extractKeyValue('key1."aa=aa" = "uwu"\nkey2 = "owo"\n', 0, tbl, new Set())).toBe(20)
+	expect(tbl).toStrictEqual({ key1: { 'aa=aa': 'uwu' } })
+})
+
 it('rejects multi-line key-value', () => {
 	expect(() => extractKeyValue('key1 = \n "uwu"', 0, {}, new Set())).toThrowError(TomlError)
 	expect(() => extractKeyValue('key1\n= "uwu"', 0, {}, new Set())).toThrowError(TomlError)
