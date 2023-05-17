@@ -28,87 +28,83 @@
 
 import { parseString } from './primitive.js'
 import { extractValue, extractKeyValue } from './parse.js'
-import { type TomlPrimitive, skipComment, skipUntil, getStringEnd, skipVoid } from './util.js'
+import { type TomlPrimitive, skipComment, indexOfNewline, getStringEnd, skipVoid } from './util.js'
 import TomlError from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
 
 export function parseKey (str: string, ptr: number, end = '='): [ string[], number ] {
+	let dot = ptr - 1
 	let parsed = []
 
-	let c
-	let expectValue = ptr
-	while ((c = str[ptr]) !== end) {
-		if (c === '\n' || c === '\r') {
-			throw new TomlError('newlines are not allowed in keys', {
-				toml: str,
-				ptr: ptr,
-			})
-		}
+	let endPtr = str.indexOf(end, ptr)
+	if (endPtr < 0) {
+		throw new TomlError('incomplete key-value: cannot find end of key', {
+			toml: str,
+			ptr: ptr
+		})
+	}
 
+	do {
+		let c = str[ptr = ++dot]
+
+		// If it's whitespace, ignore
 		if (c !== ' ' && c !== '\t') {
+			// If it's a string
 			if (c === '"' || c === "'") {
-				if (c === str[ptr + 1] && c === str[ptr + 2]) {
-					throw new TomlError('multiline strings are not allowed in keys', {
+				let eos = getStringEnd(str, ptr)
+				if (eos < 0) {
+					throw new TomlError('unfinished string encountered', {
 						toml: str,
 						ptr: ptr,
 					})
 				}
 
-				let endPtr = getStringEnd(str, ptr)
+				dot = str.indexOf('.', eos)
+				let strEnd = str.slice(eos, dot < 0 || dot > endPtr ? endPtr : dot)
+
+				let newLine = indexOfNewline(strEnd)
+				if (newLine > -1) {
+					throw new TomlError('newlines are not allowed in keys', {
+						toml: str,
+						ptr: ptr + dot + newLine,
+					})
+				}
+
+				if (strEnd.trimStart()) {
+					throw new TomlError('found extra tokens after the string part', {
+						toml: str,
+						ptr: eos,
+					})
+				}
+
+				endPtr = str.indexOf(end, eos)
 				if (endPtr < 0) {
-					throw new TomlError('incomplete string encountered in key declaration', {
+					throw new TomlError('incomplete key-value: cannot find end of key', {
 						toml: str,
 						ptr: ptr,
 					})
 				}
 
-				parsed.push(parseString(str, ptr, endPtr))
-				ptr = skipVoid(str, endPtr, true, true)
-				if (str[ptr] !== '.' && str[ptr] !== end) {
-					throw new TomlError('expected next part of key (or end of key declaration)', {
-						toml: str,
-						ptr: ptr,
-					})
-				}
-
-				if (str[ptr] === '.') ptr++
+				parsed.push(parseString(str, ptr, eos))
 			} else {
-				let endPtr = skipUntil(str, ptr, '.', end)
-				let part = str.slice(ptr, endPtr - +(str[endPtr] !== end))
-
-				if (!part) {
-					throw new TomlError('unexpected empty key part', {
-						toml: str,
-						ptr: expectValue,
-					})
-				}
-
+				// Normal raw key part consumption and validation
+				dot = str.indexOf('.', ptr)
+				let part = str.slice(ptr, dot < 0 || dot > endPtr ? endPtr : dot)
 				if (!KEY_PART_RE.test(part)) {
 					throw new TomlError('only letter, numbers, dashes and underscores are allowed in keys', {
 						toml: str,
-						ptr: ptr
+						ptr: ptr,
 					})
 				}
 
 				parsed.push(part.trimEnd())
-				ptr = endPtr
 			}
-
-			expectValue = str[ptr - 1] === '.' ? ptr - 1 : -1
-		} else {
-			ptr++
 		}
-	}
+		// Until there's no more dot
+	} while (dot + 1 && dot < endPtr)
 
-	if (expectValue > -1) {
-		throw new TomlError('unexpected empty key part', {
-			toml: str,
-			ptr: expectValue,
-		})
-	}
-
-	return [ parsed, skipVoid(str, ptr + 1, true, true) ]
+	return [ parsed, skipVoid(str, endPtr + 1, true, true) ]
 }
 
 export function parseInlineTable (str: string, ptr: number): [ Record<string, TomlPrimitive>, number ] {
@@ -119,7 +115,7 @@ export function parseInlineTable (str: string, ptr: number): [ Record<string, To
 
 	ptr++
 	while ((c = str[ptr++]!) !== '}' && c) {
-		if (c === '\n' || c === '\r') {
+		if (c === '\n') {
 			throw new TomlError('newlines are not allowed in inline tables', {
 				toml: str,
 				ptr: ptr - 1

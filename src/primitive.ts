@@ -30,8 +30,7 @@ import { skipVoid } from './util.js'
 import TomlDate from './date.js'
 import TomlError from './error.js'
 
-let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(\d{2}:\d{2}:\d{2}(?:\.\d+)?)?(Z|[-+]\d{2}:\d{2})?$/i
-let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(0o[0-7](_?[0-7])*)|(0b[01](_?[01])*)|[+-]?(\d(_?\d)*))$/
+let INT_REGEX = /^(((0x|0o|0b)[0-9a-fA-F](_?[0-9a-fA-F])*)|([+-]?\d(_?\d)*))$/
 let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?(e[+-]?\d(_?\d)*)?$/i
 let LEADING_ZERO = /^[+-]?0[0-9_]/
 let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i
@@ -55,9 +54,9 @@ let VALUES_MAP = {
 	nan: NaN,
 	'+nan': NaN,
 	'-nan': NaN,
+	// Avoid floating point representation for integer 0
 	'-0': 0,
 }
-
 
 export function parseString (str: string, ptr = 0, endPtr = str.length): string {
 	let isLiteral = str[ptr] === "'"
@@ -75,14 +74,14 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	let sliceStart = ptr
 	while (ptr < endPtr - 1) {
 		let c = str[ptr++]!
-		if (!isMultiline && (c === '\n' || c === '\r')) {
-			throw new TomlError('newlines are not allowed in strings', {
-				toml: str,
-				ptr: ptr - 1
-			})
-		}
-
-		if (c < '\t' || c === '\x0b' || c === '\x0c' || c === '\x7f' || (c > '\x0d' && c < '\x20')) {
+		if (c === '\n' || (c === '\r' && str[ptr] === '\n')) {
+			if (!isMultiline) {
+				throw new TomlError('newlines are not allowed in strings', {
+					toml: str,
+					ptr: ptr - 1
+				})
+			}
+		} else if ((c < '\x20' && c !== '\t') || c === '\x7f') {
 			throw new TomlError('control characters are not allowed in strings', {
 				toml: str,
 				ptr: ptr - 1
@@ -156,6 +155,13 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 		}
 
 		let numeric = +value
+		if (isNaN(numeric)) {
+			throw new TomlError('invalid number', {
+				toml: toml,
+				ptr: ptr
+			})
+		}
+
 		if (isInt && !Number.isSafeInteger(numeric)) {
 			throw new TomlError('integer value cannot be represented losslessly', {
 				toml: toml,
@@ -166,21 +172,13 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 		return numeric
 	}
 
-	// Date
-	if (DATE_TIME_RE.test(value)) {
-		let date = new TomlDate(value)
-		if (isNaN(date.getTime())) {
-			throw new TomlError('invalid date', {
-				toml: toml,
-				ptr: ptr
-			})
-		}
-
-		return date
+	let date = new TomlDate(value)
+	if (!date.isValid()) {
+		throw new TomlError('invalid value', {
+			toml: toml,
+			ptr: ptr
+		})
 	}
 
-	throw new TomlError('invalid value', {
-		toml: toml,
-		ptr: ptr
-	})
+	return date
 }

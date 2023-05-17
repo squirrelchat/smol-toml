@@ -38,39 +38,38 @@ export type TomlPrimitive =
 	| TomlPrimitive[]
 
 export function indexOfNewline (str: string, start = 0, end = str.length) {
-	for (let i = start; i < end; i++) {
-		if (str[i] === '\n' || str[i] === '\r')
-			return i
-	}
-
-	return -1
+	let idx = str.indexOf('\n', start)
+	if (str[idx - 1] === '\r') idx--
+	return idx <= end ? idx : -1
 }
 
 export function skipComment (str: string, ptr: number) {
 	for (let i = ptr; i < str.length; i++) {
 		let c = str[i]!
-		if (c < '\t' || c === '\x0b' || c === '\x0c' || c === '\x7f' || (c > '\x0d' && c < '\x20')) {
+		if (c === '\n')
+			return i
+
+		if (c === '\r' && str[i + 1] === '\n')
+			return i + 1
+
+		if ((c < '\x20' && c !== '\t') || c === '\x7f') {
 			throw new TomlError('control characters are not allowed in comments', {
 				toml: str,
 				ptr: ptr,
 			})
 		}
-
-		if (c === '\n' || c === '\r')
-			return i
 	}
 
-	return -1
+	return str.length
 }
 
 export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
 	let c
-	while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r'))) ptr++
+	while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r' && str[ptr + 1] === '\n'))) ptr++
 
-	if (banComments || c !== '#') return ptr
-
-	ptr = skipComment(str, ptr)
-	return ptr < 0 ? str.length : skipVoid(str, ptr, banNewLines)
+	return banComments || c !== '#'
+		? ptr
+		: skipVoid(str, skipComment(str, ptr), banNewLines)
 }
 
 export function skipUntil (str: string, ptr: number, sep: string, end?: string) {

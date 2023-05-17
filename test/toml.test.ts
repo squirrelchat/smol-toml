@@ -34,7 +34,6 @@ it('parses a simple key-value', () => {
 	expect(parse('key = "value"')).toStrictEqual({ key: 'value' })
 	expect(parse('key = "value"\nother = 1')).toStrictEqual({ key: 'value', other: 1 })
 	expect(parse('key = "value"\r\nother = 1')).toStrictEqual({ key: 'value', other: 1 })
-	expect(parse('key = "value"\rother = 1')).toStrictEqual({ key: 'value', other: 1 })
 })
 
 it('parses dotted key-values', () => {

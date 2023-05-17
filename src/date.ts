@@ -31,12 +31,12 @@
 
 type Offset = string | null
 
-let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?((?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?)?(Z|[-+]\d{2}:[0-5]\d)?$/i
+let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}:\d{2}(?:\.\d+)?)?(Z|[-+]\d{2}:\d{2})?$/i
 
 export default class TomlDate extends Date {
-	#hasDate: boolean
-	#hasTime: boolean
-	#offset: Offset
+	#hasDate = false
+	#hasTime = false
+	#offset: Offset = null
 
 	constructor (date: string | Date) {
 		let hasDate = true
@@ -52,19 +52,20 @@ export default class TomlDate extends Date {
 				}
 
 				hasTime = !!match[2]
-				offset = match[3] || null
-				date = date.toUpperCase()
+				// Do not allow rollover hours
+				if (match[2] && +match[2] > 23) {
+					date = ''
+				} else {
+					offset = match[3] || null
+					date = date.toUpperCase()
+				}
 			} else {
-				date = 'NaN'
+				date = ''
 			}
 		}
 
 		super(date)
-		if (isNaN(this.getTime())) {
-			this.#hasDate = false
-			this.#hasTime = false
-			this.#offset = null
-		} else {
+		if (!isNaN(this.getTime())) {
 			this.#hasDate = hasDate
 			this.#hasTime = hasTime
 			this.#offset = offset
@@ -85,6 +86,10 @@ export default class TomlDate extends Date {
 
 	isTime () {
 		return this.#hasTime && !this.#hasDate
+	}
+
+	isValid () {
+		return this.#hasDate || this.#hasTime
 	}
 
 	override toISOString() {

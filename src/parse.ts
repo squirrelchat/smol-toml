@@ -34,9 +34,10 @@ import TomlError from './error.js'
 function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean): [ string, number ] {
 	let value = str.slice(startPtr, endPtr)
 
-	let newlineIdx
 	let commentIdx = value.indexOf('#')
 	if (commentIdx > -1) {
+		// The call to skipComment allows to "validate" the comment
+		// (absence of control characters)
 		skipComment(str, commentIdx)
 		value = value.slice(0, commentIdx)
 	}
@@ -44,10 +45,8 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 	let trimmed = value.trimEnd()
 
 	if (!allowNewLines) {
-		let s = '\n'
-		newlineIdx = value.lastIndexOf('\n')
-		if (newlineIdx < 0) newlineIdx = value.lastIndexOf(s = '\r')
-		if (trimmed.lastIndexOf(s) !== newlineIdx) {
+		let newlineIdx = value.indexOf('\n', trimmed.length)
+		if (newlineIdx > -1) {
 			throw new TomlError('newlines are not allowed in inline tables', {
 				toml: str,
 				ptr: startPtr + newlineIdx
