@@ -28,7 +28,7 @@
 
 import { parseKey } from './struct.js'
 import { extractValue } from './parse.js'
-import { type TomlPrimitive, skipVoid, peekTable as _peekTable } from './util.js'
+import { type TomlPrimitive, skipVoid } from './util.js'
 import TomlError from './error.js'
 
 export { default as TomlDate } from './date.js'

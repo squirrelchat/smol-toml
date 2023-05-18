@@ -115,36 +115,3 @@ export function getStringEnd (str: string, seek: number) {
 
 	return seek
 }
-
-let DESCRIPTOR = { enumerable: true, configurable: true, writable: true }
-export function peekTable (table: Record<string, any>, key: string[], seen: Set<any>, allowSuper?: boolean): [ string, Record<string, any> ] | null {
-	let k = ''
-	let v
-	let hasOwn
-	let hadOwn
-	for (let i = 0; i < key.length; i++) {
-		if (i) {
-			if (!(hadOwn = hasOwn)) {
-				if (k === '__proto__') Object.defineProperty(table, k, DESCRIPTOR)
-				table[k] = {}
-			}
-
-			table = table[k]
-			if (Array.isArray(table)) table = table[table.length - 1]
-		}
-
-		k = key[i]!
-		hasOwn = Object.hasOwn(table, k)
-		v = hasOwn ? table[k] : void 0
-		if (v !== void 0 && (typeof v !== 'object' || seen.has(v))) {
-			return null
-		}
-	}
-
-	if (hasOwn && (!allowSuper || (hadOwn && !Array.isArray(v)))) {
-		return null
-	}
-
-	if (!hasOwn && k === '__proto__') Object.defineProperty(table, k, DESCRIPTOR)
-	return [ k, table ]
-}
