@@ -30,8 +30,8 @@ import { skipVoid } from './util.js'
 import TomlDate from './date.js'
 import TomlError from './error.js'
 
-let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0o|0b)?\d(_?\d)*))$/
-let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?(e[+-]?\d(_?\d)*)?$/i
+let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
+let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/
 let LEADING_ZERO = /^[+-]?0[0-9_]/
 let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i
 
@@ -43,19 +43,6 @@ let ESC_MAP = {
 	r: '\r',
 	'"': '"',
 	'\\': '\\',
-}
-
-let VALUES_MAP = {
-	true: true,
-	false: false,
-	inf: Infinity,
-	'+inf': Infinity,
-	'-inf': -Infinity,
-	nan: NaN,
-	'+nan': NaN,
-	'-nan': NaN,
-	// Avoid floating point representation for integer 0
-	'-0': 0,
 }
 
 export function parseString (str: string, ptr = 0, endPtr = str.length): string {
@@ -140,13 +127,17 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 }
 
 export function parseValue (value: string, toml: string, ptr: number): boolean | number | TomlDate {
-	if (Object.hasOwn(VALUES_MAP, value))
-		return VALUES_MAP[value as keyof typeof VALUES_MAP]
+	// Constant values
+	if (value === 'true') return true
+	if (value === 'false') return false
+	if (value === '-inf') return -Infinity
+	if (value === 'inf' || value === '+inf') return Infinity
+	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN
 
 	// Numbers
 	let isInt
+	if (value === '-0') return 0 // Avoid FP representation of -0
 	if ((isInt = INT_REGEX.test(value)) || FLOAT_REGEX.test(value)) {
-		value = value.replace(/_/g, '')
 		if (LEADING_ZERO.test(value)) {
 			throw new TomlError('leading zeroes are not allowed', {
 				toml: toml,
@@ -154,7 +145,7 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 			})
 		}
 
-		let numeric = +value
+		let numeric = +(value.replace(/_/g, ''))
 		if (isNaN(numeric)) {
 			throw new TomlError('invalid number', {
 				toml: toml,

@@ -34,6 +34,7 @@ import TomlError from './error.js'
 export { default as TomlDate } from './date.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY }
+
 type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
 type PeekResult = [ string, Record<string, TomlPrimitive>, MetaRecord ] | null
@@ -54,7 +55,7 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 				return null
 			}
 
-			if (Array.isArray(t)) {
+			if (state.t === Type.ARRAY) {
 				let l = t.length - 1
 				t = t[l]
 				m = m[l]!.c
@@ -69,6 +70,7 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 		if (!hasOwn) {
 			if (k === '__proto__') {
 				Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
+				Object.defineProperty(m, k, { enumerable: true, configurable: true, writable: true })
 			}
 
 			m[k] = {
