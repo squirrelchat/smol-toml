@@ -30,7 +30,7 @@ import { skipVoid } from './util.js'
 import TomlDate from './date.js'
 import TomlError from './error.js'
 
-let INT_REGEX = /^(((0x|0o|0b)[0-9a-fA-F](_?[0-9a-fA-F])*)|([+-]?\d(_?\d)*))$/
+let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0o|0b)?\d(_?\d)*))$/
 let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?(e[+-]?\d(_?\d)*)?$/i
 let LEADING_ZERO = /^[+-]?0[0-9_]/
 let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i

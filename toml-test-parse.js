@@ -43,11 +43,11 @@ function tagObject (obj) {
 		if (isNaN(obj)) obj = 'nan'
 		if (obj === Infinity) obj = 'inf'
 		if (obj === -Infinity) obj = '-inf'
+		return { type: 'float', value: obj.toString() }
+	}
 
-		// This is super hacky but allows to make some tests "artificially" pass...
-		// It's not great but as everything is floats in JS, no better solution *for now*.
-		let t = Number.isInteger(obj) ? 'integer' : 'float'
-		return { type: t, value: obj.toString() }
+	if (typeof obj === 'bigint') {
+		return { type: 'integer', value: obj.toString() }
 	}
 
 	if (obj instanceof TomlDate) {

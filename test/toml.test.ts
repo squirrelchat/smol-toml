@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { parse } from '../src/index.js'
 import TomlError from '../src/error.js'
 
@@ -131,12 +131,14 @@ it('handles empty tables', () => {
 it('lets super table be defined afterwards', () => {
 	const doc = `
 [x.y.z.w]
+a = 0
 
 [x]
+b = 0
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		x: { y: { z: { w: {} } } }
+		x: { b: 0, y: { z: { w: { a: 0 } } } }
 	})
 })
 
@@ -154,61 +156,12 @@ smooth = true
 	})
 })
 
-it('rejects duplicate tables', () => {
-	const doc = `
-[fruit]
-apple = "red"
-
-[fruit]
-orange = "orange"
-`.trim()
-
-	expect(() => parse(doc)).toThrowError(TomlError)
-})
-
-it('rejects duplicate tables (dotted keys)', () => {
-	const doc = `
-[fruit]
-apple.color = "red"
-
-[fruit.apple]
-kind = "granny smith"
-`.trim()
-
-	expect(() => parse(doc)).toThrowError(TomlError)
-})
-
 it('rejects tables overriding a defined value', () => {
 	const doc = `
 [fruit]
 apple = "red"
 
 [fruit.apple]
-texture = "smooth"
-`.trim()
-
-	expect(() => parse(doc)).toThrowError(TomlError)
-})
-
-it('rejects tables overriding a defined value (inline table)', () => {
-	const doc = `
-[fruit]
-apple = { uwu = "owo" }
-
-[fruit.apple]
-texture = "smooth"
-`.trim()
-
-	expect(() => parse(doc)).toThrowError(TomlError)
-})
-
-
-it('rejects tables overriding a defined value (inline table inner)', () => {
-	const doc = `
-[fruit]
-apple = { uwu = "owo" }
-
-[fruit.apple.hehe]
 texture = "smooth"
 `.trim()
 
@@ -345,4 +298,102 @@ color = "green"
 `.trim()
 
 	expect(() => parse(doc)).toThrowError(TomlError)
+})
+
+describe('table clashes', () => {
+	it('does not allow redefining a table', () => {
+		const doc = `
+[fruit]
+apple = "red"
+
+[fruit]
+orange = "orange"
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
+	it('does not allow dotted keys to redefine tables', () => {
+		const doc = `
+[a.b.c]
+  z = 9
+[a]
+  b.c.t = 9
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
+	it('does not allow redefining tables with [table]', () => {
+		const doc = `
+[fruit]
+apple.color = "red"
+
+[fruit.apple]
+kind = "granny smith"
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
+	it('does not allow clashes between [[table]] and [table]', () => {
+		const doc = `
+[[uwu]]
+[uwu]
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
+	it('does not allow clashes between [table] and [[table]]', () => {
+		const doc = `
+[uwu]
+[[uwu]]
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
+	it('rejects tables overriding a defined value (inline table)', () => {
+		const doc = `
+[fruit]
+apple = { uwu = "owo" }
+
+[fruit.apple]
+texture = "smooth"
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
+	it('rejects tables overriding a defined value (inline table inner)', () => {
+		const doc = `
+[fruit]
+apple = { uwu = "owo" }
+
+[fruit.apple.hehe]
+texture = "smooth"
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
+	it('does NOT reject duplicate [tables] for arrays of tables', () => {
+		const doc = `
+[[uwu]]
+[uwu.owo]
+hehe = true
+
+[[uwu]]
+[uwu.owo]
+hehe = true
+`.trim()
+
+		expect(parse(doc)).toStrictEqual({
+			uwu: [
+				{ owo: { hehe: true } },
+				{ owo: { hehe: true } },
+			]
+		})
+	})
 })

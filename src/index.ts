@@ -27,17 +27,98 @@
  */
 
 import { parseKey } from './struct.js'
-import { extractKeyValue } from './parse.js'
-import { type TomlPrimitive, skipVoid, peekTable } from './util.js'
+import { extractValue } from './parse.js'
+import { type TomlPrimitive, skipVoid, peekTable as _peekTable } from './util.js'
 import TomlError from './error.js'
 
 export { default as TomlDate } from './date.js'
 
+const enum Type { DOTTED, EXPLICIT, ARRAY }
+type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
+type MetaRecord = { [k: string]: MetaState }
+type PeekResult = [ string, Record<string, TomlPrimitive>, MetaRecord ] | null
+
+function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: MetaRecord, type: Type): PeekResult {
+	let t: any = table
+	let m = meta
+	let k: string
+	let hasOwn = false
+	let state: MetaState
+
+	for (let i = 0; i < key.length; i++) {
+		if (i) {
+			t = hasOwn! ? t[k!] : (t[k!] = {})
+			m = (state = m[k!]!).c
+
+			if (type === Type.DOTTED && state.t === Type.EXPLICIT) {
+				return null
+			}
+
+			if (Array.isArray(t)) {
+				let l = t.length - 1
+				t = t[l]
+				m = m[l]!.c
+			}
+		}
+
+		k = key[i]!
+		if ((hasOwn = Object.hasOwn(t, k)) && m[k]?.t === Type.DOTTED && m[k]?.d) {
+			return null
+		}
+
+		if (!hasOwn) {
+			if (k === '__proto__') {
+				Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
+			}
+
+			m[k] = {
+				t: i < key.length - 1 && type === Type.ARRAY
+					? Type.DOTTED
+					: type,
+				d: false,
+				i: 0,
+				c: {},
+			}
+		}
+	}
+
+	state = m[k!]!
+	if (state.t !== type) {
+		// Bad key type!
+		return null
+	}
+
+	if (type === Type.ARRAY) {
+		if (!state.d) {
+			state.d = true
+			t[k!] = []
+		}
+
+		t[k!].push(t = {})
+		state.c[state.i++] = (state = { t: Type.EXPLICIT, d: false, i: 0, c: {} })
+	}
+
+	if (state.d) {
+		// Redefining a table!
+		return null
+	}
+
+	state.d = true
+	if (type === Type.EXPLICIT) {
+		t = hasOwn ? t[k!] : (t[k!] = {})
+	} else if (type === Type.DOTTED && hasOwn) {
+		return null
+	}
+
+	return [ k!, t, state.c ]
+}
+
 export function parse (toml: string): Record<string, TomlPrimitive> {
 	let res = {}
+	let meta = {}
+
 	let tbl = res
-	let seenTables = new Set()
-	let seenValues = new Set()
+	let m = meta
 
 	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
 		if (toml[ptr] === '[') {
@@ -55,39 +136,30 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 				k[1]++
 			}
 
-			let strKey = JSON.stringify(k[0])
-			if (!isTableArray && seenTables.has(strKey)) {
-				throw new TomlError('trying to redefine an already defined table', {
+			let p = peekTable(k[0], res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
+			if (!p) {
+				throw new TomlError('trying to redefine an already defined table or value', {
 					toml: toml,
 					ptr: ptr,
 				})
 			}
 
-			seenTables.add(strKey)
-			let r = peekTable(res, k[0], seenValues, true)
-			if (!r) {
-				throw new TomlError('trying to redefine an already defined value', {
-					toml: toml,
-					ptr: ptr,
-				})
-			}
-
-			let v = r[1][r[0]]
-
-			if (!v) {
-				r[1][r[0]] = (v = isTableArray ? [] : {})
-			} else if (isTableArray && !Array.isArray(v)) {
-				throw new TomlError('trying to define an array of tables, but a table already exists for this identifier', {
-					toml: toml,
-					ptr: ptr - 2
-				})
-			}
-
-			tbl = v
-			if (isTableArray) v.push(tbl = {})
+			m = p[2]
+			tbl = p[1]
 			ptr = k[1]
 		} else {
-			ptr = extractKeyValue(toml, ptr, tbl, seenValues)
+			let k = parseKey(toml, ptr)
+			let p = peekTable(k[0], tbl, m, Type.DOTTED)
+			if (!p) {
+				throw new TomlError('trying to redefine an already defined table or value', {
+					toml: toml,
+					ptr: ptr,
+				})
+			}
+
+			let v = extractValue(toml, k[1])
+			p[1][p[0]] = v[0]
+			ptr = v[1]
 		}
 
 		ptr = skipVoid(toml, ptr, true)

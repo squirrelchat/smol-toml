@@ -29,7 +29,6 @@
 		"@types/node": "^20.1.0",
 		"@vitest/ui": "^0.31.0",
 		"fast-toml": "^0.5.4",
-		"toml-nodejs": "^0.3.0",
 		"typescript": "^5.0.4",
 		"vitest": "^0.31.0"
 	},

@@ -25,9 +25,6 @@ devDependencies:
   fast-toml:
     specifier: ^0.5.4
     version: 0.5.4
-  toml-nodejs:
-    specifier: ^0.3.0
-    version: 0.3.0
   typescript:
     specifier: ^5.0.4
     version: 5.0.4
@@ -784,11 +781,6 @@ packages:
     engines: {node: '>=8.0'}
     dependencies:
       is-number: 7.0.0
-    dev: true
-
-  /toml-nodejs@0.3.0:
-    resolution: {integrity: sha512-xcL9y46Sl3eClQHD9hZid0AQy2YXx1UZ4xkhmxL8LOHVXczVgNbC4EmA1T+DlEgPUisWoA6d1oTswm0A8SPu/w==}
-    engines: {node: '>=18.16'}
     dev: true
 
   /totalist@3.0.1:

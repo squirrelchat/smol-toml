@@ -85,4 +85,6 @@ it('rejects invalid keys', () => {
 	expect(() => parseKey('uwu."owo"hehe =', 0)).toThrowError(TomlError)
 
 	expect(() => parseKey('uwu hehe =', 0)).toThrowError(TomlError)
+
+	expect(() => parseKey('"""long\nkey""" = 1', 0)).toThrowError(TomlError)
 })

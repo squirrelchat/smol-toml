@@ -35,8 +35,8 @@ it('parses inline tables', () => {
 		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 42 ])
 	expect(parseInlineTable('{ x = 1, y = 2 }', 0))
 		.toStrictEqual([ { x: 1, y: 2 }, 16 ])
-	expect(parseInlineTable('{ type.name = "pug", "hehe.owo" = "uwu" }', 0))
-		.toStrictEqual([ { type: { name: 'pug' }, 'hehe.owo': 'uwu' }, 41 ])
+	expect(parseInlineTable('{ type.name = "pug", type.value = 1, "hehe.owo" = "uwu" }', 0))
+		.toStrictEqual([ { type: { name: 'pug', value: 1 }, 'hehe.owo': 'uwu' }, 57 ])
 	expect(parseInlineTable('{}', 0))
 		.toStrictEqual([ {}, 2 ])
 })
@@ -96,4 +96,8 @@ it('consumes only a table and aborts', () => {
 	expect(parseInlineTable('{ uwu = 1 }\nnext-value = 10', 0)).toStrictEqual([ { uwu: 1 }, 11 ])
 	expect(parseInlineTable('{ a = [ "uwu" ], b = 1, c = false, d = { hehe = 1 } }\nnext-value = 10', 0))
 		.toStrictEqual([ { a: [ 'uwu' ], b: 1, c: false, d: { hehe: 1 } }, 53 ])
+})
+
+it('respects inner immutability', () => {
+	expect(() => parseInlineTable('{ type = { name = "pug", value = 1 }, type.owo = "uwu" }', 0)).toThrowError(TomlError)
 })

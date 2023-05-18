@@ -27,8 +27,8 @@
  */
 
 import { parseString, parseValue } from './primitive.js'
-import { parseKey, parseArray, parseInlineTable } from './struct.js'
-import { type TomlPrimitive, peekTable, indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd } from './util.js'
+import { parseArray, parseInlineTable } from './struct.js'
+import { type TomlPrimitive, indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd } from './util.js'
 import TomlError from './error.js'
 
 function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean): [ string, number ] {
@@ -102,24 +102,4 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 		parseValue(slice[0], str, ptr),
 		endPtr,
 	]
-}
-
-export function extractKeyValue (str: string, ptr: number, table: Record<string, TomlPrimitive>, seen: Set<any>, isInline?: boolean) {
-	// KEY
-	let k = parseKey(str, ptr)
-
-	// TABLE
-	let t = peekTable(table, k[0], seen)
-	if (!t) {
-		throw new TomlError('trying to redefine an already defined value', {
-			toml: str,
-			ptr: k[1]
-		})
-	}
-
-	// VALUE
-	let e = extractValue(str, k[1], isInline ? '}' : void 0)
-	t[1][t[0]] = e[0]
-	seen.add(e[0])
-	return e[1]
 }
