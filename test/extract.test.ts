@@ -27,8 +27,7 @@
  */
 
 import { it, expect } from 'vitest'
-import { extractValue } from '../src/parse.js'
-import TomlError from '../src/error.js'
+import { extractValue } from '../src/extract.js'
 
 it('extracts value of correct type', () => {
 	expect(extractValue('[ 1, 2 ]', 2, ']')).toStrictEqual([ 1, 4 ])

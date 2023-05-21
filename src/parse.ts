@@ -26,80 +26,151 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { parseString, parseValue } from './primitive.js'
-import { parseArray, parseInlineTable } from './struct.js'
-import { type TomlPrimitive, indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd } from './util.js'
+import { parseKey } from './struct.js'
+import { extractValue } from './extract.js'
+import { type TomlPrimitive, skipVoid } from './util.js'
 import TomlError from './error.js'
 
-function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean): [ string, number ] {
-	let value = str.slice(startPtr, endPtr)
+const enum Type { DOTTED, EXPLICIT, ARRAY }
 
-	let commentIdx = value.indexOf('#')
-	if (commentIdx > -1) {
-		// The call to skipComment allows to "validate" the comment
-		// (absence of control characters)
-		skipComment(str, commentIdx)
-		value = value.slice(0, commentIdx)
-	}
+type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
+type MetaRecord = { [k: string]: MetaState }
+type PeekResult = [ string, Record<string, TomlPrimitive>, MetaRecord ] | null
 
-	let trimmed = value.trimEnd()
+function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: MetaRecord, type: Type): PeekResult {
+	let t: any = table
+	let m = meta
+	let k: string
+	let hasOwn = false
+	let state: MetaState
 
-	if (!allowNewLines) {
-		let newlineIdx = value.indexOf('\n', trimmed.length)
-		if (newlineIdx > -1) {
-			throw new TomlError('newlines are not allowed in inline tables', {
-				toml: str,
-				ptr: startPtr + newlineIdx
-			})
-		}
-	}
+	for (let i = 0; i < key.length; i++) {
+		if (i) {
+			t = hasOwn! ? t[k!] : (t[k!] = {})
+			m = (state = m[k!]!).c
 
-	return [ trimmed, commentIdx ]
-}
+			if (type === Type.DOTTED && state.t === Type.EXPLICIT) {
+				return null
+			}
 
-export function extractValue (str: string, ptr: number, end?: string): [ TomlPrimitive, number ] {
-	let c = str[ptr]
-	if (c === '[' || c === '{') {
-		let [ value, endPtr ] = c === '['
-			? parseArray(str, ptr)
-			: parseInlineTable(str, ptr)
-
-		let newPtr = skipUntil(str, endPtr, ',', end)
-		if (end === '}') {
-			let nextNewLine = indexOfNewline(str, endPtr, newPtr)
-			if (nextNewLine > -1) {
-				throw new TomlError('newlines are not allowed in inline tables', {
-					toml: str,
-					ptr: nextNewLine
-				})
+			if (state.t === Type.ARRAY) {
+				let l = t.length - 1
+				t = t[l]
+				m = m[l]!.c
 			}
 		}
 
-		return [ value, newPtr ]
+		k = key[i]!
+		if ((hasOwn = Object.hasOwn(t, k)) && m[k]?.t === Type.DOTTED && m[k]?.d) {
+			return null
+		}
+
+		if (!hasOwn) {
+			if (k === '__proto__') {
+				Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
+				Object.defineProperty(m, k, { enumerable: true, configurable: true, writable: true })
+			}
+
+			m[k] = {
+				t: i < key.length - 1 && type === Type.ARRAY
+					? Type.DOTTED
+					: type,
+				d: false,
+				i: 0,
+				c: {},
+			}
+		}
 	}
 
-	let endPtr
-	if (c === '"' || c === "'") {
-		endPtr = getStringEnd(str, ptr)
-		return [ parseString(str, ptr, endPtr), endPtr + +(!!end && str[endPtr] === ',') ]
+	state = m[k!]!
+	if (state.t !== type) {
+		// Bad key type!
+		return null
 	}
 
-	endPtr = skipUntil(str, ptr, ',', end)
-	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']')
-	if (!slice[0]) {
-		throw new TomlError('incomplete key-value declaration: no value specified', {
-			toml: str,
-			ptr: ptr
-		})
+	if (type === Type.ARRAY) {
+		if (!state.d) {
+			state.d = true
+			t[k!] = []
+		}
+
+		t[k!].push(t = {})
+		state.c[state.i++] = (state = { t: Type.EXPLICIT, d: false, i: 0, c: {} })
 	}
 
-	if (end && slice[1] > -1) {
-		endPtr = skipVoid(str, ptr + slice[1])
-		endPtr += +(str[endPtr] === ',')
+	if (state.d) {
+		// Redefining a table!
+		return null
 	}
 
-	return [
-		parseValue(slice[0], str, ptr),
-		endPtr,
-	]
+	state.d = true
+	if (type === Type.EXPLICIT) {
+		t = hasOwn ? t[k!] : (t[k!] = {})
+	} else if (type === Type.DOTTED && hasOwn) {
+		return null
+	}
+
+	return [ k!, t, state.c ]
+}
+
+export function parse (toml: string): Record<string, TomlPrimitive> {
+	let res = {}
+	let meta = {}
+
+	let tbl = res
+	let m = meta
+
+	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
+		if (toml[ptr] === '[') {
+			let isTableArray = toml[++ptr] === '['
+			let k = parseKey(toml, ptr += +isTableArray, ']')
+
+			if (isTableArray) {
+				if (toml[k[1] - 1] !== ']') {
+					throw new TomlError('expected end of table declaration', {
+						toml: toml,
+						ptr: k[1] - 1,
+					})
+				}
+
+				k[1]++
+			}
+
+			let p = peekTable(k[0], res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
+			if (!p) {
+				throw new TomlError('trying to redefine an already defined table or value', {
+					toml: toml,
+					ptr: ptr,
+				})
+			}
+
+			m = p[2]
+			tbl = p[1]
+			ptr = k[1]
+		} else {
+			let k = parseKey(toml, ptr)
+			let p = peekTable(k[0], tbl, m, Type.DOTTED)
+			if (!p) {
+				throw new TomlError('trying to redefine an already defined table or value', {
+					toml: toml,
+					ptr: ptr,
+				})
+			}
+
+			let v = extractValue(toml, k[1])
+			p[1][p[0]] = v[0]
+			ptr = v[1]
+		}
+
+		ptr = skipVoid(toml, ptr, true)
+		if (toml[ptr] && toml[ptr] !== '\n' && toml[ptr] !== '\r') {
+			throw new TomlError('each key-value declaration must be followed by an end-of-line', {
+				toml: toml,
+				ptr: ptr
+			})
+		}
+		ptr = skipVoid(toml, ptr)
+	}
+
+	return res
 }
