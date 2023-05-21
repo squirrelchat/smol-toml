@@ -183,12 +183,23 @@ it('rejects invalid inputs', () => {
 	expect(() => stringify('test')).toThrow(TypeError)
 })
 
-it('ignores null and undefined', () => {
+it('ignores null and undefined on objects', () => {
 	const testObj = {
 		a: null,
-		b: undefined,
+		b: void 0,
 		c: 1
 	}
 
 	expect(stringify(testObj).trim()).toBe('c = 1')
+})
+
+
+it('rejects null and undefined in arrays', () => {
+	expect(() => stringify({ a: [ 1, null, 2 ]})).toThrow(TypeError)
+	expect(() => stringify({ a: [ 1, void 0, 2 ]})).toThrow(TypeError)
+})
+
+it('rejects functions and symbols', () => {
+	expect(() => stringify({ a: () => void 0 })).toThrow(TypeError)
+	expect(() => stringify({ a: Symbol() })).toThrow(TypeError)
 })

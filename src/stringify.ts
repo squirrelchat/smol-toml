@@ -99,6 +99,10 @@ function stringifyArray (array: any[]) {
 	let res = '[ '
 	for (let i = 0; i < array.length; i++) {
 		if (i) res += ', '
+		if (array[i] === null || array[i] === void 0) {
+			throw new TypeError('arrays cannot contain null or undefined values')
+		}
+
 		res += stringifyValue(array[i])
 	}
 
@@ -126,7 +130,7 @@ function stringifyTable (obj: any, prefix = '') {
 		if (obj[k] !== null && obj[k] !== void 0) {
 			let type = extendedTypeOf(obj[k])
 			if (type === 'symbol' || type === 'function') {
-				throw new Error(`cannot serialize values of type '${type}'.`)
+				throw new TypeError(`cannot serialize values of type '${type}'`)
 			}
 
 			let key = BARE_KEY.test(k) ? k : formatString(k)
