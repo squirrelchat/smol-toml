@@ -45,11 +45,65 @@ The following parse tests are failing:
 
 ## Usage
 ```js
-import { parse } from 'smol-toml'
+import { parse, stringify } from 'smol-toml'
 
 const doc = '...'
 const parsed = parse(doc)
 console.log(parsed)
+
+const toml = stringify(parsed)
+console.log(toml)
+```
+
+A few notes on the `stringify` function:
+- `undefined` and `null` values on objects are ignored (does not produce a key/value).
+- `undefined` and `null` values in arrays are **rejected**.
+- Functions, classes and symbols are **rejected**.
+- floats will be serialized as integers if they don't have a decimal part.
+  - `stringify(parse('a = 1.0')) === 'a = 1'`
+- JS `Date` will be serialized as Offset Date Time
+  - Use the [`TomlDate` object](#dates) for representing other types.
+
+### Dates
+`smol-toml` uses an extended `Date` object to represent all types of TOML Dates. In the future, `smol-toml` will use
+objects from the Temporal proposal, but for now we're stuck with the legacy Date object.
+
+```js
+import { TomlDate } from 'smol-toml'
+
+// Offset Date Time
+const date = new TomlDate('1979-05-27T07:32:00.000-08:00')
+console.log(date.isDateTime(), date.isDate(), date.isTime(), date.isLocal()) // ~> true, false, false, false
+console.log(date.toISOString()) // ~> 1979-05-27T07:32:00.000-08:00
+
+// Local Date Time
+const date = new TomlDate('1979-05-27T07:32:00.000')
+console.log(date.isDateTime(), date.isDate(), date.isTime(), date.isLocal()) // ~> true, false, false, true
+console.log(date.toISOString()) // ~> 1979-05-27T07:32:00.000
+
+// Local Date
+const date = new TomlDate('1979-05-27')
+console.log(date.isDateTime(), date.isDate(), date.isTime(), date.isLocal()) // ~> false, true, false, true
+console.log(date.toISOString()) // ~> 1979-05-27
+
+// Local Time
+const date = new TomlDate('07:32:00')
+console.log(date.isDateTime(), date.isDate(), date.isTime(), date.isLocal()) // ~> false, false, true, true
+console.log(date.toISOString()) // ~> 07:32:00.000
+```
+
+You can also wrap a native `Date` object and specify using different methods depending on the type of date you wish
+to represent:
+
+```js
+import { TomlDate } from 'smol-toml'
+
+const jsDate = new Date()
+
+const offsetDateTime = TomlDate.wrapAsOffsetDateTime(jsDate)
+const localDateTime = TomlDate.wrapAsLocalDateTime(jsDate)
+const localDate = TomlDate.wrapAsLocalDate(jsDate)
+const localTime = TomlDate.wrapAsLocalTime(jsDate)
 ```
 
 ## Performance
