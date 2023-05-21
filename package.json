@@ -1,11 +1,12 @@
 {
 	"name": "smol-toml",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"keywords": [
 		"toml",
-		"parser"
+		"parser",
+		"serializer"
 	],
-	"description": "A small, fast, and correct TOML parser",
+	"description": "A small, fast, and correct TOML parser/serializer",
 	"repository": "git@github.com:squirrelchat/smol-toml.git",
 	"author": "Cynthia <cyyynthia@borkenware.com>",
 	"license": "BSD-3-Clause",
