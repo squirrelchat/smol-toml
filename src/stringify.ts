@@ -28,9 +28,13 @@
 
 const BARE_KEY = /^[a-z0-9-_]+$/i
 
+function stringifyString (s: string) {
+	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
+}
+
 function isArrayOfTables (obj: any[]) {
 	for (let i = 0; i < obj.length; i++) {
-		if (typeof obj[i] !== 'object' || Array.isArray(obj[i]))
+		if (typeof obj[i] !== 'object' || Array.isArray(obj[i]) || obj[i] instanceof Date)
 			return false
 	}
 
@@ -39,12 +43,19 @@ function isArrayOfTables (obj: any[]) {
 
 function stringifyValue (val: any) {
 	let type = typeof val
-	if (type === 'number' || type === 'bigint' || type === 'boolean') {
+	if (type === 'number') {
+		if (isNaN(val)) return 'nan'
+		if (val === Infinity) return 'inf'
+		if (val === -Infinity) return '-inf'
+		return val.toExponential()
+	}
+
+	if (type === 'bigint' || type === 'boolean') {
 		return val.toString()
 	}
 
 	if (type === 'string') {
-		return JSON.stringify(val)
+		return stringifyString(val)
 	}
 
 	if (val instanceof Date) {
@@ -62,7 +73,7 @@ function stringifyInlineTable (obj: any) {
 		let k = keys[i]!
 		if (i) res += ', '
 
-		res += BARE_KEY.test(k) ? k : JSON.stringify(k)
+		res += BARE_KEY.test(k) ? k : stringifyString(k)
 		res += ' = '
 		res += typeof obj[k] === 'object' && !(obj[k] instanceof Date)
 			? Array.isArray(obj[k])
