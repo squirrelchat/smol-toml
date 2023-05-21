@@ -49,6 +49,22 @@ a = 100
 	expect(stringify({ a: 100n }).trim()).toBe(expected)
 })
 
+it('stringifies special float values', () => {
+	const expected = `
+inf = inf
+ninf = -inf
+nan = nan
+`.trim()
+
+	const obj = {
+		inf: Infinity,
+		ninf: -Infinity,
+		nan: NaN,
+	}
+
+	expect(stringify(obj).trim()).toBe(expected)
+})
+
 it('stringifies dates properly', () => {
 	const expected = `
 date1 = 1979-05-27T07:32:00.000-08:00
@@ -152,6 +168,7 @@ it('does not produce invalid strings', () => {
 		str2: 'test\x00',
 		str3: 'test"',
 		str4: 'test\\',
+		str5: 'test\x7f',
 	}
 
 	const stringified = stringify(testObj)
@@ -159,8 +176,19 @@ it('does not produce invalid strings', () => {
 	expect(stringified).not.toContain('\x00')
 	expect(stringified).toContain('\\"')
 	expect(stringified).toContain('\\\\')
+	expect(stringified).not.toContain('\x7f')
 })
 
 it('rejects invalid inputs', () => {
 	expect(() => stringify('test')).toThrow(TypeError)
+})
+
+it('ignores null and undefined', () => {
+	const testObj = {
+		a: null,
+		b: undefined,
+		c: 1
+	}
+
+	expect(stringify(testObj).trim()).toBe('c = 1')
 })

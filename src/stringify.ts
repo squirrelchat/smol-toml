@@ -28,26 +28,34 @@
 
 const BARE_KEY = /^[a-z0-9-_]+$/i
 
-function stringifyString (s: string) {
-	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
+function extendedTypeOf (obj: any) {
+	let type = typeof obj
+	if (type === 'object') {
+		if (Array.isArray(obj)) return 'array'
+		if (obj instanceof Date) return 'date'
+	}
+
+	return type
 }
 
 function isArrayOfTables (obj: any[]) {
 	for (let i = 0; i < obj.length; i++) {
-		if (typeof obj[i] !== 'object' || Array.isArray(obj[i]) || obj[i] instanceof Date)
-			return false
+		if (extendedTypeOf(obj[i]) !== 'object') return false
 	}
 
 	return true
 }
 
-function stringifyValue (val: any) {
-	let type = typeof val
+function formatString (s: string) {
+	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
+}
+
+function stringifyValue (val: any, type = extendedTypeOf(val)) {
 	if (type === 'number') {
 		if (isNaN(val)) return 'nan'
 		if (val === Infinity) return 'inf'
 		if (val === -Infinity) return '-inf'
-		return val.toExponential()
+		return val.toString()
 	}
 
 	if (type === 'bigint' || type === 'boolean') {
@@ -55,14 +63,20 @@ function stringifyValue (val: any) {
 	}
 
 	if (type === 'string') {
-		return stringifyString(val)
+		return formatString(val)
 	}
 
-	if (val instanceof Date) {
+	if (type === 'date') {
 		return val.toISOString()
 	}
 
-	throw new Error(`cannot serialize value of type ${type}`)
+	if (type === 'object') {
+		return stringifyInlineTable(val)
+	}
+
+	if (type === 'array') {
+		return stringifyArray(val)
+	}
 }
 
 function stringifyInlineTable (obj: any) {
@@ -73,13 +87,9 @@ function stringifyInlineTable (obj: any) {
 		let k = keys[i]!
 		if (i) res += ', '
 
-		res += BARE_KEY.test(k) ? k : stringifyString(k)
+		res += BARE_KEY.test(k) ? k : formatString(k)
 		res += ' = '
-		res += typeof obj[k] === 'object' && !(obj[k] instanceof Date)
-			? Array.isArray(obj[k])
-				? stringifyArray(obj[k])
-				: stringifyInlineTable(obj[k])
-			: stringifyValue(obj[k])
+		res += stringifyValue(obj[k])
 	}
 
 	return res + ' }'
@@ -89,11 +99,7 @@ function stringifyArray (array: any[]) {
 	let res = '[ '
 	for (let i = 0; i < array.length; i++) {
 		if (i) res += ', '
-		res += typeof array[i] === 'object' && !(array[i] instanceof Date)
-			? Array.isArray(array[i])
-				? stringifyArray(array[i])
-				: stringifyInlineTable(array[i])
-			: stringifyValue(array[i])
+		res += stringifyValue(array[i])
 	}
 
 	return res + ' ]'
@@ -117,38 +123,35 @@ function stringifyTable (obj: any, prefix = '') {
 	let keys = Object.keys(obj)
 	for (let i = 0; i < keys.length; i++) {
 		let k = keys[i]!
-		let key = BARE_KEY.test(k) ? k : JSON.stringify(k)
+		if (obj[k] !== null && obj[k] !== void 0) {
+			let type = extendedTypeOf(obj[k])
+			if (type === 'symbol' || type === 'function') {
+				throw new Error(`cannot serialize values of type '${type}'.`)
+			}
 
-		if (typeof obj[k] === 'object' && !(obj[k] instanceof Date)) {
-			let tblKey = prefix ? `${prefix}.${key}` : key
+			let key = BARE_KEY.test(k) ? k : formatString(k)
 
-			if (Array.isArray(obj[k])) {
-				if (isArrayOfTables(obj[k])) {
-					tables += stringifyArrayTable(obj[k], tblKey)
-				} else {
-					preamble += key
-					preamble += ' = '
-					preamble += stringifyArray(obj[k])
-				}
-			} else {
+			if (type === 'array' && isArrayOfTables(obj[k])) {
+				tables += stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key)
+			} else if (type === 'object') {
+				let tblKey = prefix ? `${prefix}.${key}` : key
 				tables += `[${tblKey}]\n`
 				tables += stringifyTable(obj[k], tblKey)
 				tables += '\n\n'
+			} else {
+				preamble += key
+				preamble += ' = '
+				preamble += stringifyValue(obj[k], type)
+				preamble += '\n'
 			}
-		} else {
-			preamble += key
-			preamble += ' = '
-			preamble += stringifyValue(obj[k])
 		}
-
-		preamble += '\n'
 	}
 
 	return `${preamble}\n${tables}`.trim()
 }
 
 export function stringify (obj: any) {
-	if (typeof obj !== 'object' || Array.isArray(obj)) {
+	if (extendedTypeOf(obj) !== 'object') {
 		throw new TypeError('stringify can only be called with an object')
 	}
 
