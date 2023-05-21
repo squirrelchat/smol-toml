@@ -28,4 +28,6 @@
 
 export { default as TomlError } from './error.js'
 export { default as TomlDate } from './date.js'
+
 export { parse } from './parse.js'
+export { stringify } from './stringify.js'

@@ -58,6 +58,7 @@ export default class TomlDate extends Date {
 				} else {
 					offset = match[3] || null
 					date = date.toUpperCase()
+					if (!offset) date += 'Z'
 				}
 			} else {
 				date = ''

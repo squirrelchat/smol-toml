@@ -27,7 +27,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { parse } from '../src/index.js'
+import { parse } from '../src/parse.js'
 import TomlError from '../src/error.js'
 
 it('parses a simple key-value', () => {
