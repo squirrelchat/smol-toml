@@ -67,6 +67,10 @@ function stringifyValue (val: any, type = extendedTypeOf(val)) {
 	}
 
 	if (type === 'date') {
+		if (isNaN(val.getTime())) {
+			throw new TypeError('cannot serialize invalid date')
+		}
+
 		return val.toISOString()
 	}
 

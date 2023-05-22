@@ -203,3 +203,7 @@ it('rejects functions and symbols', () => {
 	expect(() => stringify({ a: () => void 0 })).toThrow(TypeError)
 	expect(() => stringify({ a: Symbol() })).toThrow(TypeError)
 })
+
+it('rejects invalid dates', () => {
+	expect(() => stringify({ a: new Date('Invalid Date') })).toThrow(TypeError)
+})
