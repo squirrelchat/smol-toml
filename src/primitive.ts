@@ -134,9 +134,10 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 	if (value === 'inf' || value === '+inf') return Infinity
 	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN
 
+	if (value === '-0') return 0 // Avoid FP representation of -0
+
 	// Numbers
 	let isInt
-	if (value === '-0') return 0 // Avoid FP representation of -0
 	if ((isInt = INT_REGEX.test(value)) || FLOAT_REGEX.test(value)) {
 		if (LEADING_ZERO.test(value)) {
 			throw new TomlError('leading zeroes are not allowed', {

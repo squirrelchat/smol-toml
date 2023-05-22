@@ -26,8 +26,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export { default as TomlError } from './error.js'
-export { default as TomlDate } from './date.js'
+// Script for https://github.com/BurntSushi/toml-test
 
-export { parse } from './parse.js'
-export { stringify } from './stringify.js'
+import { TomlDate, stringify } from './dist/index.js'
+
+function untagObject (obj) {
+	if (Array.isArray(obj)) return obj.map((o) => untagObject(o))
+
+	const res = {}
+	if (Object.keys(obj).length === 2 && 'type' in obj && 'value' in obj) {
+		switch (obj.type) {
+			case 'string':
+				return obj.value
+			case 'bool':
+				return obj.value === 'true'
+			case 'integer':
+				return BigInt(obj.value)
+			case 'float':
+				if (obj.value === 'nan') return NaN
+				if (obj.value === '+nan') return NaN
+				if (obj.value === '-nan') return NaN
+				if (obj.value === 'inf') return Infinity
+				if (obj.value === '+inf') return Infinity
+				if (obj.value === '-inf') return -Infinity
+				return Number(obj.value)
+			case 'datetime':
+			case 'datetime-local':
+			case 'date-local':
+			case 'time-local':
+				return new TomlDate(obj.value)
+		}
+
+		throw new Error('cannot untag object')
+	}
+
+	for (const k in obj) {
+		res[k] = untagObject(obj[k])
+	}
+	return res
+}
+
+let json = ''
+process.stdin.setEncoding('utf8')
+process.stdin.on('data', (j) => json += j)
+process.stdin.on('end', () => {
+	const tagged = JSON.parse(json)
+	const obj = untagObject(tagged)
+	console.log(stringify(obj))
+})

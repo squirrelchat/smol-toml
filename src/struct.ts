@@ -27,7 +27,7 @@
  */
 
 import { parseString } from './primitive.js'
-import { extractValue } from './parse.js'
+import { extractValue } from './extract.js'
 import { type TomlPrimitive, skipComment, indexOfNewline, getStringEnd, skipVoid } from './util.js'
 import TomlError from './error.js'
 

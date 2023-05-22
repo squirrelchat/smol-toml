@@ -26,8 +26,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export { default as TomlError } from './error.js'
-export { default as TomlDate } from './date.js'
+import { bench } from 'vitest'
+import { readFile } from 'fs/promises'
+import { stringify as smolTomlStringify, parse } from '../src/index.js'
+import { stringify as iarnaTomlStringify } from '@iarna/toml'
+import { stringify as ltdJTomlStringify } from '@ltd/j-toml'
 
-export { parse } from './parse.js'
-export { stringify } from './stringify.js'
+let obj = parse(
+	await readFile(new URL('./testfiles/toml-spec-example.toml', import.meta.url), 'utf8')
+)
+
+bench('smol-toml', () => {
+	smolTomlStringify(obj)
+})
+
+bench('@iarna/toml', () => {
+	iarnaTomlStringify(obj)
+})
+
+bench('@ltd/j-toml', () => {
+	ltdJTomlStringify(obj)
+})
