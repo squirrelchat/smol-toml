@@ -1,6 +1,6 @@
 {
 	"name": "smol-toml",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"keywords": [
 		"toml",
 		"parser",
@@ -39,6 +39,7 @@
 			"default": "./dist/index.js"
 		}
 	},
+	"types": "./dist/index.d.ts",
 	"files": [
 		"README.md",
 		"LICENSE",
