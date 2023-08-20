@@ -31,3 +31,5 @@ export { default as TomlDate } from './date.js'
 
 export { parse } from './parse.js'
 export { stringify } from './stringify.js'
+
+export type { TomlPrimitive } from './util.js'
