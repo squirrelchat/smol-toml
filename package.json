@@ -46,6 +46,8 @@
     }
   },
   "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "files": [
     "README.md",
     "LICENSE",
