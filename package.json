@@ -1,48 +1,54 @@
 {
-	"name": "smol-toml",
-	"version": "1.1.2",
-	"keywords": [
-		"toml",
-		"parser",
-		"serializer"
-	],
-	"description": "A small, fast, and correct TOML parser/serializer",
-	"repository": "git@github.com:squirrelchat/smol-toml.git",
-	"author": "Cynthia <cyyynthia@borkenware.com>",
-	"license": "BSD-3-Clause",
-	"type": "module",
-	"engines": {
-		"node": ">= 18",
-		"pnpm": ">= 8"
-	},
-	"scripts": {
-		"build": "tsc",
-		"test": "vitest",
-		"test-ui": "vitest --ui",
-		"bench": "vitest bench"
-	},
-	"devDependencies": {
-		"@iarna/toml": "3.0.0",
-		"@ltd/j-toml": "^1.38.0",
-		"@tsconfig/esm": "^1.0.3",
-		"@tsconfig/node-lts": "^18.12.1",
-		"@tsconfig/strictest": "^2.0.1",
-		"@types/node": "^20.1.0",
-		"@vitest/ui": "^0.31.0",
-		"fast-toml": "^0.5.4",
-		"typescript": "^5.0.4",
-		"vitest": "^0.31.0"
-	},
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"default": "./dist/index.js"
-		}
-	},
-	"types": "./dist/index.d.ts",
-	"files": [
-		"README.md",
-		"LICENSE",
-		"dist"
-	]
+  "name": "smol-toml",
+  "version": "1.1.2",
+  "keywords": [
+    "toml",
+    "parser",
+    "serializer"
+  ],
+  "description": "A small, fast, and correct TOML parser/serializer",
+  "repository": "git@github.com:squirrelchat/smol-toml.git",
+  "author": "Cynthia <cyyynthia@borkenware.com>",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "engines": {
+    "node": ">= 18",
+    "pnpm": ">= 8"
+  },
+  "scripts": {
+    "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
+    "test": "vitest",
+    "test-ui": "vitest --ui",
+    "bench": "vitest bench"
+  },
+  "devDependencies": {
+    "@iarna/toml": "3.0.0",
+    "@ltd/j-toml": "^1.38.0",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@rollup/plugin-typescript": "^11.1.3",
+    "@tsconfig/esm": "^1.0.3",
+    "@tsconfig/node-lts": "^18.12.1",
+    "@tsconfig/strictest": "^2.0.1",
+    "@types/node": "^20.1.0",
+    "@vitest/ui": "^0.31.0",
+    "fast-toml": "^0.5.4",
+    "rollup": "^3.28.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.0.4",
+    "vitest": "^0.31.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "README.md",
+    "LICENSE",
+    "dist"
+  ]
 }
