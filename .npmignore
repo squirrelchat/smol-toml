@@ -1,8 +1,0 @@
-.idea
-.vscode
-.DS_Store
-node_modules
-*.local
-rollup.config.ts
-tsconfig.json
-src
