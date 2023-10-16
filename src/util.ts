@@ -27,7 +27,7 @@
  */
 
 import TomlDate from './date.js'
-import TomlError, {getLineColFromPtr, makeCodeBlock} from './error.js'
+import TomlError from './error.js'
 
 export type TomlPrimitive =
 	| string
@@ -116,28 +116,4 @@ export function getStringEnd (str: string, seek: number) {
 	}
 
 	return seek
-}
-
-
-export class DebugToml{
-	line: number
-	column: number
-	codeblock: string
-message?: string
-	constructor (message: string | undefined, options: {
-		toml: string
-		ptr: number
-	}) {
-		const [ line, column ] = getLineColFromPtr(options.toml, options.ptr)
-		const codeblock = makeCodeBlock(options.toml, line, column)
-
-		this.line = line
-		this.column = column
-		this.codeblock = codeblock
-		this.message = message
-	}
-	toString(){
-		let content = this.message ? `${this.message}\n\n` : ''
-		return `Line: ${this.line} Column ${this.column} \n ${content} ${this.codeblock}`
-	}
 }

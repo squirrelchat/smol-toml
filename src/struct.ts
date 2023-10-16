@@ -28,7 +28,7 @@
 
 import { parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import {type TomlPrimitive, skipComment, indexOfNewline, getStringEnd, skipVoid, DebugToml, skipUntil} from './util.js'
+import {type TomlPrimitive, skipComment, indexOfNewline, getStringEnd, skipVoid} from './util.js'
 import TomlError from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
