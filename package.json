@@ -25,13 +25,13 @@
 		"@iarna/toml": "3.0.0",
 		"@ltd/j-toml": "^1.38.0",
 		"@tsconfig/esm": "^1.0.3",
-		"@tsconfig/node-lts": "^18.12.1",
-		"@tsconfig/strictest": "^2.0.1",
-		"@types/node": "^20.1.0",
-		"@vitest/ui": "^0.31.0",
+		"@tsconfig/node-lts": "^18.12.5",
+		"@tsconfig/strictest": "^2.0.2",
+		"@types/node": "^20.8.6",
+		"@vitest/ui": "^0.34.6",
 		"fast-toml": "^0.5.4",
-		"typescript": "^5.0.4",
-		"vitest": "^0.31.0"
+		"typescript": "^5.2.2",
+		"vitest": "^0.34.6"
 	},
 	"exports": {
 		".": {

@@ -27,7 +27,7 @@
  */
 
 import TomlDate from './date.js'
-import TomlError from './error.js'
+import TomlError, {getLineColFromPtr, makeCodeBlock} from './error.js'
 
 export type TomlPrimitive =
 	| string
@@ -72,7 +72,7 @@ export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banCo
 		: skipVoid(str, skipComment(str, ptr), banNewLines)
 }
 
-export function skipUntil (str: string, ptr: number, sep: string, end?: string) {
+export function skipUntil (str: string, ptr: number, sep: string, end?: string, banNewLines: boolean = false) {
 	if (!end) {
 		ptr = indexOfNewline(str, ptr)
 		return ptr < 0 ? str.length : ptr
@@ -85,6 +85,8 @@ export function skipUntil (str: string, ptr: number, sep: string, end?: string) 
 		} else if (c === sep) {
 			return i + 1
 		} else if (c === end) {
+			return i
+		}else if (banNewLines && (c === '\n' || c === '\r' && str[i + 1] === '\n')) {
 			return i
 		}
 	}
@@ -114,4 +116,28 @@ export function getStringEnd (str: string, seek: number) {
 	}
 
 	return seek
+}
+
+
+export class DebugToml{
+	line: number
+	column: number
+	codeblock: string
+message?: string
+	constructor (message: string | undefined, options: {
+		toml: string
+		ptr: number
+	}) {
+		const [ line, column ] = getLineColFromPtr(options.toml, options.ptr)
+		const codeblock = makeCodeBlock(options.toml, line, column)
+
+		this.line = line
+		this.column = column
+		this.codeblock = codeblock
+		this.message = message
+	}
+	toString(){
+		let content = this.message ? `${this.message}\n\n` : ''
+		return `Line: ${this.line} Column ${this.column} \n ${content} ${this.codeblock}`
+	}
 }
