@@ -5,10 +5,9 @@
 		"@tsconfig/strictest/tsconfig.json"
 	],
 	"compilerOptions": {
-		"moduleResolution": "node16",
-		"module": "Node16",
 		"declaration": true,
 		"verbatimModuleSyntax": false,
+		"preserveConstEnums": false,
 		"outDir": "./dist"
 	},
 	"include": [ "src" ]
