@@ -86,7 +86,7 @@ export function skipUntil (str: string, ptr: number, sep: string, end?: string, 
 			return i + 1
 		} else if (c === end) {
 			return i
-		}else if (banNewLines && (c === '\n' || c === '\r' && str[i + 1] === '\n')) {
+		} else if (banNewLines && (c === '\n' || c === '\r' && str[i + 1] === '\n')) {
 			return i
 		}
 	}
