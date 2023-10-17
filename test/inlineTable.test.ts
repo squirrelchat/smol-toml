@@ -40,6 +40,16 @@ it('parses inline tables', () => {
 	expect(parseInlineTable('{}', 0))
 		.toStrictEqual([ {}, 2 ])
 })
+it('parse inline tables with non traditional spaces',()=>{
+	expect(parseInlineTable('{ first = "Tom" ,last = "Preston-Werner" }', 0))
+		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 42 ])
+	expect(parseInlineTable('{ first = "Tom" , last = "Preston-Werner" }', 0))
+		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 43 ])
+	expect(parseInlineTable('{first="Tom",last="Preston-Werner"}', 0))
+		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 35 ])
+	expect(parseInlineTable('{	first="Tom"    ,	last="Preston-Werner"}', 0))
+		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 41 ])
+})
 
 it('parses valid multiline tables', () => {
 	expect(parseInlineTable('{ test = """Multiline\nstrings\nare\nvalid""" }', 0))

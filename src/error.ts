@@ -75,3 +75,4 @@ export default class TomlError extends Error {
 		this.codeblock = codeblock
 	}
 }
+

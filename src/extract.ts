@@ -81,7 +81,9 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 	let endPtr
 	if (c === '"' || c === "'") {
 		endPtr = getStringEnd(str, ptr)
-		return [ parseString(str, ptr, endPtr), endPtr + +(!!end && str[endPtr] === ',') ]
+		let parsed = parseString(str, ptr, endPtr)
+		if (end) endPtr = skipUntil(str, endPtr, ',', end,end !== ']')
+		return [ parsed, endPtr ]
 	}
 
 	endPtr = skipUntil(str, ptr, ',', end)
