@@ -33,7 +33,10 @@ import { parse as iarnaTomlParse } from '@iarna/toml'
 import { parse as ltdJTomlParse } from '@ltd/j-toml'
 import fastTomlParse from 'fast-toml'
 
-let toml = await readFile(new URL('./testfiles/5mb-mixed.toml', import.meta.url), 'utf8')
+let toml = await readFile(
+	new URL('./testfiles/5mb-mixed.toml', import.meta.url),
+	'utf8',
+)
 
 bench('smol-toml', () => {
 	smolTomlParse(toml)

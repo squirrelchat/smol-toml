@@ -32,13 +32,22 @@ import TomlError from '../src/error.js'
 
 it('parses a simple key-value', () => {
 	expect(parse('key = "value"')).toStrictEqual({ key: 'value' })
-	expect(parse('key = "value"\nother = 1')).toStrictEqual({ key: 'value', other: 1 })
-	expect(parse('key = "value"\r\nother = 1')).toStrictEqual({ key: 'value', other: 1 })
+	expect(parse('key = "value"\nother = 1')).toStrictEqual({
+		key: 'value',
+		other: 1,
+	})
+	expect(parse('key = "value"\r\nother = 1')).toStrictEqual({
+		key: 'value',
+		other: 1,
+	})
 })
 
 it('parses dotted key-values', () => {
-	expect(parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true'))
-		.toStrictEqual({ fruit: { apple: { color: 'red', taste: { sweet: true } } } })
+	expect(
+		parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true'),
+	).toStrictEqual({
+		fruit: { apple: { color: 'red', taste: { sweet: true } } },
+	})
 })
 
 it('handles comments', () => {
@@ -48,7 +57,10 @@ key = "value"  # This is a comment at the end of a line
 another = "# This is not a comment"
 `.trim()
 
-	expect(parse(doc)).toStrictEqual({ key: 'value', another: '# This is not a comment' })
+	expect(parse(doc)).toStrictEqual({
+		key: 'value',
+		another: '# This is not a comment',
+	})
 })
 
 it('rejects unspecified values', () => {
@@ -60,7 +72,9 @@ it('rejects invalid keys', () => {
 })
 
 it('rejects multiple key-values on a single line', () => {
-	expect(() => parse('first = "Tom" last = "Preston-Werner" # INVALID')).toThrowError(TomlError)
+	expect(() =>
+		parse('first = "Tom" last = "Preston-Werner" # INVALID'),
+	).toThrowError(TomlError)
 })
 
 it('rejects invalid strings', () => {
@@ -98,7 +112,9 @@ it('parses docs with dotted table and dotted keys', () => {
 type.name = "pug"
 `.trim()
 
-	expect(parse(doc)).toStrictEqual({ dog: { 'tater.man': { type: { name: 'pug' } } } })
+	expect(parse(doc)).toStrictEqual({
+		dog: { 'tater.man': { type: { name: 'pug' } } },
+	})
 })
 
 it('ignores spaces in keys', () => {
@@ -120,7 +136,7 @@ uwu = "owo"
 		a: { b: { c: { uwu: 'owo' } } },
 		d: { e: { f: { uwu: 'owo' } } },
 		g: { h: { i: { uwu: 'owo' } } },
-		j: { 'ʞ': { l: { uwu: 'owo' } } },
+		j: { ʞ: { l: { uwu: 'owo' } } },
 	})
 })
 
@@ -138,7 +154,7 @@ b = 0
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		x: { b: 0, y: { z: { w: { a: 0 } } } }
+		x: { b: 0, y: { z: { w: { a: 0 } } } },
 	})
 })
 
@@ -152,7 +168,13 @@ smooth = true
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		fruit: { apple: { color: 'red', taste: { sweet: true }, texture: { smooth: true } } }
+		fruit: {
+			apple: {
+				color: 'red',
+				taste: { sweet: true },
+				texture: { smooth: true },
+			},
+		},
 	})
 })
 
@@ -188,7 +210,7 @@ color = "gray"
 			{ name: 'Hammer', sku: 738594937 },
 			{},
 			{ name: 'Nail', sku: 284758393, color: 'gray' },
-		]
+		],
 	})
 })
 
@@ -224,26 +246,21 @@ name = "plantain"
 
 	expect(parse(doc)).toStrictEqual({
 		fruits: [
-		  {
-			name: 'apple',
-			physical: {
-			  color: 'red',
-			  shape: 'round',
-			  cute: { uwu: true },
+			{
+				name: 'apple',
+				physical: {
+					color: 'red',
+					shape: 'round',
+					cute: { uwu: true },
+				},
+				varieties: [{ name: 'red delicious' }, { name: 'granny smith' }],
 			},
-			varieties: [
-			  { name: 'red delicious' },
-			  { name: 'granny smith' },
-			]
-		  },
-		  {
-			name: 'banana',
-			varieties: [
-			  { name: 'plantain' },
-			],
-		  },
+			{
+				name: 'banana',
+				varieties: [{ name: 'plantain' }],
+			},
 		],
-	  })
+	})
 })
 
 it('rejects subtables of an array of tables if order is reversed', () => {
@@ -390,10 +407,7 @@ hehe = true
 `.trim()
 
 		expect(parse(doc)).toStrictEqual({
-			uwu: [
-				{ owo: { hehe: true } },
-				{ owo: { hehe: true } },
-			]
+			uwu: [{ owo: { hehe: true } }, { owo: { hehe: true } }],
 		})
 	})
 })

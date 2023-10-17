@@ -30,17 +30,21 @@ import { it, expect } from 'vitest'
 import { extractValue } from '../src/extract.js'
 
 it('extracts value of correct type', () => {
-	expect(extractValue('[ 1, 2 ]', 2, ']')).toStrictEqual([ 1, 4 ])
-	expect(extractValue('[ "uwu", 2 ]', 2, ']')).toStrictEqual([ 'uwu', 8 ])
-	expect(extractValue('[ {}, 2 ]', 2, ']')).toStrictEqual([ {}, 5 ])
-	expect(extractValue('[ 2 ]', 2, ']')).toStrictEqual([ 2, 4 ])
-	expect(extractValue('2\n', 0)).toStrictEqual([ 2, 1 ])
+	expect(extractValue('[ 1, 2 ]', 2, ']')).toStrictEqual([1, 4])
+	expect(extractValue('[ "uwu", 2 ]', 2, ']')).toStrictEqual(['uwu', 8])
+	expect(extractValue('[ {}, 2 ]', 2, ']')).toStrictEqual([{}, 5])
+	expect(extractValue('[ 2 ]', 2, ']')).toStrictEqual([2, 4])
+	expect(extractValue('2\n', 0)).toStrictEqual([2, 1])
 
-	expect(extractValue('"""uwu"""\n', 0)).toStrictEqual([ 'uwu', 9 ])
-	expect(extractValue('"""this is a "multiline string""""\n', 0)).toStrictEqual([ 'this is a "multiline string"', 34 ])
-	expect(extractValue('"""this is a "multiline string"""""\n', 0)).toStrictEqual([ 'this is a "multiline string""', 35 ])
-	expect(extractValue('"uwu""\n', 0)).toStrictEqual([ 'uwu', 5 ])
+	expect(extractValue('"""uwu"""\n', 0)).toStrictEqual(['uwu', 9])
+	expect(extractValue('"""this is a "multiline string""""\n', 0)).toStrictEqual(
+		['this is a "multiline string"', 34],
+	)
+	expect(
+		extractValue('"""this is a "multiline string"""""\n', 0),
+	).toStrictEqual(['this is a "multiline string""', 35])
+	expect(extractValue('"uwu""\n', 0)).toStrictEqual(['uwu', 5])
 
-	expect(extractValue('"\\\\"\n', 0)).toStrictEqual([ '\\', 4 ])
-	expect(extractValue("'uwu\\'", 0)).toStrictEqual([ 'uwu\\', 6 ])
+	expect(extractValue('"\\\\"\n', 0)).toStrictEqual(['\\', 4])
+	expect(extractValue("'uwu\\'", 0)).toStrictEqual(['uwu\\', 6])
 })

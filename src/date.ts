@@ -31,14 +31,15 @@
 
 type Offset = string | null
 
-let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}:\d{2}(?:\.\d+)?)?(Z|[-+]\d{2}:\d{2})?$/i
+let DATE_TIME_RE =
+	/^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}:\d{2}(?:\.\d+)?)?(Z|[-+]\d{2}:\d{2})?$/i
 
 export default class TomlDate extends Date {
 	#hasDate = false
 	#hasTime = false
 	#offset: Offset = null
 
-	constructor (date: string | Date) {
+	constructor(date: string | Date) {
 		let hasDate = true
 		let hasTime = true
 		let offset: Offset = 'Z'
@@ -73,23 +74,23 @@ export default class TomlDate extends Date {
 		}
 	}
 
-	isDateTime () {
+	isDateTime() {
 		return this.#hasDate && this.#hasTime
 	}
 
-	isLocal () {
+	isLocal() {
 		return !this.#hasDate || !this.#hasTime || !this.#offset
 	}
 
-	isDate () {
+	isDate() {
 		return this.#hasDate && !this.#hasTime
 	}
 
-	isTime () {
+	isTime() {
 		return this.#hasTime && !this.#hasDate
 	}
 
-	isValid () {
+	isValid() {
 		return this.#hasDate || this.#hasTime
 	}
 
@@ -97,51 +98,47 @@ export default class TomlDate extends Date {
 		let iso = super.toISOString()
 
 		// Local Date
-		if (this.isDate())
-			return iso.slice(0, 10)
+		if (this.isDate()) return iso.slice(0, 10)
 
 		// Local Time
-		if (this.isTime())
-			return iso.slice(11, 23)
+		if (this.isTime()) return iso.slice(11, 23)
 
 		// Local DateTime
-		if (this.#offset === null)
-			return iso.slice(0, -1)
+		if (this.#offset === null) return iso.slice(0, -1)
 
 		// Offset DateTime
-		if (this.#offset === 'Z')
-			return iso
+		if (this.#offset === 'Z') return iso
 
 		// This part is quite annoying: JS strips the original timezone from the ISO string representation
 		// Instead of using a "modified" date and "Z", we restore the representation "as authored"
 
-		let offset = (+(this.#offset.slice(1, 3)) * 60) + +(this.#offset.slice(4, 6))
+		let offset = +this.#offset.slice(1, 3) * 60 + +this.#offset.slice(4, 6)
 		offset = this.#offset[0] === '-' ? offset : -offset
 
-		let offsetDate = new Date(this.getTime() - (offset * 60e3))
+		let offsetDate = new Date(this.getTime() - offset * 60e3)
 		return offsetDate.toISOString().slice(0, -1) + this.#offset
 	}
 
-	static wrapAsOffsetDateTime (jsDate: Date, offset = 'Z') {
+	static wrapAsOffsetDateTime(jsDate: Date, offset = 'Z') {
 		let date = new TomlDate(jsDate)
 		date.#offset = offset
 		return date
 	}
 
-	static wrapAsLocalDateTime (jsDate: Date) {
+	static wrapAsLocalDateTime(jsDate: Date) {
 		let date = new TomlDate(jsDate)
 		date.#offset = null
 		return date
 	}
 
-	static wrapAsLocalDate (jsDate: Date) {
+	static wrapAsLocalDate(jsDate: Date) {
 		let date = new TomlDate(jsDate)
 		date.#hasTime = false
 		date.#offset = null
 		return date
 	}
 
-	static wrapAsLocalTime (jsDate: Date) {
+	static wrapAsLocalTime(jsDate: Date) {
 		let date = new TomlDate(jsDate)
 		date.#hasDate = false
 		date.#offset = null

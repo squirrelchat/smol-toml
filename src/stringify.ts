@@ -28,7 +28,7 @@
 
 const BARE_KEY = /^[a-z0-9-_]+$/i
 
-function extendedTypeOf (obj: any) {
+function extendedTypeOf(obj: any) {
 	let type = typeof obj
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
@@ -38,7 +38,7 @@ function extendedTypeOf (obj: any) {
 	return type
 }
 
-function isArrayOfTables (obj: any[]) {
+function isArrayOfTables(obj: any[]) {
 	for (let i = 0; i < obj.length; i++) {
 		if (extendedTypeOf(obj[i]) !== 'object') return false
 	}
@@ -46,11 +46,11 @@ function isArrayOfTables (obj: any[]) {
 	return true
 }
 
-function formatString (s: string) {
+function formatString(s: string) {
 	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
 }
 
-function stringifyValue (val: any, type = extendedTypeOf(val)) {
+function stringifyValue(val: any, type = extendedTypeOf(val)) {
 	if (type === 'number') {
 		if (isNaN(val)) return 'nan'
 		if (val === Infinity) return 'inf'
@@ -83,7 +83,7 @@ function stringifyValue (val: any, type = extendedTypeOf(val)) {
 	}
 }
 
-function stringifyInlineTable (obj: any) {
+function stringifyInlineTable(obj: any) {
 	let res = '{ '
 
 	let keys = Object.keys(obj)
@@ -99,7 +99,7 @@ function stringifyInlineTable (obj: any) {
 	return res + ' }'
 }
 
-function stringifyArray (array: any[]) {
+function stringifyArray(array: any[]) {
 	let res = '[ '
 	for (let i = 0; i < array.length; i++) {
 		if (i) res += ', '
@@ -113,7 +113,7 @@ function stringifyArray (array: any[]) {
 	return res + ' ]'
 }
 
-function stringifyArrayTable (array: any[], key: string) {
+function stringifyArrayTable(array: any[], key: string) {
 	let res = ''
 	for (let i = 0; i < array.length; i++) {
 		res += `[[${key}]]\n`
@@ -124,7 +124,7 @@ function stringifyArrayTable (array: any[], key: string) {
 	return res
 }
 
-function stringifyTable (obj: any, prefix = '') {
+function stringifyTable(obj: any, prefix = '') {
 	let preamble = ''
 	let tables = ''
 
@@ -158,7 +158,7 @@ function stringifyTable (obj: any, prefix = '') {
 	return `${preamble}\n${tables}`.trim()
 }
 
-export function stringify (obj: any) {
+export function stringify(obj: any) {
 	if (extendedTypeOf(obj) !== 'object') {
 		throw new TypeError('stringify can only be called with an object')
 	}

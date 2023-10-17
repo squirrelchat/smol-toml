@@ -31,13 +31,22 @@ import { extractValue } from './extract.js'
 import { type TomlPrimitive, skipVoid } from './util.js'
 import TomlError from './error.js'
 
-const enum Type { DOTTED, EXPLICIT, ARRAY }
+const enum Type {
+	DOTTED,
+	EXPLICIT,
+	ARRAY,
+}
 
-type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
+type MetaState = { t: Type; d: boolean; i: number; c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
-type PeekResult = [ string, Record<string, TomlPrimitive>, MetaRecord ] | null
+type PeekResult = [string, Record<string, TomlPrimitive>, MetaRecord] | null
 
-function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: MetaRecord, type: Type): PeekResult {
+function peekTable(
+	key: string[],
+	table: Record<string, TomlPrimitive>,
+	meta: MetaRecord,
+	type: Type,
+): PeekResult {
 	let t: any = table
 	let m = meta
 	let k: string
@@ -67,14 +76,20 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 
 		if (!hasOwn) {
 			if (k === '__proto__') {
-				Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
-				Object.defineProperty(m, k, { enumerable: true, configurable: true, writable: true })
+				Object.defineProperty(t, k, {
+					enumerable: true,
+					configurable: true,
+					writable: true,
+				})
+				Object.defineProperty(m, k, {
+					enumerable: true,
+					configurable: true,
+					writable: true,
+				})
 			}
 
 			m[k] = {
-				t: i < key.length - 1 && type === Type.ARRAY
-					? Type.DOTTED
-					: type,
+				t: i < key.length - 1 && type === Type.ARRAY ? Type.DOTTED : type,
 				d: false,
 				i: 0,
 				c: {},
@@ -94,8 +109,8 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 			t[k!] = []
 		}
 
-		t[k!].push(t = {})
-		state.c[state.i++] = (state = { t: Type.EXPLICIT, d: false, i: 0, c: {} })
+		t[k!].push((t = {}))
+		state.c[state.i++] = state = { t: Type.EXPLICIT, d: false, i: 0, c: {} }
 	}
 
 	if (state.d) {
@@ -110,20 +125,20 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 		return null
 	}
 
-	return [ k!, t, state.c ]
+	return [k!, t, state.c]
 }
 
-export function parse (toml: string): Record<string, TomlPrimitive> {
+export function parse(toml: string): Record<string, TomlPrimitive> {
 	let res = {}
 	let meta = {}
 
 	let tbl = res
 	let m = meta
 
-	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
+	for (let ptr = skipVoid(toml, 0); ptr < toml.length; ) {
 		if (toml[ptr] === '[') {
 			let isTableArray = toml[++ptr] === '['
-			let k = parseKey(toml, ptr += +isTableArray, ']')
+			let k = parseKey(toml, (ptr += +isTableArray), ']')
 
 			if (isTableArray) {
 				if (toml[k[1] - 1] !== ']') {
@@ -136,12 +151,20 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 				k[1]++
 			}
 
-			let p = peekTable(k[0], res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
+			let p = peekTable(
+				k[0],
+				res,
+				meta,
+				isTableArray ? Type.ARRAY : Type.EXPLICIT,
+			)
 			if (!p) {
-				throw new TomlError('trying to redefine an already defined table or value', {
-					toml: toml,
-					ptr: ptr,
-				})
+				throw new TomlError(
+					'trying to redefine an already defined table or value',
+					{
+						toml: toml,
+						ptr: ptr,
+					},
+				)
 			}
 
 			m = p[2]
@@ -151,10 +174,13 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 			let k = parseKey(toml, ptr)
 			let p = peekTable(k[0], tbl, m, Type.DOTTED)
 			if (!p) {
-				throw new TomlError('trying to redefine an already defined table or value', {
-					toml: toml,
-					ptr: ptr,
-				})
+				throw new TomlError(
+					'trying to redefine an already defined table or value',
+					{
+						toml: toml,
+						ptr: ptr,
+					},
+				)
 			}
 
 			let v = extractValue(toml, k[1])
@@ -164,10 +190,13 @@ export function parse (toml: string): Record<string, TomlPrimitive> {
 
 		ptr = skipVoid(toml, ptr, true)
 		if (toml[ptr] && toml[ptr] !== '\n' && toml[ptr] !== '\r') {
-			throw new TomlError('each key-value declaration must be followed by an end-of-line', {
-				toml: toml,
-				ptr: ptr
-			})
+			throw new TomlError(
+				'each key-value declaration must be followed by an end-of-line',
+				{
+					toml: toml,
+					ptr: ptr,
+				},
+			)
 		}
 		ptr = skipVoid(toml, ptr)
 	}

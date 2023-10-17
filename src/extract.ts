@@ -28,10 +28,22 @@
 
 import { parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import { type TomlPrimitive, indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd } from './util.js'
+import {
+	type TomlPrimitive,
+	indexOfNewline,
+	skipVoid,
+	skipUntil,
+	skipComment,
+	getStringEnd,
+} from './util.js'
 import TomlError from './error.js'
 
-function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean): [ string, number ] {
+function sliceAndTrimEndOf(
+	str: string,
+	startPtr: number,
+	endPtr: number,
+	allowNewLines?: boolean,
+): [string, number] {
 	let value = str.slice(startPtr, endPtr)
 
 	let commentIdx = value.indexOf('#')
@@ -49,20 +61,23 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 		if (newlineIdx > -1) {
 			throw new TomlError('newlines are not allowed in inline tables', {
 				toml: str,
-				ptr: startPtr + newlineIdx
+				ptr: startPtr + newlineIdx,
 			})
 		}
 	}
 
-	return [ trimmed, commentIdx ]
+	return [trimmed, commentIdx]
 }
 
-export function extractValue (str: string, ptr: number, end?: string): [ TomlPrimitive, number ] {
+export function extractValue(
+	str: string,
+	ptr: number,
+	end?: string,
+): [TomlPrimitive, number] {
 	let c = str[ptr]
 	if (c === '[' || c === '{') {
-		let [ value, endPtr ] = c === '['
-			? parseArray(str, ptr)
-			: parseInlineTable(str, ptr)
+		let [value, endPtr] =
+			c === '[' ? parseArray(str, ptr) : parseInlineTable(str, ptr)
 
 		let newPtr = skipUntil(str, endPtr, ',', end)
 		if (end === '}') {
@@ -70,27 +85,38 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 			if (nextNewLine > -1) {
 				throw new TomlError('newlines are not allowed in inline tables', {
 					toml: str,
-					ptr: nextNewLine
+					ptr: nextNewLine,
 				})
 			}
 		}
 
-		return [ value, newPtr ]
+		return [value, newPtr]
 	}
 
 	let endPtr
 	if (c === '"' || c === "'") {
 		endPtr = getStringEnd(str, ptr)
-		return [ parseString(str, ptr, endPtr), endPtr + +(!!end && str[endPtr] === ',') ]
+		return [
+			parseString(str, ptr, endPtr),
+			endPtr + +(!!end && str[endPtr] === ','),
+		]
 	}
 
 	endPtr = skipUntil(str, ptr, ',', end)
-	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']')
+	let slice = sliceAndTrimEndOf(
+		str,
+		ptr,
+		endPtr - +(str[endPtr - 1] === ','),
+		end === ']',
+	)
 	if (!slice[0]) {
-		throw new TomlError('incomplete key-value declaration: no value specified', {
-			toml: str,
-			ptr: ptr
-		})
+		throw new TomlError(
+			'incomplete key-value declaration: no value specified',
+			{
+				toml: str,
+				ptr: ptr,
+			},
+		)
 	}
 
 	if (end && slice[1] > -1) {
@@ -98,8 +124,5 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 		endPtr += +(str[endPtr] === ',')
 	}
 
-	return [
-		parseValue(slice[0], str, ptr),
-		endPtr,
-	]
+	return [parseValue(slice[0], str, ptr), endPtr]
 }

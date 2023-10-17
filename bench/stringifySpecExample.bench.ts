@@ -33,7 +33,10 @@ import { stringify as iarnaTomlStringify } from '@iarna/toml'
 import { stringify as ltdJTomlStringify } from '@ltd/j-toml'
 
 let obj = parse(
-	await readFile(new URL('./testfiles/toml-spec-example.toml', import.meta.url), 'utf8')
+	await readFile(
+		new URL('./testfiles/toml-spec-example.toml', import.meta.url),
+		'utf8',
+	),
 )
 
 bench('smol-toml', () => {

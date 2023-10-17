@@ -90,7 +90,7 @@ it('stringifies arrays', () => {
 a = [ 10, 20, "30", false ]
 `.trim()
 
-	expect(stringify({ a: [ 10, 20n, '30', false ] }).trim()).toBe(expected)
+	expect(stringify({ a: [10, 20n, '30', false] }).trim()).toBe(expected)
 })
 
 it('stringifies tables', () => {
@@ -120,7 +120,7 @@ it('stringifies tables contained in arrays', () => {
 a = [ 1, { b = 2, c = 3 }, 4 ]
 `.trim()
 
-	expect(stringify({ a: [ 1, { b: 2, c: 3 }, 4 ] }).trim()).toBe(expected)
+	expect(stringify({ a: [1, { b: 2, c: 3 }, 4] }).trim()).toBe(expected)
 })
 
 it('stringifies arrays of tables', () => {
@@ -134,7 +134,14 @@ b = 3
 c = 4
 `.trim()
 
-	expect(stringify({ a: [ { b: 1, c: 2 }, { b: 3, c: 4 } ] }).trim()).toBe(expected)
+	expect(
+		stringify({
+			a: [
+				{ b: 1, c: 2 },
+				{ b: 3, c: 4 },
+			],
+		}).trim(),
+	).toBe(expected)
 })
 
 it('does not produce invalid keys', () => {
@@ -144,7 +151,9 @@ test-key123_ = 1
 "testkey@" = 3
 `.trim()
 
-	expect(stringify({ 'test-key123_': 1, 'test key 123': 2, 'testkey@': 3 }).trim()).toBe(expected)
+	expect(
+		stringify({ 'test-key123_': 1, 'test key 123': 2, 'testkey@': 3 }).trim(),
+	).toBe(expected)
 })
 
 it('does not produce invalid keys (table keys)', () => {
@@ -159,7 +168,13 @@ a = 2
 a = 3
 `.trim()
 
-	expect(stringify({ 'test-key123_': { a: 1 }, 'test key 123': { a: 2 }, 'testkey@': { a: 3 } }).trim()).toBe(expected)
+	expect(
+		stringify({
+			'test-key123_': { a: 1 },
+			'test key 123': { a: 2 },
+			'testkey@': { a: 3 },
+		}).trim(),
+	).toBe(expected)
 })
 
 it('does not produce invalid strings', () => {
@@ -187,16 +202,15 @@ it('ignores null and undefined on objects', () => {
 	const testObj = {
 		a: null,
 		b: void 0,
-		c: 1
+		c: 1,
 	}
 
 	expect(stringify(testObj).trim()).toBe('c = 1')
 })
 
-
 it('rejects null and undefined in arrays', () => {
-	expect(() => stringify({ a: [ 1, null, 2 ]})).toThrow(TypeError)
-	expect(() => stringify({ a: [ 1, void 0, 2 ]})).toThrow(TypeError)
+	expect(() => stringify({ a: [1, null, 2] })).toThrow(TypeError)
+	expect(() => stringify({ a: [1, void 0, 2] })).toThrow(TypeError)
 })
 
 it('rejects functions and symbols', () => {

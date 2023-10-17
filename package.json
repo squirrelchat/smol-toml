@@ -19,7 +19,8 @@
 		"build": "tsc",
 		"test": "vitest",
 		"test-ui": "vitest --ui",
-		"bench": "vitest bench"
+		"bench": "vitest bench",
+		"format": "prettier --write ."
 	},
 	"devDependencies": {
 		"@iarna/toml": "3.0.0",
@@ -31,7 +32,8 @@
 		"@vitest/ui": "^0.31.0",
 		"fast-toml": "^0.5.4",
 		"typescript": "^5.0.4",
-		"vitest": "^0.31.0"
+		"vitest": "^0.31.0",
+		"prettier": "^3.0.3"
 	},
 	"exports": {
 		".": {

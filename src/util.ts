@@ -37,20 +37,18 @@ export type TomlPrimitive =
 	| { [key: string]: TomlPrimitive }
 	| TomlPrimitive[]
 
-export function indexOfNewline (str: string, start = 0, end = str.length) {
+export function indexOfNewline(str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)
 	if (str[idx - 1] === '\r') idx--
 	return idx <= end ? idx : -1
 }
 
-export function skipComment (str: string, ptr: number) {
+export function skipComment(str: string, ptr: number) {
 	for (let i = ptr; i < str.length; i++) {
 		let c = str[i]!
-		if (c === '\n')
-			return i
+		if (c === '\n') return i
 
-		if (c === '\r' && str[i + 1] === '\n')
-			return i + 1
+		if (c === '\r' && str[i + 1] === '\n') return i + 1
 
 		if ((c < '\x20' && c !== '\t') || c === '\x7f') {
 			throw new TomlError('control characters are not allowed in comments', {
@@ -63,16 +61,26 @@ export function skipComment (str: string, ptr: number) {
 	return str.length
 }
 
-export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
+export function skipVoid(
+	str: string,
+	ptr: number,
+	banNewLines?: boolean,
+	banComments?: boolean,
+): number {
 	let c
-	while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r' && str[ptr + 1] === '\n'))) ptr++
+	while (
+		(c = str[ptr]) === ' ' ||
+		c === '\t' ||
+		(!banNewLines && (c === '\n' || (c === '\r' && str[ptr + 1] === '\n')))
+	)
+		ptr++
 
 	return banComments || c !== '#'
 		? ptr
 		: skipVoid(str, skipComment(str, ptr), banNewLines)
 }
 
-export function skipUntil (str: string, ptr: number, sep: string, end?: string) {
+export function skipUntil(str: string, ptr: number, sep: string, end?: string) {
 	if (!end) {
 		ptr = indexOfNewline(str, ptr)
 		return ptr < 0 ? str.length : ptr
@@ -91,19 +99,25 @@ export function skipUntil (str: string, ptr: number, sep: string, end?: string) 
 
 	throw new TomlError('cannot find end of structure', {
 		toml: str,
-		ptr: ptr
+		ptr: ptr,
 	})
 }
 
-export function getStringEnd (str: string, seek: number) {
+export function getStringEnd(str: string, seek: number) {
 	let first = str[seek]!
-	let target = first === str[seek + 1] && str[seek + 1] === str[seek + 2]
-		? str.slice(seek, seek + 3)
-		: first
+	let target =
+		first === str[seek + 1] && str[seek + 1] === str[seek + 2]
+			? str.slice(seek, seek + 3)
+			: first
 
 	seek += target.length - 1
 	do seek = str.indexOf(target, ++seek)
-	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
+	while (
+		seek > -1 &&
+		first !== "'" &&
+		str[seek - 1] === '\\' &&
+		str[seek - 2] !== '\\'
+	)
 
 	if (seek > -1) {
 		seek += target.length

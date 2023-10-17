@@ -70,19 +70,45 @@ it('rejects control characters', () => {
 })
 
 it('parses multiline strings', () => {
-	expect(parseString('"""this is a\nmultiline string"""')).toBe('this is a\nmultiline string')
-	expect(parseString("'''this is a\nmultiline string'''")).toBe('this is a\nmultiline string')
+	expect(parseString('"""this is a\nmultiline string"""')).toBe(
+		'this is a\nmultiline string',
+	)
+	expect(parseString("'''this is a\nmultiline string'''")).toBe(
+		'this is a\nmultiline string',
+	)
 
-	expect(parseString('"""this is a "multiline string""""')).toBe('this is a "multiline string"')
+	expect(parseString('"""this is a "multiline string""""')).toBe(
+		'this is a "multiline string"',
+	)
 })
 
 it('handles escaped line returns in multiline', () => {
-	expect(parseString('"""this is a \\\nmultiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
-	expect(parseString('"""this is a \\\n\n\n   multiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
+	expect(
+		parseString(
+			'"""this is a \\\nmultiline string that has no real linebreak"""',
+		),
+	).toBe('this is a multiline string that has no real linebreak')
+	expect(
+		parseString(
+			'"""this is a \\\n\n\n   multiline string that has no real linebreak"""',
+		),
+	).toBe('this is a multiline string that has no real linebreak')
 
-	expect(parseString('"""this is a \\\r\nmultiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
-	expect(parseString('"""this is a \\\r\n\r\n\r\n   multiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
-	expect(parseString('"""this is a \\    \nmultiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
+	expect(
+		parseString(
+			'"""this is a \\\r\nmultiline string that has no real linebreak"""',
+		),
+	).toBe('this is a multiline string that has no real linebreak')
+	expect(
+		parseString(
+			'"""this is a \\\r\n\r\n\r\n   multiline string that has no real linebreak"""',
+		),
+	).toBe('this is a multiline string that has no real linebreak')
+	expect(
+		parseString(
+			'"""this is a \\    \nmultiline string that has no real linebreak"""',
+		),
+	).toBe('this is a multiline string that has no real linebreak')
 })
 
 it('trims initial whitespace in multiline strings', () => {

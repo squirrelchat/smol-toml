@@ -46,16 +46,15 @@ it('parses integers with underscores', () => {
 })
 
 it('parses hex integers', () => {
-	expect(parseValue('0xDEADBEEF', '', 0)).toBe(0xDEADBEEF)
-	expect(parseValue('0xdeadbeef', '', 0)).toBe(0xDEADBEEF)
-	expect(parseValue('0xdead_beef', '', 0)).toBe(0xDEADBEEF)
+	expect(parseValue('0xDEADBEEF', '', 0)).toBe(0xdeadbeef)
+	expect(parseValue('0xdeadbeef', '', 0)).toBe(0xdeadbeef)
+	expect(parseValue('0xdead_beef', '', 0)).toBe(0xdeadbeef)
 })
 
 it('parses octal integers', () => {
 	expect(parseValue('0o01234567', '', 0)).toBe(0o01234567)
 	expect(parseValue('0o0123_4567', '', 0)).toBe(0o01234567)
 })
-
 
 it('parses binary integers', () => {
 	expect(parseValue('0b11010110', '', 0)).toBe(0b11010110)
@@ -140,28 +139,46 @@ it('parses booleans', () => {
 })
 
 it('parses datetimes', () => {
-	expect(parseValue('1979-05-27T07:32:00', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00'))
-	expect(parseValue('1979-05-27T00:32:00.999999', '', 0)).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999'))
-	expect(parseValue('1979-05-27T07:32:00Z', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
-	expect(parseValue('1979-05-27T00:32:00-07:00', '', 0)).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
-	expect(parseValue('1979-05-27T00:32:00.999999-07:00', '', 0)).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999-07:00'))
+	expect(parseValue('1979-05-27T07:32:00', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27T07:32:00'),
+	)
+	expect(parseValue('1979-05-27T00:32:00.999999', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27T00:32:00.999999'),
+	)
+	expect(parseValue('1979-05-27T07:32:00Z', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27T07:32:00Z'),
+	)
+	expect(parseValue('1979-05-27T00:32:00-07:00', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27T00:32:00-07:00'),
+	)
+	expect(parseValue('1979-05-27T00:32:00.999999-07:00', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27T00:32:00.999999-07:00'),
+	)
 })
 
 it('parses datetimes with a space instead of T', () => {
-	expect(parseValue('1979-05-27 07:32:00Z', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27 07:32:00Z', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27T07:32:00Z'),
+	)
 })
 
 it('parses datetimes with lowercase T', () => {
-	expect(parseValue('1979-05-27t07:32:00Z', '', 0)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27t07:32:00Z', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27T07:32:00Z'),
+	)
 })
 
 it('parses dates', () => {
-	expect(parseValue('1979-05-27', '', 0)).toStrictEqual(new TomlDate('1979-05-27'))
+	expect(parseValue('1979-05-27', '', 0)).toStrictEqual(
+		new TomlDate('1979-05-27'),
+	)
 })
 
 it('parses times', () => {
 	expect(parseValue('07:32:00', '', 0)).toStrictEqual(new TomlDate('07:32:00'))
-	expect(parseValue('00:32:00.999999', '', 0)).toStrictEqual(new TomlDate('00:32:00.999999'))
+	expect(parseValue('00:32:00.999999', '', 0)).toStrictEqual(
+		new TomlDate('00:32:00.999999'),
+	)
 })
 
 it('rejects invalid dates', () => {

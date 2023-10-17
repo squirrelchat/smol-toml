@@ -28,12 +28,22 @@
 
 import { parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { type TomlPrimitive, skipComment, indexOfNewline, getStringEnd, skipVoid } from './util.js'
+import {
+	type TomlPrimitive,
+	skipComment,
+	indexOfNewline,
+	getStringEnd,
+	skipVoid,
+} from './util.js'
 import TomlError from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
 
-export function parseKey (str: string, ptr: number, end = '='): [ string[], number ] {
+export function parseKey(
+	str: string,
+	ptr: number,
+	end = '=',
+): [string[], number] {
 	let dot = ptr - 1
 	let parsed = []
 
@@ -41,12 +51,12 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 	if (endPtr < 0) {
 		throw new TomlError('incomplete key-value: cannot find end of key', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
 	do {
-		let c = str[ptr = ++dot]
+		let c = str[(ptr = ++dot)]
 
 		// If it's whitespace, ignore
 		if (c !== ' ' && c !== '\t') {
@@ -88,10 +98,13 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 				if (endPtr < eos) {
 					endPtr = str.indexOf(end, eos)
 					if (endPtr < 0) {
-						throw new TomlError('incomplete key-value: cannot find end of key', {
-							toml: str,
-							ptr: ptr,
-						})
+						throw new TomlError(
+							'incomplete key-value: cannot find end of key',
+							{
+								toml: str,
+								ptr: ptr,
+							},
+						)
 					}
 				}
 
@@ -101,10 +114,13 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 				dot = str.indexOf('.', ptr)
 				let part = str.slice(ptr, dot < 0 || dot > endPtr ? endPtr : dot)
 				if (!KEY_PART_RE.test(part)) {
-					throw new TomlError('only letter, numbers, dashes and underscores are allowed in keys', {
-						toml: str,
-						ptr: ptr,
-					})
+					throw new TomlError(
+						'only letter, numbers, dashes and underscores are allowed in keys',
+						{
+							toml: str,
+							ptr: ptr,
+						},
+					)
 				}
 
 				parsed.push(part.trimEnd())
@@ -113,10 +129,13 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 		// Until there's no more dot
 	} while (dot + 1 && dot < endPtr)
 
-	return [ parsed, skipVoid(str, endPtr + 1, true, true) ]
+	return [parsed, skipVoid(str, endPtr + 1, true, true)]
 }
 
-export function parseInlineTable (str: string, ptr: number): [ Record<string, TomlPrimitive>, number ] {
+export function parseInlineTable(
+	str: string,
+	ptr: number,
+): [Record<string, TomlPrimitive>, number] {
 	let res: Record<string, TomlPrimitive> = {}
 	let seen = new Set()
 	let c: string
@@ -127,48 +146,55 @@ export function parseInlineTable (str: string, ptr: number): [ Record<string, To
 		if (c === '\n') {
 			throw new TomlError('newlines are not allowed in inline tables', {
 				toml: str,
-				ptr: ptr - 1
+				ptr: ptr - 1,
 			})
 		} else if (c === '#') {
 			throw new TomlError('inline tables cannot contain comments', {
 				toml: str,
-				ptr: ptr - 1
+				ptr: ptr - 1,
 			})
 		} else if (c === ',') {
 			throw new TomlError('expected key-value, found comma', {
 				toml: str,
-				ptr: ptr - 1
+				ptr: ptr - 1,
 			})
 		} else if (c !== ' ' && c !== '\t') {
 			let k: string
 			let t: any = res
 			let hasOwn = false
 
-			let [ key, keyEndPtr ] = parseKey(str, ptr - 1)
+			let [key, keyEndPtr] = parseKey(str, ptr - 1)
 			for (let i = 0; i < key.length; i++) {
 				if (i) t = hasOwn! ? t[k!] : (t[k!] = {})
 
 				k = key[i]!
-				if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
+				if (
+					(hasOwn = Object.hasOwn(t, k)) &&
+					(typeof t[k] !== 'object' || seen.has(t[k]))
+				) {
 					throw new TomlError('trying to redefine an already defined value', {
 						toml: str,
-						ptr: ptr
+						ptr: ptr,
 					})
 				}
 
 				if (!hasOwn && k === '__proto__') {
-					Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
+					Object.defineProperty(t, k, {
+						enumerable: true,
+						configurable: true,
+						writable: true,
+					})
 				}
 			}
 
 			if (hasOwn) {
 				throw new TomlError('trying to redefine an already defined value', {
 					toml: str,
-					ptr: ptr
+					ptr: ptr,
 				})
 			}
 
-			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}')
+			let [value, valueEndPtr] = extractValue(str, keyEndPtr, '}')
 			seen.add(value)
 
 			t[k!] = value
@@ -180,34 +206,35 @@ export function parseInlineTable (str: string, ptr: number): [ Record<string, To
 	if (comma) {
 		throw new TomlError('trailing commas are not allowed in inline tables', {
 			toml: str,
-			ptr: comma
+			ptr: comma,
 		})
 	}
 
 	if (!c) {
 		throw new TomlError('unfinished table encountered', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
-	return [ res, ptr ]
+	return [res, ptr]
 }
 
-export function parseArray (str: string, ptr: number): [ TomlPrimitive[], number ] {
+export function parseArray(
+	str: string,
+	ptr: number,
+): [TomlPrimitive[], number] {
 	let res: TomlPrimitive[] = []
 	let c
 
 	ptr++
-	while((c = str[ptr++]) !== ']' && c) {
+	while ((c = str[ptr++]) !== ']' && c) {
 		if (c === ',') {
 			throw new TomlError('expected value, found comma', {
 				toml: str,
-				ptr: ptr - 1
+				ptr: ptr - 1,
 			})
-		}
-
-		else if (c === '#') ptr = skipComment(str, ptr)
+		} else if (c === '#') ptr = skipComment(str, ptr)
 		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
 			let e = extractValue(str, ptr - 1, ']')
 			res.push(e[0])
@@ -218,9 +245,9 @@ export function parseArray (str: string, ptr: number): [ TomlPrimitive[], number
 	if (!c) {
 		throw new TomlError('unfinished array encountered', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
-	return [ res, ptr ]
+	return [res, ptr]
 }
