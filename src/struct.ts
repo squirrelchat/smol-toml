@@ -173,8 +173,7 @@ export function parseInlineTable (str: string, ptr: number): [ Record<string, To
 
 			t[k!] = value
 			ptr = valueEndPtr
-			comma = str[ptr-1] === ',' ? ptr-1 : 0
-
+			comma = str[ptr - 1] === ',' ? ptr - 1 : 0
 		}
 	}
 
