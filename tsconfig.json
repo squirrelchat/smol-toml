@@ -1,11 +1,12 @@
 {
 	"extends": [
-		"@tsconfig/node-lts/tsconfig.json",
 		"@tsconfig/esm/tsconfig.json",
-		"@tsconfig/strictest/tsconfig.json"
+		"@tsconfig/strictest/tsconfig.json",
+		"@tsconfig/node-lts/tsconfig.json"
 	],
 	"compilerOptions": {
 		"declaration": true,
+		"isolatedModules": false,
 		"verbatimModuleSyntax": false,
 		"preserveConstEnums": false,
 		"outDir": "./dist"
