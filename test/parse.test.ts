@@ -345,6 +345,17 @@ kind = "granny smith"
 		expect(() => parse(doc)).toThrowError(TomlError)
 	})
 
+	it('does not allow clashes between [[table.a]] and a dotted key within [table]', () => {
+		const doc = `
+[[uwu.owo]]
+
+[uwu]
+owo.hehe = "meow!"
+`.trim()
+
+		expect(() => parse(doc)).toThrowError(TomlError)
+	})
+
 	it('does not allow clashes between [table] and [[table]]', () => {
 		const doc = `
 [uwu]
@@ -394,6 +405,29 @@ hehe = true
 				{ owo: { hehe: true } },
 				{ owo: { hehe: true } },
 			]
+		})
+	})
+
+	it('does NOT reject duplicate [tables] when the table was originally defined as an array', () => {
+		const doc = `
+[[uwu.owo]]
+hehe = true
+
+[[uwu.owo]]
+hehe = false
+
+[uwu]
+meow = "nya"
+`.trim()
+
+		expect(parse(doc)).toStrictEqual({
+			uwu: {
+				owo: [
+					{ hehe: true },
+					{ hehe: false },
+				],
+				meow: "nya",
+			},
 		})
 	})
 })

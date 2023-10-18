@@ -49,6 +49,10 @@ function untagObject (obj) {
 				if (obj.value === 'inf') return Infinity
 				if (obj.value === '+inf') return Infinity
 				if (obj.value === '-inf') return -Infinity
+
+				if (obj.value === 'Inf') return Infinity
+				if (obj.value === '+Inf') return Infinity
+				if (obj.value === '-Inf') return -Infinity
 				return Number(obj.value)
 			case 'datetime':
 			case 'datetime-local':

@@ -82,7 +82,19 @@ export function extractValue (str: string, ptr: number, end?: string): [ TomlPri
 	if (c === '"' || c === "'") {
 		endPtr = getStringEnd(str, ptr)
 		let parsed = parseString(str, ptr, endPtr)
-		if (end) endPtr = skipUntil(str, endPtr, ',', end,end !== ']')
+		if (end) {
+			endPtr = skipVoid(str, endPtr, end !== ']')
+
+			if (str[endPtr] && str[endPtr] !== ',' && str[endPtr] !== end && str[endPtr] !== '\n' && str[endPtr] !== '\r') {
+				throw new TomlError('unexpected character encountered', {
+					toml: str,
+					ptr: endPtr,
+				})
+			}
+
+			endPtr += (+(str[endPtr] === ','))
+		}
+
 		return [ parsed, endPtr ]
 	}
 

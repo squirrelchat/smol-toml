@@ -40,7 +40,8 @@ it('parses inline tables', () => {
 	expect(parseInlineTable('{}', 0))
 		.toStrictEqual([ {}, 2 ])
 })
-it('parse inline tables with non traditional spaces',()=>{
+
+it('parse inline tables with non traditional spaces',() => {
 	expect(parseInlineTable('{ first = "Tom" ,last = "Preston-Werner" }', 0))
 		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 42 ])
 	expect(parseInlineTable('{ first = "Tom" , last = "Preston-Werner" }', 0))

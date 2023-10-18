@@ -31,7 +31,7 @@ import { extractValue } from './extract.js'
 import { type TomlPrimitive, skipVoid } from './util.js'
 import TomlError from './error.js'
 
-const enum Type { DOTTED, EXPLICIT, ARRAY }
+const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
 type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
@@ -49,7 +49,7 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 			t = hasOwn! ? t[k!] : (t[k!] = {})
 			m = (state = m[k!]!).c
 
-			if (type === Type.DOTTED && state.t === Type.EXPLICIT) {
+			if (type === Type.DOTTED && (state.t === Type.EXPLICIT || state.t === Type.ARRAY)) {
 				return null
 			}
 
@@ -73,7 +73,7 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 
 			m[k] = {
 				t: i < key.length - 1 && type === Type.ARRAY
-					? Type.DOTTED
+					? Type.ARRAY_DOTTED
 					: type,
 				d: false,
 				i: 0,
@@ -83,7 +83,7 @@ function peekTable (key: string[], table: Record<string, TomlPrimitive>, meta: M
 	}
 
 	state = m[k!]!
-	if (state.t !== type) {
+	if (state.t !== type && !(type === Type.EXPLICIT && state.t === Type.ARRAY_DOTTED)) {
 		// Bad key type!
 		return null
 	}
