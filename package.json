@@ -1,6 +1,6 @@
 {
 	"name": "smol-toml",
-	"version": "1.1.3",
+	"version": "1.1.4",
 	"keywords": [
 		"toml",
 		"parser",
@@ -24,14 +24,13 @@
 	"devDependencies": {
 		"@iarna/toml": "3.0.0",
 		"@ltd/j-toml": "^1.38.0",
-		"@tsconfig/esm": "^1.0.3",
-		"@tsconfig/node-lts": "^18.12.5",
+		"@tsconfig/node-lts": "^20.1.1",
 		"@tsconfig/strictest": "^2.0.2",
-		"@types/node": "^20.8.6",
-		"@vitest/ui": "^0.34.6",
+		"@types/node": "^20.11.5",
+		"@vitest/ui": "^1.2.1",
 		"fast-toml": "^0.5.4",
-		"typescript": "^5.2.2",
-		"vitest": "^0.34.6"
+		"typescript": "^5.3.3",
+		"vitest": "^1.2.1"
 	},
 	"exports": {
 		".": {
