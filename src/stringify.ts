@@ -43,7 +43,7 @@ function isArrayOfTables (obj: any[]) {
 		if (extendedTypeOf(obj[i]) !== 'object') return false
 	}
 
-	return true
+	return obj.length != 0
 }
 
 function formatString (s: string) {
@@ -84,9 +84,10 @@ function stringifyValue (val: any, type = extendedTypeOf(val)) {
 }
 
 function stringifyInlineTable (obj: any) {
-	let res = '{ '
-
 	let keys = Object.keys(obj)
+	if (keys.length === 0) return '{}'
+
+	let res = '{ '
 	for (let i = 0; i < keys.length; i++) {
 		let k = keys[i]!
 		if (i) res += ', '
@@ -100,6 +101,8 @@ function stringifyInlineTable (obj: any) {
 }
 
 function stringifyArray (array: any[]) {
+	if (array.length === 0) return '[]'
+
 	let res = '[ '
 	for (let i = 0; i < array.length; i++) {
 		if (i) res += ', '

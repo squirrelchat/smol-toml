@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { describe, it, expect } from 'vitest'
+import { it, expect } from 'vitest'
 import { stringify } from '../src/stringify.js'
 import TomlDate from '../src/date.js'
 
@@ -91,6 +91,19 @@ a = [ 10, 20, "30", false ]
 `.trim()
 
 	expect(stringify({ a: [ 10, 20n, '30', false ] }).trim()).toBe(expected)
+})
+
+it('stringifies empty arrays', () => {
+	const expected = `
+a = []
+
+[[e]]
+a = []
+
+[[e]]
+`.trim()
+
+	expect(stringify({ a: [], e: [ { a: [] }, {} ] }).trim()).toBe(expected)
 })
 
 it('stringifies tables', () => {
