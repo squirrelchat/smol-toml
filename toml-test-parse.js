@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*!
  * Copyright (c) Squirrel Chat et al., All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
@@ -26,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Script for https://github.com/BurntSushi/toml-test
+// Script for https://github.com/toml-lang/toml-test
 
 import { TomlDate, parse } from './dist/index.js'
 

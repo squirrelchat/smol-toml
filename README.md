@@ -11,32 +11,14 @@ parser didn't feel too out of place.
 
 *[insert xkcd 927]*
 
-smol-toml passes most of the tests from [BurntSushi's `toml-test` suite](https://github.com/BurntSushi/toml-test).
-However, due to the nature of JavaScript and the limits of the language, it doesn't pass certain tests, namely:
+smol-toml passes most of the tests from the [`toml-test` suite](https://github.com/toml-lang/toml-test); use the
+`run-toml-test.bash` script to run the tests. Due to the nature of JavaScript and the limits of the language,
+it doesn't pass certain tests, namely:
 - Invalid UTF-8 strings are not rejected
 - Certain invalid UTF-8 codepoints are not rejected
 - smol-toml doesn't preserve type information between integers and floats (in JS, everything is a float)
 - smol-toml doesn't support the whole 64-bit range for integers (but does throw an appropriate error)
   - As all numbers are floats in JS, the safe range is `2**53 - 1` <=> `-(2**53 - 1)`.
-
-smol-toml also passes all of the tests in https://github.com/iarna/toml-spec-tests.
-
-<details>
-<summary>List of failed `toml-test` cases</summary>
-
-These tests were done by modifying `primitive.ts` and make the implementation return bigints for integers. This allows
-verifying the parser correctly intents a number to be an integer or a float.
-
-*Ideally, this becomes an option of the library, but for now...*
-
-The following parse tests are failing:
-- invalid/encoding/bad-utf8-in-comment
-- invalid/encoding/bad-utf8-in-multiline-literal
-- invalid/encoding/bad-utf8-in-multiline
-- invalid/encoding/bad-utf8-in-string-literal
-- invalid/encoding/bad-utf8-in-string
-- invalid/string/bad-codepoint
-</details>
 
 ## Installation
 ```
