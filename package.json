@@ -14,8 +14,7 @@
 	"author": "Cynthia <cyyynthia@borkenware.com>",
 	"license": "BSD-3-Clause",
 	"engines": {
-		"node": ">= 18",
-		"pnpm": ">= 9"
+		"node": ">= 18"
 	},
 	"scripts": {
 		"build": "tsc",
