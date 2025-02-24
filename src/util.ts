@@ -30,90 +30,102 @@ import type { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
 export type TomlPrimitive =
-	| string
-	| number
-	| boolean
-	| TomlDate
-	| { [key: string]: TomlPrimitive }
-	| TomlPrimitive[]
+  | string
+  | number
+  | BigInt
+  | boolean
+  | TomlDate
+  | { [key: string]: TomlPrimitive }
+  | TomlPrimitive[]
 
-export function indexOfNewline (str: string, start = 0, end = str.length) {
-	let idx = str.indexOf('\n', start)
-	if (str[idx - 1] === '\r') idx--
-	return idx <= end ? idx : -1
+export function indexOfNewline(str: string, start = 0, end = str.length) {
+  let idx = str.indexOf('\n', start)
+  if (str[idx - 1] === '\r') idx--
+  return idx <= end ? idx : -1
 }
 
-export function skipComment (str: string, ptr: number) {
-	for (let i = ptr; i < str.length; i++) {
-		let c = str[i]!
-		if (c === '\n')
-			return i
+export function skipComment(str: string, ptr: number) {
+  for (let i = ptr; i < str.length; i++) {
+    let c = str[i]!
+    if (c === '\n') return i
 
-		if (c === '\r' && str[i + 1] === '\n')
-			return i + 1
+    if (c === '\r' && str[i + 1] === '\n') return i + 1
 
-		if ((c < '\x20' && c !== '\t') || c === '\x7f') {
-			throw new TomlError('control characters are not allowed in comments', {
-				toml: str,
-				ptr: ptr,
-			})
-		}
-	}
+    if ((c < '\x20' && c !== '\t') || c === '\x7f') {
+      throw new TomlError('control characters are not allowed in comments', {
+        toml: str,
+        ptr: ptr,
+      })
+    }
+  }
 
-	return str.length
+  return str.length
 }
 
-export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
-	let c
-	while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r' && str[ptr + 1] === '\n'))) ptr++
+export function skipVoid(
+  str: string,
+  ptr: number,
+  banNewLines?: boolean,
+  banComments?: boolean,
+): number {
+  let c
+  while (
+    (c = str[ptr]) === ' ' ||
+    c === '\t' ||
+    (!banNewLines && (c === '\n' || (c === '\r' && str[ptr + 1] === '\n')))
+  )
+    ptr++
 
-	return banComments || c !== '#'
-		? ptr
-		: skipVoid(str, skipComment(str, ptr), banNewLines)
+  return banComments || c !== '#' ? ptr : skipVoid(str, skipComment(str, ptr), banNewLines)
 }
 
-export function skipUntil (str: string, ptr: number, sep: string, end?: string, banNewLines: boolean = false) {
-	if (!end) {
-		ptr = indexOfNewline(str, ptr)
-		return ptr < 0 ? str.length : ptr
-	}
+export function skipUntil(
+  str: string,
+  ptr: number,
+  sep: string,
+  end?: string,
+  banNewLines: boolean = false,
+) {
+  if (!end) {
+    ptr = indexOfNewline(str, ptr)
+    return ptr < 0 ? str.length : ptr
+  }
 
-	for (let i = ptr; i < str.length; i++) {
-		let c = str[i]
-		if (c === '#') {
-			i = indexOfNewline(str, i)
-		} else if (c === sep) {
-			return i + 1
-		} else if (c === end) {
-			return i
-		} else if (banNewLines && (c === '\n' || c === '\r' && str[i + 1] === '\n')) {
-			return i
-		}
-	}
+  for (let i = ptr; i < str.length; i++) {
+    let c = str[i]
+    if (c === '#') {
+      i = indexOfNewline(str, i)
+    } else if (c === sep) {
+      return i + 1
+    } else if (c === end) {
+      return i
+    } else if (banNewLines && (c === '\n' || (c === '\r' && str[i + 1] === '\n'))) {
+      return i
+    }
+  }
 
-	throw new TomlError('cannot find end of structure', {
-		toml: str,
-		ptr: ptr
-	})
+  throw new TomlError('cannot find end of structure', {
+    toml: str,
+    ptr: ptr,
+  })
 }
 
-export function getStringEnd (str: string, seek: number) {
-	let first = str[seek]!
-	let target = first === str[seek + 1] && str[seek + 1] === str[seek + 2]
-		? str.slice(seek, seek + 3)
-		: first
+export function getStringEnd(str: string, seek: number) {
+  let first = str[seek]!
+  let target =
+    first === str[seek + 1] && str[seek + 1] === str[seek + 2] ? str.slice(seek, seek + 3) : first
 
-	seek += target.length - 1
-	do seek = str.indexOf(target, ++seek)
-	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
+  seek += target.length - 1
+  do seek = str.indexOf(target, ++seek)
+  while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
 
-	if (seek > -1) {
-		seek += target.length
-		if (target.length > 1) {
-			if (str[seek] === first) seek++
-			if (str[seek] === first) seek++
-		}
-	}
+  if (seek > -1) {
+    seek += target.length
+    if (target.length > 1) {
+      if (str[seek] === first) seek++
+      if (str[seek] === first) seek++
+    }
+  }
 
-	return seek
+  return seek
 }
