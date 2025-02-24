@@ -26,159 +26,195 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-let BARE_KEY = /^[a-z0-9-_]+$/i
+let BARE_KEY = /^[a-z0-9-_]+$/i;
 
-type ExtendedType = ReturnType<typeof extendedTypeOf>
-function extendedTypeOf (obj: any) {
-	let type = typeof obj
-	if (type === 'object') {
-		if (Array.isArray(obj)) return 'array'
-		if (obj instanceof Date) return 'date'
-	}
+type ExtendedType = ReturnType<typeof extendedTypeOf>;
+function extendedTypeOf(obj: any) {
+  let type = typeof obj;
+  if (type === 'object') {
+    if (Array.isArray(obj)) return 'array';
+    if (obj instanceof Date) return 'date';
+  }
 
-	return type
+  return type;
 }
 
-function isArrayOfTables (obj: any[]) {
-	for (let i = 0; i < obj.length; i++) {
-		if (extendedTypeOf(obj[i]) !== 'object') return false
-	}
+function isArrayOfTables(obj: any[]) {
+  for (let i = 0; i < obj.length; i++) {
+    if (extendedTypeOf(obj[i]) !== 'object') return false;
+  }
 
-	return obj.length != 0
+  return obj.length != 0;
 }
 
-function formatString (s: string) {
-	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
+function formatString(s: string) {
+  // Use multi-line literal strings for strings containing newlines or long strings
+  if ((s.includes('\n') || s.length > 120) && !s.includes("'''")) {
+    // For long strings without newlines, try to break them at spaces
+    if (!s.includes('\n') && s.length > 120) {
+      let result = "'''\n";
+      let lineLength = 0;
+      const words = s.split(/(\s+)/);
+
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        if (word === undefined) {
+          continue;
+        }
+        // If adding this word would exceed line length and we're not at the start of a line
+        if (lineLength > 0 && lineLength + word.length > 80) {
+          result += '\n';
+          lineLength = 0;
+        }
+
+        result += word;
+        lineLength += word.length;
+      }
+
+      // Ensure trailing newline before closing quotes
+      if (!result.endsWith('\n')) {
+        result += '\n';
+      }
+
+      return result + "'''";
+    }
+
+    // For strings with existing newlines, preserve them
+    return "'''\n" + s + "\n'''";
+  }
+
+  // For regular strings, or strings with triple quotes, use the original JSON stringify approach
+  return JSON.stringify(s).replace(/\x7f/g, '\\u007f');
 }
 
-function stringifyValue (val: any, type: ExtendedType, depth: number) {
-	if (depth === 0) {
-		throw new Error("Could not stringify the object: maximum object depth exceeded")
-	}
+function stringifyValue(val: any, type: ExtendedType, depth: number) {
+  if (depth === 0) {
+    throw new Error('Could not stringify the object: maximum object depth exceeded');
+  }
 
-	if (type === 'number') {
-		if (isNaN(val)) return 'nan'
-		if (val === Infinity) return 'inf'
-		if (val === -Infinity) return '-inf'
-		return val.toString()
-	}
+  if (type === 'number') {
+    if (isNaN(val)) return 'nan';
+    if (val === Infinity) return 'inf';
+    if (val === -Infinity) return '-inf';
+    return val.toString();
+  }
 
-	if (type === 'bigint' || type === 'boolean') {
-		return val.toString()
-	}
+  if (type === 'bigint' || type === 'boolean') {
+    return val.toString();
+  }
 
-	if (type === 'string') {
-		return formatString(val)
-	}
+  if (type === 'string') {
+    return formatString(val);
+  }
 
-	if (type === 'date') {
-		if (isNaN(val.getTime())) {
-			throw new TypeError('cannot serialize invalid date')
-		}
+  if (type === 'date') {
+    if (isNaN(val.getTime())) {
+      throw new TypeError('cannot serialize invalid date');
+    }
 
-		return val.toISOString()
-	}
+    return val.toISOString();
+  }
 
-	if (type === 'object') {
-		return stringifyInlineTable(val, depth)
-	}
+  if (type === 'object') {
+    return stringifyInlineTable(val, depth);
+  }
 
-	if (type === 'array') {
-		return stringifyArray(val, depth)
-	}
+  if (type === 'array') {
+    return stringifyArray(val, depth);
+  }
 }
 
-function stringifyInlineTable (obj: any, depth: number) {
-	let keys = Object.keys(obj)
-	if (keys.length === 0) return '{}'
+function stringifyInlineTable(obj: any, depth: number) {
+  let keys = Object.keys(obj);
+  if (keys.length === 0) return '{}';
 
-	let res = '{ '
-	for (let i = 0; i < keys.length; i++) {
-		let k = keys[i]!
-		if (i) res += ', '
+  let res = '{ ';
+  for (let i = 0; i < keys.length; i++) {
+    let k = keys[i]!;
+    if (i) res += ', ';
 
-		res += BARE_KEY.test(k) ? k : formatString(k)
-		res += ' = '
-		res += stringifyValue(obj[k], extendedTypeOf(obj[k]), depth - 1)
-	}
+    res += BARE_KEY.test(k) ? k : formatString(k);
+    res += ' = ';
+    res += stringifyValue(obj[k], extendedTypeOf(obj[k]), depth - 1);
+  }
 
-	return res + ' }'
+  return res + ' }';
 }
 
-function stringifyArray (array: any[], depth: number) {
-	if (array.length === 0) return '[]'
+function stringifyArray(array: any[], depth: number) {
+  if (array.length === 0) return '[]';
 
-	let res = '[ '
-	for (let i = 0; i < array.length; i++) {
-		if (i) res += ', '
-		if (array[i] === null || array[i] === void 0) {
-			throw new TypeError('arrays cannot contain null or undefined values')
-		}
+  let res = '[ ';
+  for (let i = 0; i < array.length; i++) {
+    if (i) res += ', ';
+    if (array[i] === null || array[i] === void 0) {
+      throw new TypeError('arrays cannot contain null or undefined values');
+    }
 
-		res += stringifyValue(array[i], extendedTypeOf(array[i]), depth - 1)
-	}
+    res += stringifyValue(array[i], extendedTypeOf(array[i]), depth - 1);
+  }
 
-	return res + ' ]'
+  return res + ' ]';
 }
 
-function stringifyArrayTable (array: any[], key: string, depth: number) {
-	if (depth === 0) {
-		throw new Error("Could not stringify the object: maximum object depth exceeded")
-	}
+function stringifyArrayTable(array: any[], key: string, depth: number) {
+  if (depth === 0) {
+    throw new Error('Could not stringify the object: maximum object depth exceeded');
+  }
 
-	let res = ''
-	for (let i = 0; i < array.length; i++) {
-		res += `[[${key}]]\n`
-		res += stringifyTable(array[i], key, depth)
-		res += '\n\n'
-	}
+  let res = '';
+  for (let i = 0; i < array.length; i++) {
+    res += `[[${key}]]\n`;
+    res += stringifyTable(array[i], key, depth);
+    res += '\n\n';
+  }
 
-	return res
+  return res;
 }
 
-function stringifyTable (obj: any, prefix: string, depth: number) {
-	if (depth === 0) {
-		throw new Error("Could not stringify the object: maximum object depth exceeded")
-	}
+function stringifyTable(obj: any, prefix: string, depth: number) {
+  if (depth === 0) {
+    throw new Error('Could not stringify the object: maximum object depth exceeded');
+  }
 
-	let preamble = ''
-	let tables = ''
+  let preamble = '';
+  let tables = '';
 
-	let keys = Object.keys(obj)
-	for (let i = 0; i < keys.length; i++) {
-		let k = keys[i]!
-		if (obj[k] !== null && obj[k] !== void 0) {
-			let type: ExtendedType = extendedTypeOf(obj[k])
-			if (type === 'symbol' || type === 'function') {
-				throw new TypeError(`cannot serialize values of type '${type}'`)
-			}
+  let keys = Object.keys(obj);
+  for (let i = 0; i < keys.length; i++) {
+    let k = keys[i]!;
+    if (obj[k] !== null && obj[k] !== void 0) {
+      let type: ExtendedType = extendedTypeOf(obj[k]);
+      if (type === 'symbol' || type === 'function') {
+        throw new TypeError(`cannot serialize values of type '${type}'`);
+      }
 
-			let key = BARE_KEY.test(k) ? k : formatString(k)
+      let key = BARE_KEY.test(k) ? k : formatString(k);
 
-			if (type === 'array' && isArrayOfTables(obj[k])) {
-				tables += stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1)
-			} else if (type === 'object') {
-				let tblKey = prefix ? `${prefix}.${key}` : key
-				tables += `[${tblKey}]\n`
-				tables += stringifyTable(obj[k], tblKey, depth - 1)
-				tables += '\n\n'
-			} else {
-				preamble += key
-				preamble += ' = '
-				preamble += stringifyValue(obj[k], type, depth)
-				preamble += '\n'
-			}
-		}
-	}
+      if (type === 'array' && isArrayOfTables(obj[k])) {
+        tables += stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1);
+      } else if (type === 'object') {
+        let tblKey = prefix ? `${prefix}.${key}` : key;
+        tables += `[${tblKey}]\n`;
+        tables += stringifyTable(obj[k], tblKey, depth - 1);
+        tables += '\n\n';
+      } else {
+        preamble += key;
+        preamble += ' = ';
+        preamble += stringifyValue(obj[k], type, depth);
+        preamble += '\n';
+      }
+    }
+  }
 
-	return `${preamble}\n${tables}`.trim()
+  return `${preamble}\n${tables}`.trim();
 }
 
-export function stringify (obj: any, opts?: { maxDepth?: number }) {
-	if (extendedTypeOf(obj) !== 'object') {
-		throw new TypeError('stringify can only be called with an object')
-	}
+export function stringify(obj: any, opts?: { maxDepth?: number }) {
+  if (extendedTypeOf(obj) !== 'object') {
+    throw new TypeError('stringify can only be called with an object');
+  }
 
-	let maxDepth = opts?.maxDepth ?? 1000
-	return stringifyTable(obj, '', maxDepth)
+  let maxDepth = opts?.maxDepth ?? 1000;
+  return stringifyTable(obj, '', maxDepth);
 }
