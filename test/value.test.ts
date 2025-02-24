@@ -62,8 +62,17 @@ it('parses binary integers', () => {
 	expect(parseValue('0b1101_0110', '', 0)).toBe(0b11010110)
 })
 
-it('rejects numbers too large', () => {
-	expect(() => parseValue('9007199254740992', '', 0)).toThrowError(TomlError)
+it('parses large integers as BigInt', () => {
+	// JavaScript's Number.MAX_SAFE_INTEGER is 9007199254740991
+	// Numbers larger than this should be parsed as BigInt
+	const largeInt = parseValue('9007199254740992', '', 0)
+	expect(typeof largeInt).toBe('bigint')
+	expect(largeInt).toBe(9007199254740992n)
+	
+	// Test even larger numbers
+	const veryLargeInt = parseValue('123456789012345678901234567890', '', 0)
+	expect(typeof veryLargeInt).toBe('bigint')
+	expect(veryLargeInt).toBe(123456789012345678901234567890n)
 })
 
 it('rejects leading zeroes', () => {

@@ -49,6 +49,18 @@ a = 100
   expect(stringify({ a: 100n }).trim()).toBe(expected);
 });
 
+it('stringifies large bigints properly', () => {
+  const largeValue = 9007199254740992n;
+  const veryLargeValue = 123456789012345678901234567890n;
+  
+  const expected = `
+large = 9007199254740992
+veryLarge = 123456789012345678901234567890
+`.trim();
+
+  expect(stringify({ large: largeValue, veryLarge: veryLargeValue }).trim()).toBe(expected);
+});
+
 it('stringifies special float values', () => {
   const expected = `
 inf = inf

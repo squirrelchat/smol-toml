@@ -146,22 +146,44 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 			})
 		}
 
-		let numeric = +(value.replace(/_/g, ''))
-		if (isNaN(numeric)) {
-			throw new TomlError('invalid number', {
-				toml: toml,
-				ptr: ptr
-			})
-		}
+		// Remove underscores for processing
+		const cleanValue = value.replace(/_/g, '')
+		
+		// Check if it's an integer with more than 15 digits (exceeds safe integer precision)
+		if (isInt && /^[+-]?\d{16,}$/.test(cleanValue)) {
+			try {
+				// Use BigInt for large integers
+				return BigInt(cleanValue)
+			} catch {
+				throw new TomlError('invalid number', {
+					toml: toml,
+					ptr: ptr
+				})
+			}
+		} else {
+			// Use regular number for smaller integers and floats
+			let numeric = +cleanValue
+			if (isNaN(numeric)) {
+				throw new TomlError('invalid number', {
+					toml: toml,
+					ptr: ptr
+				})
+			}
 
-		if (isInt && !Number.isSafeInteger(numeric)) {
-			throw new TomlError('integer value cannot be represented losslessly', {
-				toml: toml,
-				ptr: ptr
-			})
-		}
+			if (isInt && !Number.isSafeInteger(numeric)) {
+				try {
+					// Fall back to BigInt if the number is too large for safe integers
+					return BigInt(cleanValue)
+				} catch {
+					throw new TomlError('integer value cannot be represented losslessly', {
+						toml: toml,
+						ptr: ptr
+					})
+				}
+			}
 
-		return numeric
+			return numeric
+		}
 	}
 
 	let date = new TomlDate(value)
