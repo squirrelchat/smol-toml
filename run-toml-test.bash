@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Requires toml-test from https://github.com/toml-lang/toml-test, commit 78f8c61 or newer (Oct 2023).
+# Requires toml-test from https://github.com/toml-lang/toml-test, commit 291644c or newer (Apr 2025).
 
 skip_decode=(
 	# Invalid UTF-8 strings are not rejected
@@ -22,35 +22,6 @@ skip_decode=(
 	-skip='invalid/local-datetime/feb-30'
 	-skip='invalid/datetime/feb-30'
 	-skip='invalid/datetime/offset-overflow-hour'
-
-	# smol-toml does not support the entire 64-bit integer range
-	# This is not required by the specification, and smol-toml throws an appropriate error
-	# https://github.com/toml-lang/toml-test/issues/154
-	-skip='valid/integer/long'
-)
-
-skip_encode=(
-	# smol-toml does not support sub-millisecond time precision
-	# This is not required by the specification, and smol-toml performs appropriate *truncation*, not rounding
-	# https://github.com/toml-lang/toml-test/issues/155
-	-skip='valid/spec/offset-date-time-0'
-	-skip='valid/spec/local-date-time-0'
-	-skip='valid/spec/local-time-0'
-
-	# Some more Float <> Integer shenanigans
-	# -int-as-float can't help us here, so we have to skip these :(
-	-skip='valid/inline-table/spaces'
-	-skip='valid/float/zero'
-	-skip='valid/float/underscore'
-	-skip='valid/float/exponent'
-	-skip='valid/comment/tricky'
-	-skip='valid/spec/float-0'
-	-skip='valid/float/max-int'
-
-	# smol-toml does not support the entire 64-bit integer range
-	# This is not required by the specification, and smol-toml throws an appropriate error
-	# https://github.com/toml-lang/toml-test/issues/154
-	-skip='valid/integer/long'
 )
 
 e=0
@@ -58,5 +29,5 @@ e=0
 # For the encoder, distinction is made between floats and integers using JS bigint, however
 # due to the lack of option to always serialize plain numbers as floats, some tests fail (and are therefore skipped)
 toml-test -int-as-float          ${skip_decode[@]} ./toml-test-parse.mjs  || e=1
-toml-test               -encoder ${skip_encode[@]} ./toml-test-encode.mjs || e=1
+toml-test -int-as-float -encoder                   ./toml-test-encode.mjs || e=1
 exit $e
