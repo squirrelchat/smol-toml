@@ -13,7 +13,7 @@
 		"serializer"
 	],
 	"type": "module",
-	"packageManager": "pnpm@9.12.3",
+	"packageManager": "pnpm@10.8.1",
 	"engines": {
 		"node": ">= 18"
 	},
