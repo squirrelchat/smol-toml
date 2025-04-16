@@ -20,6 +20,7 @@ jobs:
                 cache: pnpm
 
             - run: pnpm install
+            - run: pnpm build
             - run: pnpm publish --provenance --access public --no-git-checks
               env:
                 NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
