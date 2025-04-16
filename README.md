@@ -4,6 +4,10 @@
 [![npm](https://img.shields.io/npm/v/smol-toml?style=flat-square)](https://npm.im/smol-toml)
 [![Build](https://img.shields.io/github/actions/workflow/status/squirrelchat/smol-toml/build.yml?style=flat-square&logo=github)](https://github.com/squirrelchat/smol-toml/actions/workflows/build.yml)
 
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-support%20me-EA4AAA?style=flat-square)](https://github.com/sponsors/cyyynthia)
+[![Weekly downloads](https://img.shields.io/npm/dw/smol-toml?style=flat-square)](https://npm.im/smol-toml)
+[![Monthly downloads](https://img.shields.io/npm/dm/smol-toml?style=flat-square)](https://npm.im/smol-toml)
+
 A small, fast, and correct TOML parser and serializer. smol-toml is fully(ish) spec-compliant with TOML v1.0.0.
 
 Why yet another TOML parser? Well, the ecosystem of TOML parsers in JavaScript is quite underwhelming, most likely due

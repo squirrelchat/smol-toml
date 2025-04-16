@@ -1,0 +1,28 @@
+name: Publish to NPM
+
+on:
+    release:
+        types: [published]
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write  # Required for provenance
+        steps:
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+            - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
+              with:
+                name: dist
+                path: dist
+
+            - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+            - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                node-version: 22
+                cache: pnpm
+
+            - run: pnpm install
+            - run: pnpm publish --provenance --access public --no-git-checks
+              env:
+                NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
