@@ -105,7 +105,7 @@ export function getStringEnd (str: string, seek: number) {
 
 	seek += target.length - 1
 	do seek = str.indexOf(target, ++seek)
-	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && str[seek - 2] !== '\\')
+	while (seek > -1 && first !== "'" && str[seek - 1] === '\\' && (str[seek - 2] !== '\\' || str[seek - 3] === '\\'))
 
 	if (seek > -1) {
 		seek += target.length

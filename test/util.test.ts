@@ -27,7 +27,7 @@
  */
 
 import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid, skipUntil } from '../src/util.js'
+import { indexOfNewline, skipVoid, skipUntil, getStringEnd } from '../src/util.js'
 
 it('gives the index of next line', () => {
 	expect(indexOfNewline('test\n')).toBe(4)
@@ -60,4 +60,13 @@ it('skips until the next valuable token', () => {
 	expect(skipUntil('[ 3, 4, ]', 7, ',', ']')).toBe(8)
 
 	expect(skipUntil('[ [ 1, 2 ], [ 3, 4 ] ]', 6, ',', ']')).toBe(9)
+})
+
+it('detects the end of a string accurately', () => {
+	expect(getStringEnd('blah = "meow meow"', 7)).toBe(18)
+	expect(getStringEnd('blah = "meow \\" meow"', 7)).toBe(21)
+
+	// Reference: https://github.com/squirrelchat/smol-toml/issues/37
+	expect(getStringEnd('blah = "meow \\\\\\" meow"', 7)).toBe(23)
+	expect(getStringEnd('blah = "meow \\\\\\\\\\" meow"', 7)).toBe(25)
 })

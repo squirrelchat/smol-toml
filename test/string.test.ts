@@ -61,6 +61,11 @@ it('rejects invalid escapes', () => {
 
 	expect(() => parseString('"uwu \\u276 uwu"')).toThrowError(TomlError)
 	expect(() => parseString('"uwu \\U0001F43 uwu"')).toThrowError(TomlError)
+
+	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrowError(TomlError)
 })
 
 it('rejects control characters', () => {

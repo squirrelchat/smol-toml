@@ -57,7 +57,7 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 	return [ trimmed, commentIdx ]
 }
 
-export function extractValue (str: string, ptr: number, end: string | undefined, depth: number): [ TomlPrimitive, number ] {
+export function extractValue (str: string, ptr: number, end?: string | undefined, depth: number = -1): [ TomlPrimitive, number ] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
 			toml: str,

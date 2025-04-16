@@ -51,6 +51,14 @@ another = "# This is not a comment"
 	expect(parse(doc)).toStrictEqual({ key: 'value', another: '# This is not a comment' })
 })
 
+it('handles escapes in strings', () => {
+	expect(parse('key = "value \\" value"')).toStrictEqual({ key: 'value " value' })
+
+	// Reference: https://github.com/squirrelchat/smol-toml/issues/37
+	expect(parse('key = "value \\\\\\" value"')).toStrictEqual({ key: 'value \\" value' })
+	expect(parse('key = "value \\\\\\\\\\" value"')).toStrictEqual({ key: 'value \\\\" value' })
+})
+
 it('rejects unspecified values', () => {
 	expect(() => parse('key = # INVALID')).toThrowError(TomlError)
 })
