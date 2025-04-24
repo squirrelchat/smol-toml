@@ -71,7 +71,7 @@ export function extractValue (str: string, ptr: number, end?: string | undefined
 			? parseArray(str, ptr, depth)
 			: parseInlineTable(str, ptr, depth)
 
-		let newPtr = skipUntil(str, endPtr, ',', end)
+		let newPtr = end ? skipUntil(str, endPtr, ',', end) : endPtr
 		if (endPtr - newPtr && end === '}') {
 			let nextNewLine = indexOfNewline(str, endPtr, newPtr)
 			if (nextNewLine > -1) {
