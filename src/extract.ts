@@ -72,7 +72,7 @@ export function extractValue (str: string, ptr: number, end?: string | undefined
 			: parseInlineTable(str, ptr, depth)
 
 		let newPtr = skipUntil(str, endPtr, ',', end)
-		if (end === '}') {
+		if (endPtr - newPtr && end === '}') {
 			let nextNewLine = indexOfNewline(str, endPtr, newPtr)
 			if (nextNewLine > -1) {
 				throw new TomlError('newlines are not allowed in inline tables', {

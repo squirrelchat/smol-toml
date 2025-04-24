@@ -168,3 +168,13 @@ it('rejects invalid dates', () => {
 	expect(() => parseValue('07:3:00', '', 0)).toThrowError(TomlError)
 	expect(() => parseValue('27-05-1979', '', 0)).toThrowError(TomlError)
 })
+
+it('handles extreme datetimes', () => {
+	expect(parseValue('0001-01-01 00:00:00Z', '', 0)).toStrictEqual(new TomlDate('0001-01-01 00:00:00Z'))
+	expect(parseValue('0001-01-01 00:00:00', '', 0)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
+	expect(parseValue('0001-01-01', '', 0)).toStrictEqual(new TomlDate('0001-01-01'))
+
+	expect(parseValue('9999-12-31 23:59:59Z', '', 0)).toStrictEqual(new TomlDate('9999-12-31 23:59:59Z'))
+	expect(parseValue('9999-12-31 23:59:59', '', 0)).toStrictEqual(new TomlDate('9999-12-31 23:59:59'))
+	expect(parseValue('9999-12-31', '', 0)).toStrictEqual(new TomlDate('9999-12-31'))
+})

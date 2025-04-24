@@ -52,7 +52,9 @@ export class TomlDate extends Date {
 				}
 
 				hasTime = !!match[2]
-				// Do not allow rollover hours
+				// Make sure to use T instead of a space. Breaks in case of extreme values otherwise.
+				hasTime && date[10] === ' ' && (date = date.replace(' ', 'T'))
+				// Do not allow rollover hours.
 				if (match[2] && +match[2] > 23) {
 					date = ''
 				} else {

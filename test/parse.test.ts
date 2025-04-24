@@ -69,6 +69,8 @@ it('rejects invalid keys', () => {
 
 it('rejects multiple key-values on a single line', () => {
 	expect(() => parse('first = "Tom" last = "Preston-Werner" # INVALID')).toThrowError(TomlError)
+	expect(() => parse('a = [] b = 0 # INVALID')).toThrowError(TomlError)
+	expect(() => parse('a = {} b = 0 # INVALID')).toThrowError(TomlError)
 })
 
 it('rejects invalid strings', () => {
