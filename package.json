@@ -1,7 +1,7 @@
 {
 	"name": "smol-toml",
 	"license": "BSD-3-Clause",
-	"version": "1.3.3",
+	"version": "1.3.4",
 	"description": "A small, fast, and correct TOML parser/serializer",
 	"author": "Cynthia <cyyynthia@borkenware.com>",
 	"repository": "github:squirrelchat/smol-toml",
@@ -13,7 +13,7 @@
 		"serializer"
 	],
 	"type": "module",
-	"packageManager": "pnpm@10.8.1",
+	"packageManager": "pnpm@10.9.0",
 	"engines": {
 		"node": ">= 18"
 	},
@@ -32,12 +32,12 @@
 		"@tsconfig/node-lts": "^22.0.1",
 		"@tsconfig/strictest": "^2.0.5",
 		"@types/node": "^22.14.1",
-		"@vitest/ui": "^3.1.1",
-		"esbuild": "^0.25.2",
+		"@vitest/ui": "^3.1.2",
+		"esbuild": "^0.25.3",
 		"fast-toml": "^0.5.4",
 		"pin-github-action": "^3.1.2",
 		"typescript": "^5.8.3",
-		"vitest": "^3.1.1"
+		"vitest": "^3.1.2"
 	},
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
