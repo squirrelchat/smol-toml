@@ -158,7 +158,7 @@ export function parse (toml: string, opts?: { maxDepth: number }): TomlTable {
 				})
 			}
 
-			let v = extractValue(toml, k[1], void 0, maxDepth)
+			let v = extractValue(toml, k[1], undefined, maxDepth)
 			p[1][p[0]] = v[0]
 			ptr = v[1]
 		}
