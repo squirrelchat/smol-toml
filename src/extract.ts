@@ -28,7 +28,7 @@
 
 import { parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import { type TomlPrimitive, indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd } from './util.js'
+import { indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd, type TOMLValue } from './util.js'
 import { TomlError } from './error.js'
 
 function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean): [ string, number ] {
@@ -57,7 +57,7 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 	return [ trimmed, commentIdx ]
 }
 
-export function extractValue (str: string, ptr: number, end?: string | undefined, depth: number = -1): [ TomlPrimitive, number ] {
+export function extractValue (str: string, ptr: number, end?: string | undefined, depth: number = -1): [ TOMLValue, number ] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
 			toml: str,
