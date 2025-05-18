@@ -130,7 +130,7 @@ export enum IntegerParsing { NUMBER_OR_ERROR, NUMBER_OR_BIGINT, BIGINT_ONLY }
 
 export function parseValue(value: string, toml: string, ptr: number, integerParsing?: IntegerParsing.NUMBER_OR_ERROR): boolean | number | TomlDate;
 export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing.NUMBER_OR_BIGINT | IntegerParsing.BIGINT_ONLY): boolean | number | bigint | TomlDate;
-export function parseValue (value: string, toml: string, ptr: number, integerParsing: IntegerParsing = IntegerParsing.NUMBER_OR_ERROR): boolean | number | bigint | TomlDate {
+export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing = IntegerParsing.NUMBER_OR_ERROR): boolean | number | bigint | TomlDate {
 	// Constant values
 	if (value === 'true') return true;
 	if (value === 'false') return false;
