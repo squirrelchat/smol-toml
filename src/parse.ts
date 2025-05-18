@@ -28,7 +28,7 @@
 
 import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
-import { skipVoid, type TomlTable } from './util.js'
+import { skipVoid, type TomlPrimitive, type TomlTable } from './util.js'
 import { TomlError } from './error.js'
 import { IntegerParsing } from './primitive.js'
 
@@ -114,6 +114,8 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 	return [ k!, t, state.c ]
 }
 
+export function parse(toml: string, options?: { maxDepth?: number, integerParsing?: IntegerParsing.NUMBER_OR_ERROR }): TomlTable<Exclude<TomlPrimitive, bigint>>;
+export function parse(toml: string, options?: { maxDepth?: number, integerParsing?: IntegerParsing }): TomlTable;
 export function parse(
 	toml: string,
 	{ maxDepth = 1000, integerParsing = IntegerParsing.NUMBER_OR_ERROR }: { maxDepth?: number, integerParsing?: IntegerParsing } = {}
