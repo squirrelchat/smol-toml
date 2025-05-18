@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { parseString } from './primitive.js'
+import { type IntegerParsing, parseString } from './primitive.js'
 import { extractValue } from './extract.js'
 import { skipComment, indexOfNewline, getStringEnd, skipVoid, type TomlTable, type TomlArray, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
@@ -116,7 +116,10 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 	return [ parsed, skipVoid(str, endPtr + 1, true, true) ]
 }
 
-export function parseInlineTable (str: string, ptr: number, depth: number = -1): [ TomlTable, number ] {
+export function parseInlineTable(
+	str: string, ptr: number,
+	{ depth = -1, integerParsing }: { depth: number, integerParsing: IntegerParsing }
+): [ TomlTable, number ] {
 	let res: TomlTable = {}
 	let seen = new Set()
 	let c: string
@@ -168,8 +171,8 @@ export function parseInlineTable (str: string, ptr: number, depth: number = -1):
 				})
 			}
 
-			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}', depth - 1)
-			seen.add(value)
+			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, { end: '}', depth: depth - 1, integerParsing });
+			seen.add(value);
 
 			t[k!] = value
 			ptr = valueEndPtr
@@ -194,7 +197,10 @@ export function parseInlineTable (str: string, ptr: number, depth: number = -1):
 	return [ res, ptr ]
 }
 
-export function parseArray (str: string, ptr: number, depth: number = -1): [ TomlArray, number ] {
+export function parseArray(
+	str: string, ptr: number,
+	{ depth = -1, integerParsing }: { depth: number, integerParsing: IntegerParsing }
+): [ TomlArray, number ] {
 	let res: TomlValue[] = []
 	let c
 
@@ -209,9 +215,9 @@ export function parseArray (str: string, ptr: number, depth: number = -1): [ Tom
 
 		else if (c === '#') ptr = skipComment(str, ptr)
 		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
-			let e = extractValue(str, ptr - 1, ']', depth - 1)
-			res.push(e[0])
-			ptr = e[1]
+			let e = extractValue(str, ptr - 1, { end: ']', depth: depth - 1, integerParsing });
+			res.push(e[0]);
+			ptr = e[1];
 		}
 	}
 

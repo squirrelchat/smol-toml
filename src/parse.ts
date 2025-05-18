@@ -30,6 +30,7 @@ import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
 import { skipVoid, type TomlTable } from './util.js'
 import { TomlError } from './error.js'
+import { IntegerParsing } from './primitive.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
@@ -113,10 +114,12 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 	return [ k!, t, state.c ]
 }
 
-export function parse (toml: string, opts?: { maxDepth: number }): TomlTable {
-	let maxDepth = opts?.maxDepth ?? 1000
-	let res = {}
-	let meta = {}
+export function parse(
+	toml: string,
+	{ maxDepth = 1000, integerParsing = IntegerParsing.NUMBER_OR_ERROR }: { maxDepth: number, integerParsing: IntegerParsing }
+): TomlTable {
+	let res = {};
+	let meta = {};
 
 	let tbl = res
 	let m = meta
@@ -158,9 +161,9 @@ export function parse (toml: string, opts?: { maxDepth: number }): TomlTable {
 				})
 			}
 
-			let v = extractValue(toml, k[1], undefined, maxDepth)
-			p[1][p[0]] = v[0]
-			ptr = v[1]
+			let v = extractValue(toml, k[1], { depth: maxDepth, integerParsing });
+			p[1][p[0]] = v[0];
+			ptr = v[1];
 		}
 
 		ptr = skipVoid(toml, ptr, true)
