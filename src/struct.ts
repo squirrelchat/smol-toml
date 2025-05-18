@@ -118,7 +118,7 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 
 export function parseInlineTable(
 	str: string, ptr: number,
-	{ depth = -1, integerParsing }: { depth: number, integerParsing: IntegerParsing }
+	{ depth = -1, integerParsing }: { depth?: number, integerParsing?: IntegerParsing|undefined } = {}
 ): [ TomlTable, number ] {
 	let res: TomlTable = {}
 	let seen = new Set()
@@ -199,7 +199,7 @@ export function parseInlineTable(
 
 export function parseArray(
 	str: string, ptr: number,
-	{ depth = -1, integerParsing }: { depth: number, integerParsing: IntegerParsing }
+	{ depth = -1, integerParsing }: { depth?: number, integerParsing?: IntegerParsing|undefined } = {}
 ): [ TomlArray, number ] {
 	let res: TomlValue[] = []
 	let c

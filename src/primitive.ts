@@ -128,7 +128,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 
 export enum IntegerParsing { NUMBER_OR_ERROR, NUMBER_OR_BIGINT, BIGINT_ONLY }
 
-export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing): boolean | number | bigint | TomlDate {
+export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing = IntegerParsing.NUMBER_OR_ERROR): boolean | number | bigint | TomlDate {
 	// Constant values
 	if (value === 'true') return true;
 	if (value === 'false') return false;
