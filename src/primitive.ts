@@ -128,13 +128,13 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 
 export function parseValue (value: string, toml: string, ptr: number): boolean | number | TomlDate {
 	// Constant values
-	if (value === 'true') return true
-	if (value === 'false') return false
-	if (value === '-inf') return -Infinity
-	if (value === 'inf' || value === '+inf') return Infinity
-	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN
+	if (value === 'true') return true;
+	if (value === 'false') return false;
+	if (value === '-inf') return -Infinity;
+	if (value === 'inf' || value === '+inf') return Infinity;
+	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN;
 
-	if (value === '-0') return 0 // Avoid FP representation of -0
+	if (value === '-0') return 0; // Avoid FP representation of -0
 
 	// Numbers
 	let isInt
@@ -143,7 +143,7 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 			throw new TomlError('leading zeroes are not allowed', {
 				toml: toml,
 				ptr: ptr
-			})
+			});
 		}
 
 		let numeric = +(value.replace(/_/g, ''))
@@ -151,7 +151,7 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 			throw new TomlError('invalid number', {
 				toml: toml,
 				ptr: ptr
-			})
+			});
 		}
 
 		if (isInt && !Number.isSafeInteger(numeric)) {
@@ -161,16 +161,16 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 			})
 		}
 
-		return numeric
+		return numeric;
 	}
 
-	let date = new TomlDate(value)
+	let date = new TomlDate(value);
 	if (!date.isValid()) {
 		throw new TomlError('invalid value', {
 			toml: toml,
 			ptr: ptr
-		})
+		});
 	}
 
-	return date
+	return date;
 }
