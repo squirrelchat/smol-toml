@@ -116,7 +116,7 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 
 export function parse(
 	toml: string,
-	{ maxDepth = 1000, integerParsing = IntegerParsing.NUMBER_OR_ERROR }: { maxDepth: number, integerParsing: IntegerParsing }
+	{ maxDepth = 1000, integerParsing = IntegerParsing.NUMBER_OR_ERROR }: { maxDepth?: number, integerParsing?: IntegerParsing } = {}
 ): TomlTable {
 	let res = {};
 	let meta = {};
