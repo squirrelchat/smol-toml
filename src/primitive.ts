@@ -126,7 +126,9 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	return parsed + str.slice(sliceStart, endPtr - 1)
 }
 
-export function parseValue (value: string, toml: string, ptr: number): boolean | number | TomlDate {
+export enum IntegerParsing { NUMBER_OR_ERROR, NUMBER_OR_BIGINT, BIGINT_ONLY }
+
+export function parseValue (value: string, toml: string, ptr: number, integerParsing: IntegerParsing = IntegerParsing.NUMBER_OR_ERROR): boolean | number | bigint | TomlDate {
 	// Constant values
 	if (value === 'true') return true;
 	if (value === 'false') return false;
@@ -137,8 +139,9 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 	if (value === '-0') return 0; // Avoid FP representation of -0
 
 	// Numbers
-	let isInt
-	if ((isInt = INT_REGEX.test(value)) || FLOAT_REGEX.test(value)) {
+	const isInt = INT_REGEX.test(value);
+	const isFloat = FLOAT_REGEX.test(value);
+	if (isInt || isFloat) {
 		if (LEADING_ZERO.test(value)) {
 			throw new TomlError('leading zeroes are not allowed', {
 				toml: toml,
@@ -146,19 +149,31 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 			});
 		}
 
-		let numeric = +(value.replace(/_/g, ''))
-		if (isNaN(numeric)) {
-			throw new TomlError('invalid number', {
-				toml: toml,
-				ptr: ptr
-			});
-		}
+		const valueReplaced = value.replace(/_/g, '');
+		let numeric: number|bigint;
 
-		if (isInt && !Number.isSafeInteger(numeric)) {
-			throw new TomlError('integer value cannot be represented losslessly', {
-				toml: toml,
-				ptr: ptr
-			})
+		if ((!isFloat) && (integerParsing === IntegerParsing.BIGINT_ONLY)) {
+			numeric = BigInt(valueReplaced);
+		} else {
+			numeric = +valueReplaced;
+
+			if (isNaN(numeric)) {
+				throw new TomlError('invalid number', {
+					toml: toml,
+					ptr: ptr
+				});
+			}
+
+			if (isInt && !Number.isSafeInteger(numeric)) {
+				if (integerParsing === IntegerParsing.NUMBER_OR_ERROR) {
+					throw new TomlError('integer value cannot be represented losslessly', {
+						toml: toml,
+						ptr: ptr
+					});
+				} else if (integerParsing === IntegerParsing.NUMBER_OR_BIGINT) {
+					numeric = BigInt(valueReplaced);
+				}
+			}
 		}
 
 		return numeric;
