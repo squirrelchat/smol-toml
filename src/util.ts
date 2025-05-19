@@ -31,8 +31,7 @@ import { TomlError } from './error.js'
 
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate;
 export type TomlTable<Primitive = TomlPrimitive> = {[Key in string]: TomlValue<Primitive>} & {[Key in string]?: TomlValue<Primitive>|undefined};
-export type TomlArray<Primitive = TomlPrimitive> = TomlValue<Primitive>[] | readonly TomlValue<Primitive>[];
-export type TomlValue<Primitive = TomlPrimitive> = Primitive | TomlArray<Primitive> | TomlTable<Primitive>;
+export type TomlValue<Primitive = TomlPrimitive> = Primitive | TomlValue<Primitive>[] | TomlTable<Primitive>;
 
 export function indexOfNewline (str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)
