@@ -28,7 +28,7 @@
 
 import { parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { skipComment, indexOfNewline, getStringEnd, skipVoid, type TOMLTable, type TOMLArray, type TOMLValue } from './util.js'
+import { skipComment, indexOfNewline, getStringEnd, skipVoid, type TomlTable, type TomlArray, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
@@ -116,8 +116,8 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 	return [ parsed, skipVoid(str, endPtr + 1, true, true) ]
 }
 
-export function parseInlineTable (str: string, ptr: number, depth: number = -1): [ TOMLTable, number ] {
-	let res: TOMLTable = {}
+export function parseInlineTable (str: string, ptr: number, depth: number = -1): [ TomlTable, number ] {
+	let res: TomlTable = {}
 	let seen = new Set()
 	let c: string
 	let comma = 0
@@ -194,8 +194,8 @@ export function parseInlineTable (str: string, ptr: number, depth: number = -1):
 	return [ res, ptr ]
 }
 
-export function parseArray (str: string, ptr: number, depth: number = -1): [ TOMLArray, number ] {
-	let res: TOMLValue[] = []
+export function parseArray (str: string, ptr: number, depth: number = -1): [ TomlArray, number ] {
+	let res: TomlValue[] = []
 	let c
 
 	ptr++

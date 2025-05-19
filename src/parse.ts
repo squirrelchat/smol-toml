@@ -28,16 +28,16 @@
 
 import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
-import { skipVoid, type TOMLTable } from './util.js'
+import { skipVoid, type TomlTable } from './util.js'
 import { TomlError } from './error.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
 type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
-type PeekResult = [ string, TOMLTable, MetaRecord ] | null
+type PeekResult = [ string, TomlTable, MetaRecord ] | null
 
-function peekTable (key: string[], table: TOMLTable, meta: MetaRecord, type: Type): PeekResult {
+function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
 	let t: any = table
 	let m = meta
 	let k: string
@@ -113,7 +113,7 @@ function peekTable (key: string[], table: TOMLTable, meta: MetaRecord, type: Typ
 	return [ k!, t, state.c ]
 }
 
-export function parse (toml: string, opts?: { maxDepth: number }): TOMLTable {
+export function parse (toml: string, opts?: { maxDepth: number }): TomlTable {
 	let maxDepth = opts?.maxDepth ?? 1000
 	let res = {}
 	let meta = {}
