@@ -141,7 +141,13 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 	if (value === 'inf' || value === '+inf') return Infinity;
 	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN;
 
-	if (value === '-0') return 0; // Avoid FP representation of -0
+	// Avoid FP representation of -0
+	if (value === '-0') {
+		if (integerParsing === IntegerParsing.BIGINT_ONLY) {
+			return BigInt(0);
+		}
+		return 0;
+	}
 
 	// Numbers
 	const isInt = INT_REGEX.test(value);
