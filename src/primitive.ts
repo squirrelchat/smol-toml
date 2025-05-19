@@ -126,7 +126,12 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	return parsed + str.slice(sliceStart, endPtr - 1)
 }
 
-export enum IntegerParsing { NUMBER_OR_ERROR, NUMBER_OR_BIGINT, BIGINT_ONLY }
+export type IntegerParsing = "number_or_error" | "number_or_bigint" | "integers_as_bigints"
+export const IntegerParsing = { // internal use only
+	NUMBER_OR_ERROR: "number_or_error" as const,
+	NUMBER_OR_BIGINT: "number_or_bigint" as const,
+	BIGINT_ONLY: "integers_as_bigints" as const
+}
 
 export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing = IntegerParsing.NUMBER_OR_ERROR): boolean | number | bigint | TomlDate {
 	// Constant values

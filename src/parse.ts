@@ -115,11 +115,11 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 }
 
 export function parse(toml: string, options?: { maxDepth?: number }): TomlTable<Exclude<TomlPrimitive, bigint>>;
-export function parse(toml: string, options?: { maxDepth?: number, integerParsing: IntegerParsing.NUMBER_OR_ERROR }): TomlTable<Exclude<TomlPrimitive, bigint>>;
+export function parse(toml: string, options?: { maxDepth?: number, integerParsing: "number_or_error" }): TomlTable<Exclude<TomlPrimitive, bigint>>;
 export function parse(toml: string, options?: { maxDepth?: number, integerParsing: IntegerParsing }): TomlTable;
 export function parse(
 	toml: string,
-	{ maxDepth = 1000, integerParsing }: { maxDepth?: number, integerParsing?: IntegerParsing|undefined } = {}
+	{ maxDepth = 1000, integerParsing = IntegerParsing.NUMBER_OR_ERROR }: { maxDepth?: number, integerParsing?: IntegerParsing|undefined } = {}
 ): TomlTable {
 	let res = {};
 	let meta = {};
