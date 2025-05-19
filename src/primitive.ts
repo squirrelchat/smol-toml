@@ -150,9 +150,8 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 	}
 
 	// Numbers
-	const isInt = INT_REGEX.test(value);
-	const isFloat = FLOAT_REGEX.test(value);
-	if (isInt || isFloat) {
+	let isInt = INT_REGEX.test(value);
+	if (isInt || FLOAT_REGEX.test(value)) {
 		if (LEADING_ZERO.test(value)) {
 			throw new TomlError('leading zeroes are not allowed', {
 				toml: toml,
@@ -160,30 +159,27 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 			});
 		}
 
-		const valueReplaced = value.replace(/_/g, '');
-		let numeric: number|bigint;
+		value = value.replace(/_/g, '');
+		let numeric: number|bigint = +value;
 
-		if ((!isFloat) && (integerParsing === IntegerParsing.BIGINT_ONLY)) {
-			numeric = BigInt(valueReplaced);
-		} else {
-			numeric = +valueReplaced;
+		if (isNaN(numeric)) {
+			throw new TomlError('invalid number', {
+				toml: toml,
+				ptr: ptr
+			});
+		}
 
-			if (isNaN(numeric)) {
-				throw new TomlError('invalid number', {
-					toml: toml,
-					ptr: ptr
-				});
-			}
-
-			if (isInt && !Number.isSafeInteger(numeric)) {
+		if (isInt) {
+			if (!Number.isSafeInteger(numeric)) {
 				if (integerParsing === IntegerParsing.NUMBER_OR_ERROR) {
 					throw new TomlError('integer value cannot be represented losslessly', {
 						toml: toml,
 						ptr: ptr
 					});
-				} else if (integerParsing === IntegerParsing.NUMBER_OR_BIGINT) {
-					numeric = BigInt(valueReplaced);
 				}
+				numeric = BigInt(value);
+			} else if (integerParsing === IntegerParsing.BIGINT_ONLY) {
+				numeric = BigInt(value);
 			}
 		}
 
