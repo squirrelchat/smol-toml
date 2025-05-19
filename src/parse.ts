@@ -114,9 +114,13 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 	return [ k!, t, state.c ]
 }
 
-export function parse(toml: string, options?: { maxDepth?: number }): TomlTable<Exclude<TomlPrimitive, bigint>>;
-export function parse(toml: string, options?: { maxDepth?: number, integerParsing: "number_or_error" }): TomlTable<Exclude<TomlPrimitive, bigint>>;
-export function parse(toml: string, options?: { maxDepth?: number, integerParsing: IntegerParsing }): TomlTable;
+export interface ParseOptions {
+	maxDepth?: number
+	integerParsing?: IntegerParsing
+}
+
+export function parse(toml: string, options?: ParseOptions & { integerParsing: Exclude<IntegerParsing, "number_or_error"> }): TomlTable;
+export function parse(toml: string, options?: ParseOptions): TomlTable<Exclude<TomlPrimitive, bigint>>;
 export function parse(
 	toml: string,
 	{ maxDepth = 1000, integerParsing = IntegerParsing.NUMBER_OR_ERROR }: { maxDepth?: number, integerParsing?: IntegerParsing|undefined } = {}
