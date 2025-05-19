@@ -133,7 +133,7 @@ export const IntegerParsing = { // internal use only
 }
 export type IntegerParsing = typeof IntegerParsing[keyof typeof IntegerParsing]
 
-export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing = IntegerParsing.NUMBER_OR_ERROR): boolean | number | bigint | TomlDate {
+export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing): boolean | number | bigint | TomlDate {
 	// Constant values
 	if (value === 'true') return true;
 	if (value === 'false') return false;

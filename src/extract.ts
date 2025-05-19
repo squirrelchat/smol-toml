@@ -59,7 +59,9 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 
 export function extractValue(
 	str: string, ptr: number,
-	{ end, depth = -1, integerParsing }: { end?: string, depth?: number, integerParsing?: IntegerParsing|undefined } = {}
+	end: string | undefined,
+	depth: number,
+	integerParsing: IntegerParsing,
 ): [ TomlValue, number ] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
@@ -71,8 +73,8 @@ export function extractValue(
 	let c = str[ptr]
 	if (c === '[' || c === '{') {
 		let [ value, endPtr ] = c === '['
-			? parseArray(str, ptr, { depth, integerParsing })
-			: parseInlineTable(str, ptr, { depth, integerParsing })
+			? parseArray(str, ptr, depth, integerParsing)
+			: parseInlineTable(str, ptr, depth, integerParsing)
 
 		let newPtr = end ? skipUntil(str, endPtr, ',', end) : endPtr
 		if (endPtr - newPtr && end === '}') {

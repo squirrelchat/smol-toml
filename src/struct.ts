@@ -118,7 +118,8 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 
 export function parseInlineTable(
 	str: string, ptr: number,
-	{ depth = -1, integerParsing }: { depth?: number, integerParsing?: IntegerParsing|undefined } = {}
+	depth: number,
+	integerParsing: IntegerParsing,
 ): [ TomlTable, number ] {
 	let res: TomlTable = {}
 	let seen = new Set()
@@ -171,7 +172,7 @@ export function parseInlineTable(
 				})
 			}
 
-			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, { end: '}', depth: depth - 1, integerParsing });
+			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}', depth - 1, integerParsing);
 			seen.add(value);
 
 			t[k!] = value
@@ -199,7 +200,8 @@ export function parseInlineTable(
 
 export function parseArray(
 	str: string, ptr: number,
-	{ depth = -1, integerParsing }: { depth?: number, integerParsing?: IntegerParsing|undefined } = {}
+	depth: number,
+	integerParsing: IntegerParsing,
 ): [ TomlValue[], number ] {
 	let res: TomlValue[] = []
 	let c
@@ -215,7 +217,7 @@ export function parseArray(
 
 		else if (c === '#') ptr = skipComment(str, ptr)
 		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
-			let e = extractValue(str, ptr - 1, { end: ']', depth: depth - 1, integerParsing });
+			let e = extractValue(str, ptr - 1, ']', depth - 1, integerParsing);
 			res.push(e[0]);
 			ptr = e[1];
 		}

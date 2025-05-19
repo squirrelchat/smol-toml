@@ -164,7 +164,7 @@ export function parse(
 				})
 			}
 
-			let v = extractValue(toml, k[1], { depth: maxDepth, integerParsing });
+			let v = extractValue(toml, k[1], undefined, maxDepth, integerParsing);
 			p[1][p[0]] = v[0];
 			ptr = v[1];
 		}
