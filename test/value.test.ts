@@ -110,9 +110,16 @@ it('parses floats with underscores', () => {
 	expect(parseValue('224_617.445_991_228', '', 0, "number_or_error")).toBe(224617.445991228)
 })
 
-it('handles +0.0 and -0.0', () => {
+it('handles signed zero floating-point TOML values', () => {
 	expect(parseValue('+0.0', '', 0, "number_or_error")).toBe(+0)
 	expect(parseValue('-0.0', '', 0, "number_or_error")).toBe(-0)
+})
+
+it('handles signed zero integer TOML values', () => {
+	expect(parseValue('+0', '', 0, "number_or_error"))
+		.toBe(parseValue('-0', '', 0, "number_or_error"))
+	expect(parseValue('+0', '', 0, "integers_as_bigints"))
+		.toBe(parseValue('-0', '', 0, "integers_as_bigints"))
 })
 
 it('parses infinity', () => {
