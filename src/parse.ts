@@ -123,7 +123,7 @@ export function parse(toml: string, options?: ParseOptions & { integerParsing: E
 export function parse(toml: string, options?: ParseOptions): TomlTable<Exclude<TomlPrimitive, bigint>>;
 export function parse(
 	toml: string,
-	{ maxDepth = 1000, integerParsing = IntegerParsing.NUMBER_OR_ERROR }: { maxDepth?: number, integerParsing?: IntegerParsing|undefined } = {}
+	{ maxDepth = 1000, integerParsing = "number_or_error" }: { maxDepth?: number, integerParsing?: IntegerParsing|undefined } = {}
 ): TomlTable {
 	let res = {};
 	let meta = {};

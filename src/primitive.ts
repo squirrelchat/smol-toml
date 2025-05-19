@@ -126,12 +126,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	return parsed + str.slice(sliceStart, endPtr - 1)
 }
 
-export const IntegerParsing = { // internal use only
-	NUMBER_OR_ERROR: "number_or_error" as const,
-	NUMBER_OR_BIGINT: "number_or_bigint" as const,
-	BIGINT_ONLY: "integers_as_bigints" as const
-}
-export type IntegerParsing = typeof IntegerParsing[keyof typeof IntegerParsing]
+export type IntegerParsing = "number_or_error" | "number_or_bigint" | "integers_as_bigints"
 
 export function parseValue(value: string, toml: string, ptr: number, integerParsing: IntegerParsing): boolean | number | bigint | TomlDate {
 	// Constant values
@@ -143,7 +138,7 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 
 	// Avoid FP representation of -0
 	if (value === '-0') {
-		if (integerParsing === IntegerParsing.BIGINT_ONLY) {
+		if (integerParsing === "integers_as_bigints") {
 			return BigInt(0);
 		}
 		return 0;
@@ -171,14 +166,14 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 
 		if (isInt) {
 			if (!Number.isSafeInteger(numeric)) {
-				if (integerParsing === IntegerParsing.NUMBER_OR_ERROR) {
+				if (integerParsing === "number_or_error") {
 					throw new TomlError('integer value cannot be represented losslessly', {
 						toml: toml,
 						ptr: ptr
 					});
 				}
 				numeric = BigInt(value);
-			} else if (integerParsing === IntegerParsing.BIGINT_ONLY) {
+			} else if (integerParsing === "integers_as_bigints") {
 				numeric = BigInt(value);
 			}
 		}
