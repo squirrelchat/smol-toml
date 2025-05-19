@@ -29,10 +29,10 @@
 import type { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
-export type TomlPrimitive = string | number | boolean | TomlDate;
-export type TomlTable = {[Key in string]: TomlValue} & {[Key in string]?: TomlValue|undefined};
-export type TomlArray = TomlValue[] | readonly TomlValue[];
-export type TomlValue = TomlPrimitive | TomlArray | TomlTable;
+export type TomlPrimitive = string | number | boolean | TomlDate
+export type TomlTable = { [Key in string]: TomlValue } & { [Key in string]?: TomlValue | undefined }
+export type TomlArray = TomlValue[] | readonly TomlValue[]
+export type TomlValue = TomlPrimitive | TomlArray | TomlTable
 
 export function indexOfNewline (str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)
