@@ -65,6 +65,15 @@ a = 1e+2
 	expect(stringify({ a: 100 }, { numberAsFloat: true }).trim()).toBe(expected)
 })
 
+it('stringifies floats as floats', () => {
+	const expected = `
+a = 100.146
+`.trim()
+
+	expect(stringify({ a: 100.146 }).trim()).toBe(expected)
+	expect(stringify({ a: 100.146 }, { numberAsFloat: true }).trim()).toBe(expected)
+})
+
 it('stringifies special float values', () => {
 	const expected = `
 inf = inf
