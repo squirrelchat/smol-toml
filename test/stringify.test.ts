@@ -49,6 +49,22 @@ a = 100
 	expect(stringify({ a: 100n }).trim()).toBe(expected)
 })
 
+it('stringifies integers as integers', () => {
+	const expected = `
+a = 100
+`.trim()
+
+	expect(stringify({ a: 100 }).trim()).toBe(expected)
+})
+
+it('stringifies integers as floats', () => {
+	const expected = `
+a = 1e+2
+`.trim()
+
+	expect(stringify({ a: 100 }, { numberAsFloat: true }).trim()).toBe(expected)
+})
+
 it('stringifies special float values', () => {
 	const expected = `
 inf = inf
