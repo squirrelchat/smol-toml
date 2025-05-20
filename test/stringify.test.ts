@@ -59,7 +59,7 @@ a = 100
 
 it('stringifies integers as floats', () => {
 	const expected = `
-a = 1e+2
+a = 100.0
 `.trim()
 
 	expect(stringify({ a: 100 }, { numberAsFloat: true }).trim()).toBe(expected)
@@ -88,6 +88,7 @@ nan = nan
 	}
 
 	expect(stringify(obj).trim()).toBe(expected)
+	expect(stringify(obj, { numberAsFloat: true }).trim()).toBe(expected)
 })
 
 it('stringifies dates properly', () => {

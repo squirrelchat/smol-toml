@@ -60,7 +60,7 @@ function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFlo
 		if (isNaN(val)) return 'nan'
 		if (val === Infinity) return 'inf'
 		if (val === -Infinity) return '-inf'
-		if (numberAsFloat) return val.toExponential()
+		if (numberAsFloat && Number.isInteger(val)) return val.toFixed(1)
 		return val.toString()
 	}
 
