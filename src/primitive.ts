@@ -139,7 +139,7 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 	// Avoid FP representation of -0
 	if (value === '-0') {
 		if (integerParsing === "integers_as_bigints") {
-			return BigInt(0);
+			return 0n;
 		}
 		return 0;
 	}
