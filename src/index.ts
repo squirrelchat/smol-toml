@@ -32,6 +32,11 @@ import { stringify } from './stringify.js'
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
-export type { TomlPrimitive } from './util.js'
+export type { TomlValue, TomlTable } from './util.js'
 export default { parse, stringify, TomlDate, TomlError }
 export { parse, stringify, TomlDate, TomlError }
+
+export type {
+	/** @deprecated use TomlValue instead */
+	TomlValue as TomlPrimitive
+} from './util.js'
