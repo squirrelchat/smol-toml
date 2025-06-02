@@ -83,11 +83,15 @@ it('supports floats larger than the max safe integer number', () => {
 	expect(parseValue('9007199254740992.0', '', 0, "integers_as_bigints")).toBe(9007199254740992.0)
 })
 
-it('supports floats larger than the Number max value', () => {
-	const nineRepeatFloat = '9'.repeat(310) + ".0"
-	expect(parseValue(nineRepeatFloat, '', 0, "number_or_error")).toBe(+nineRepeatFloat)
-	expect(parseValue(nineRepeatFloat, '', 0, "number_or_bigint")).toBe(+nineRepeatFloat)
-	expect(parseValue(nineRepeatFloat, '', 0, "integers_as_bigints")).toBe(+nineRepeatFloat)
+it('interprets TOML-floats larger than the Number max value as Infinity', () => {
+	let nineRepeatFloat = '9'.repeat(310) + ".0"
+	expect(parseValue(nineRepeatFloat, '', 0, "number_or_error")).toBe(Infinity)
+	expect(parseValue(nineRepeatFloat, '', 0, "number_or_bigint")).toBe(Infinity)
+	expect(parseValue(nineRepeatFloat, '', 0, "integers_as_bigints")).toBe(Infinity)
+	nineRepeatFloat = '-' + nineRepeatFloat
+	expect(parseValue(nineRepeatFloat, '', 0, "number_or_error")).toBe(-Infinity)
+	expect(parseValue(nineRepeatFloat, '', 0, "number_or_bigint")).toBe(-Infinity)
+	expect(parseValue(nineRepeatFloat, '', 0, "integers_as_bigints")).toBe(-Infinity)
 })
 
 it('rejects leading zeroes', () => {
