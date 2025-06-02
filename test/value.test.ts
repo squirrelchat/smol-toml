@@ -67,13 +67,14 @@ it('rejects numbers too large on number_or_error', () => {
 })
 
 it('supports numbers larger than the max safe integer number when bigints are enabled', () => {
-	expect(parseValue('9007199254740992', '', 0, "number_or_bigint")).toBe(BigInt('9007199254740992'))
-	expect(parseValue('9007199254740992', '', 0, "integers_as_bigints")).toBe(BigInt('9007199254740992'))
+	expect(parseValue('9007199254740992', '', 0, "number_or_bigint")).toBe(9007199254740992n)
+	expect(parseValue('9007199254740992', '', 0, "integers_as_bigints")).toBe(9007199254740992n)
 })
 
 it('supports numbers larger than the number max value when bigints are enabled', () => {
-	expect(parseValue('9'.repeat(310), '', 0, "number_or_bigint")).toBe(BigInt('9'.repeat(310)))
-	expect(parseValue('9'.repeat(310), '', 0, "integers_as_bigints")).toBe(BigInt('9'.repeat(310)))
+	const nineRepeat = '9'.repeat(310)
+	expect(parseValue(nineRepeat, '', 0, "number_or_bigint")).toBe(BigInt(nineRepeat))
+	expect(parseValue(nineRepeat, '', 0, "integers_as_bigints")).toBe(BigInt(nineRepeat))
 })
 
 it('rejects floats too large', () => {
