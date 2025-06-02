@@ -33,7 +33,8 @@ import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
 export type { TomlValue, TomlTable } from './util.js'
-export type { TomlValue as TomlPrimitive } from './util.js' // deprecated, to be removed in v2.x
+/** @deprecated to be removed in v2.x */
+export type { TomlValue as TomlPrimitive } from './util.js'
 export type { ParseOptions } from './parse.js'
 export default { parse, stringify, TomlDate, TomlError }
 export { parse, stringify, TomlDate, TomlError }
