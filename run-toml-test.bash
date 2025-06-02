@@ -7,6 +7,7 @@ skip_decode=(
 
 	# Certain invalid UTF-8 codepoints are not rejected
 	-skip='invalid/encoding/bad-codepoint'
+	-skip='invalid/string/bad-uni-esc-6'
 	-skip='invalid/string/bad-uni-esc-06'
 	-skip='invalid/string/bad-uni-esc-ml-6'
 
