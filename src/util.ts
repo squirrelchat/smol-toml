@@ -30,7 +30,7 @@ import type { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
 export type TomlPrimitive = string | number | boolean | TomlDate
-export type TomlTable = { [Key in string]: TomlValue }
+export type TomlTable = { [key: string]: TomlValue }
 export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 
 export function indexOfNewline (str: string, start = 0, end = str.length) {
