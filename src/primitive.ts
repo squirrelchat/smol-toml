@@ -145,7 +145,7 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 	}
 
 	// Numbers
-	let isInt = INT_REGEX.test(value);
+	const isInt = INT_REGEX.test(value);
 	if (isInt || FLOAT_REGEX.test(value)) {
 		if (LEADING_ZERO.test(value)) {
 			throw new TomlError('leading zeroes are not allowed', {
@@ -181,7 +181,7 @@ export function parseValue(value: string, toml: string, ptr: number, integerPars
 		return numeric;
 	}
 
-	let date = new TomlDate(value);
+	const date = new TomlDate(value);
 	if (!date.isValid()) {
 		throw new TomlError('invalid value', {
 			toml: toml,
