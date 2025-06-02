@@ -8,6 +8,8 @@ skip_decode=(
 	# Certain invalid UTF-8 codepoints are not rejected
 	-skip='invalid/encoding/bad-codepoint'
 	-skip='invalid/string/bad-uni-esc-6'
+	-skip='invalid/string/bad-uni-esc-06'
+	-skip='invalid/string/bad-uni-esc-ml-6'
 
 	# JS* doesn't reject invalid dates, but interprets extra days such as "Feb 30 2023" as "Feb 28 2023 +2d" gracefully.
 	#

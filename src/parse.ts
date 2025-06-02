@@ -125,8 +125,8 @@ export function parse(
 	toml: string,
 	{ maxDepth = 1000, integerParsing = "number_or_error" }: { maxDepth?: number, integerParsing?: IntegerParsing|undefined } = {}
 ): TomlTable {
-	let res = {};
-	let meta = {};
+	let res = {}
+	let meta = {}
 
 	let tbl = res
 	let m = meta
