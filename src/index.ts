@@ -32,7 +32,7 @@ import { stringify } from './stringify.js'
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
-export type { TomlValue, TomlTable } from './util.js'
+export type { TomlValue, TomlTable, TomlValueWithoutBigint, TomlTableWithoutBigint } from './util.js'
 export default { parse, stringify, TomlDate, TomlError }
 export { parse, stringify, TomlDate, TomlError }
 

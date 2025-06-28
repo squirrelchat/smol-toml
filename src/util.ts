@@ -30,8 +30,11 @@ import type { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate
-export type TomlTable<Primitive = TomlPrimitive> = { [key: string]: TomlValue<Primitive> }
-export type TomlValue<Primitive = TomlPrimitive> = Primitive | TomlValue<Primitive>[] | TomlTable<Primitive>
+export type TomlTable = { [key: string]: TomlValue }
+export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
+
+export type TomlTableWithoutBigint = { [key: string]: TomlValueWithoutBigint }
+export type TomlValueWithoutBigint = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigint[] | TomlTableWithoutBigint
 
 export function indexOfNewline (str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)

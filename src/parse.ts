@@ -26,11 +26,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { IntegersAsBigInt } from './primitive.js'
 import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
-import { skipVoid, type TomlPrimitive, type TomlTable } from './util.js'
+import { skipVoid, type TomlTable, type TomlTableWithoutBigint } from './util.js'
 import { TomlError } from './error.js'
-import { IntegerParsing } from './primitive.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
@@ -116,15 +116,12 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 
 export interface ParseOptions {
 	maxDepth?: number
-	integerParsing?: IntegerParsing
+	integersAsBigInt?: IntegersAsBigInt
 }
 
-export function parse(toml: string, options?: ParseOptions & { integerParsing: Exclude<IntegerParsing, "number_or_error"> }): TomlTable;
-export function parse(toml: string, options?: ParseOptions): TomlTable<Exclude<TomlPrimitive, bigint>>;
-export function parse(
-	toml: string,
-	{ maxDepth = 1000, integerParsing = "number_or_error" }: { maxDepth?: number, integerParsing?: IntegerParsing|undefined } = {}
-): TomlTable {
+export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable;
+export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigint;
+export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
 	let res = {}
 	let meta = {}
 
@@ -168,7 +165,7 @@ export function parse(
 				})
 			}
 
-			let v = extractValue(toml, k[1], undefined, maxDepth, integerParsing);
+			let v = extractValue(toml, k[1], void 0, maxDepth, integersAsBigInt);
 			p[1][p[0]] = v[0];
 			ptr = v[1];
 		}
