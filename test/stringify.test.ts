@@ -62,7 +62,7 @@ it('stringifies integers as floats', () => {
 a = 100.0
 `.trim()
 
-	expect(stringify({ a: 100 }, { numberAsFloat: true }).trim()).toBe(expected)
+	expect(stringify({ a: 100 }, { numbersAsFloat: true }).trim()).toBe(expected)
 })
 
 it('stringifies floats as floats', () => {
@@ -71,7 +71,7 @@ a = 100.146
 `.trim()
 
 	expect(stringify({ a: 100.146 }).trim()).toBe(expected)
-	expect(stringify({ a: 100.146 }, { numberAsFloat: true }).trim()).toBe(expected)
+	expect(stringify({ a: 100.146 }, { numbersAsFloat: true }).trim()).toBe(expected)
 })
 
 it('stringifies special float values', () => {
@@ -88,7 +88,7 @@ nan = nan
 	}
 
 	expect(stringify(obj).trim()).toBe(expected)
-	expect(stringify(obj, { numberAsFloat: true }).trim()).toBe(expected)
+	expect(stringify(obj, { numbersAsFloat: true }).trim()).toBe(expected)
 })
 
 it('stringifies dates properly', () => {
