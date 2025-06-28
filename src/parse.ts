@@ -26,9 +26,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { IntegersAsBigInt } from './primitive.js'
 import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
-import { skipVoid, type TomlTable } from './util.js'
+import { skipVoid, type TomlTable, type TomlTableWithoutBigInt } from './util.js'
 import { TomlError } from './error.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
@@ -113,8 +114,14 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 	return [ k!, t, state.c ]
 }
 
-export function parse (toml: string, opts?: { maxDepth: number }): TomlTable {
-	let maxDepth = opts?.maxDepth ?? 1000
+export interface ParseOptions {
+	maxDepth?: number
+	integersAsBigInt?: IntegersAsBigInt
+}
+
+export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable;
+export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt;
+export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
 	let res = {}
 	let meta = {}
 
@@ -158,9 +165,9 @@ export function parse (toml: string, opts?: { maxDepth: number }): TomlTable {
 				})
 			}
 
-			let v = extractValue(toml, k[1], void 0, maxDepth)
-			p[1][p[0]] = v[0]
-			ptr = v[1]
+			let v = extractValue(toml, k[1], void 0, maxDepth, integersAsBigInt);
+			p[1][p[0]] = v[0];
+			ptr = v[1];
 		}
 
 		ptr = skipVoid(toml, ptr, true)

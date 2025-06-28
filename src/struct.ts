@@ -26,9 +26,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { parseString } from './primitive.js'
+import { type IntegersAsBigInt, parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { skipComment, indexOfNewline, getStringEnd, skipVoid, type TomlTable, type TomlValue } from './util.js'
+import { getStringEnd, indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
@@ -41,7 +41,7 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 	if (endPtr < 0) {
 		throw new TomlError('incomplete key-value: cannot find end of key', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
@@ -51,7 +51,7 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 		// If it's whitespace, ignore
 		if (c !== ' ' && c !== '\t') {
 			// If it's a string
-			if (c === '"' || c === "'") {
+			if (c === '"' || c === '\'') {
 				if (c === str[ptr + 1] && c === str[ptr + 2]) {
 					throw new TomlError('multiline strings are not allowed in keys', {
 						toml: str,
@@ -116,7 +116,11 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 	return [ parsed, skipVoid(str, endPtr + 1, true, true) ]
 }
 
-export function parseInlineTable (str: string, ptr: number, depth: number = -1): [ TomlTable, number ] {
+export function parseInlineTable (
+	str: string, ptr: number,
+	depth: number,
+	integersAsBigInt: IntegersAsBigInt,
+): [ TomlTable, number ] {
 	let res: TomlTable = {}
 	let seen = new Set()
 	let c: string
@@ -124,21 +128,13 @@ export function parseInlineTable (str: string, ptr: number, depth: number = -1):
 
 	ptr++
 	while ((c = str[ptr++]!) !== '}' && c) {
+		let err = { toml: str, ptr: ptr - 1 }
 		if (c === '\n') {
-			throw new TomlError('newlines are not allowed in inline tables', {
-				toml: str,
-				ptr: ptr - 1
-			})
+			throw new TomlError('newlines are not allowed in inline tables', err)
 		} else if (c === '#') {
-			throw new TomlError('inline tables cannot contain comments', {
-				toml: str,
-				ptr: ptr - 1
-			})
+			throw new TomlError('inline tables cannot contain comments', err)
 		} else if (c === ',') {
-			throw new TomlError('expected key-value, found comma', {
-				toml: str,
-				ptr: ptr - 1
-			})
+			throw new TomlError('expected key-value, found comma', err)
 		} else if (c !== ' ' && c !== '\t') {
 			let k: string
 			let t: any = res
@@ -152,7 +148,7 @@ export function parseInlineTable (str: string, ptr: number, depth: number = -1):
 				if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
 					throw new TomlError('trying to redefine an already defined value', {
 						toml: str,
-						ptr: ptr
+						ptr: ptr,
 					})
 				}
 
@@ -164,11 +160,11 @@ export function parseInlineTable (str: string, ptr: number, depth: number = -1):
 			if (hasOwn) {
 				throw new TomlError('trying to redefine an already defined value', {
 					toml: str,
-					ptr: ptr
+					ptr: ptr,
 				})
 			}
 
-			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}', depth - 1)
+			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}', depth - 1, integersAsBigInt)
 			seen.add(value)
 
 			t[k!] = value
@@ -180,36 +176,34 @@ export function parseInlineTable (str: string, ptr: number, depth: number = -1):
 	if (comma) {
 		throw new TomlError('trailing commas are not allowed in inline tables', {
 			toml: str,
-			ptr: comma
+			ptr: comma,
 		})
 	}
 
 	if (!c) {
 		throw new TomlError('unfinished table encountered', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
 	return [ res, ptr ]
 }
 
-export function parseArray (str: string, ptr: number, depth: number = -1): [ TomlValue[], number ] {
+export function parseArray (str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [ TomlValue[], number ] {
 	let res: TomlValue[] = []
 	let c
 
 	ptr++
-	while((c = str[ptr++]) !== ']' && c) {
+	while ((c = str[ptr++]) !== ']' && c) {
 		if (c === ',') {
 			throw new TomlError('expected value, found comma', {
 				toml: str,
-				ptr: ptr - 1
+				ptr: ptr - 1,
 			})
-		}
-
-		else if (c === '#') ptr = skipComment(str, ptr)
+		} else if (c === '#') ptr = skipComment(str, ptr)
 		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
-			let e = extractValue(str, ptr - 1, ']', depth - 1)
+			let e = extractValue(str, ptr - 1, ']', depth - 1, integersAsBigInt)
 			res.push(e[0])
 			ptr = e[1]
 		}
@@ -218,7 +212,7 @@ export function parseArray (str: string, ptr: number, depth: number = -1): [ Tom
 	if (!c) {
 		throw new TomlError('unfinished array encountered', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 

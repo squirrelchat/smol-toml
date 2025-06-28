@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { parseString, parseValue } from './primitive.js'
+import { type IntegersAsBigInt, parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
 import { indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
@@ -57,7 +57,12 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 	return [ trimmed, commentIdx ]
 }
 
-export function extractValue (str: string, ptr: number, end?: string | undefined, depth: number = -1): [ TomlValue, number ] {
+export function extractValue (
+	str: string, ptr: number,
+	end: string | undefined,
+	depth: number,
+	integersAsBigInt: IntegersAsBigInt,
+): [ TomlValue, number ] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
 			toml: str,
@@ -68,8 +73,8 @@ export function extractValue (str: string, ptr: number, end?: string | undefined
 	let c = str[ptr]
 	if (c === '[' || c === '{') {
 		let [ value, endPtr ] = c === '['
-			? parseArray(str, ptr, depth)
-			: parseInlineTable(str, ptr, depth)
+			? parseArray(str, ptr, depth, integersAsBigInt)
+			: parseInlineTable(str, ptr, depth, integersAsBigInt)
 
 		let newPtr = end ? skipUntil(str, endPtr, ',', end) : endPtr
 		if (endPtr - newPtr && end === '}') {
@@ -120,7 +125,7 @@ export function extractValue (str: string, ptr: number, end?: string | undefined
 	}
 
 	return [
-		parseValue(slice[0], str, ptr),
+		parseValue(slice[0], str, ptr, integersAsBigInt),
 		endPtr,
 	]
 }

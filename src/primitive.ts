@@ -46,7 +46,7 @@ let ESC_MAP = {
 }
 
 export function parseString (str: string, ptr = 0, endPtr = str.length): string {
-	let isLiteral = str[ptr] === "'"
+	let isLiteral = str[ptr] === '\''
 	let isMultiline = str[ptr++] === str[ptr] && str[ptr] === str[ptr + 1]
 
 	if (isMultiline) {
@@ -65,13 +65,13 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 			if (!isMultiline) {
 				throw new TomlError('newlines are not allowed in strings', {
 					toml: str,
-					ptr: ptr - 1
+					ptr: ptr - 1,
 				})
 			}
 		} else if ((c < '\x20' && c !== '\t') || c === '\x7f') {
 			throw new TomlError('control characters are not allowed in strings', {
 				toml: str,
-				ptr: ptr - 1
+				ptr: ptr - 1,
 			})
 		}
 
@@ -83,7 +83,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 				if (!ESCAPE_REGEX.test(code)) {
 					throw new TomlError('invalid unicode escape', {
 						toml: str,
-						ptr: tmp
+						ptr: tmp,
 					})
 				}
 
@@ -92,16 +92,16 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 				} catch {
 					throw new TomlError('invalid unicode escape', {
 						toml: str,
-						ptr: tmp
+						ptr: tmp,
 					})
 				}
-			} else if (isMultiline && (c === '\n' || c === ' ' || c === '\t' ||  c === '\r')) {
+			} else if (isMultiline && (c === '\n' || c === ' ' || c === '\t' || c === '\r')) {
 				// Multiline escape
 				ptr = skipVoid(str, ptr - 1, true)
 				if (str[ptr] !== '\n' && str[ptr] !== '\r') {
 					throw new TomlError('invalid escape: only line-ending whitespace may be escaped', {
 						toml: str,
-						ptr: tmp
+						ptr: tmp,
 					})
 				}
 				ptr = skipVoid(str, ptr)
@@ -111,7 +111,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 			} else {
 				throw new TomlError('unrecognized escape sequence', {
 					toml: str,
-					ptr: tmp
+					ptr: tmp,
 				})
 			}
 
@@ -126,7 +126,9 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 	return parsed + str.slice(sliceStart, endPtr - 1)
 }
 
-export function parseValue (value: string, toml: string, ptr: number): boolean | number | TomlDate {
+export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
+
+export function parseValue (value: string, toml: string, ptr: number, integersAsBigInt: IntegersAsBigInt): boolean | number | bigint | TomlDate {
 	// Constant values
 	if (value === 'true') return true
 	if (value === 'false') return false
@@ -134,41 +136,48 @@ export function parseValue (value: string, toml: string, ptr: number): boolean |
 	if (value === 'inf' || value === '+inf') return Infinity
 	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN
 
-	if (value === '-0') return 0 // Avoid FP representation of -0
+	// Avoid FP representation of -0
+	if (value === '-0') return integersAsBigInt ? 0n : 0
 
 	// Numbers
-	let isInt
-	if ((isInt = INT_REGEX.test(value)) || FLOAT_REGEX.test(value)) {
+	let isInt = INT_REGEX.test(value)
+	if (isInt || FLOAT_REGEX.test(value)) {
 		if (LEADING_ZERO.test(value)) {
 			throw new TomlError('leading zeroes are not allowed', {
 				toml: toml,
-				ptr: ptr
+				ptr: ptr,
 			})
 		}
 
-		let numeric = +(value.replace(/_/g, ''))
+		value = value.replace(/_/g, '')
+		let numeric: number | bigint = +value
+
 		if (isNaN(numeric)) {
 			throw new TomlError('invalid number', {
 				toml: toml,
-				ptr: ptr
+				ptr: ptr,
 			})
 		}
 
-		if (isInt && !Number.isSafeInteger(numeric)) {
-			throw new TomlError('integer value cannot be represented losslessly', {
-				toml: toml,
-				ptr: ptr
-			})
+		if (isInt) {
+			if ((isInt = !Number.isSafeInteger(numeric)) && !integersAsBigInt) {
+				throw new TomlError('integer value cannot be represented losslessly', {
+					toml: toml,
+					ptr: ptr,
+				})
+			}
+
+			if (isInt || integersAsBigInt) numeric = BigInt(value)
 		}
 
 		return numeric
 	}
 
-	let date = new TomlDate(value)
+	const date = new TomlDate(value)
 	if (!date.isValid()) {
 		throw new TomlError('invalid value', {
 			toml: toml,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
