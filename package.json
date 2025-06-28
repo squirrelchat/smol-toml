@@ -13,7 +13,7 @@
 		"serializer"
 	],
 	"type": "module",
-	"packageManager": "pnpm@10.9.0",
+	"packageManager": "pnpm@10.12.4",
 	"engines": {
 		"node": ">= 18"
 	},
@@ -29,15 +29,15 @@
 	"devDependencies": {
 		"@iarna/toml": "3.0.0",
 		"@ltd/j-toml": "^1.38.0",
-		"@tsconfig/node-lts": "^22.0.1",
+		"@tsconfig/node-lts": "^22.0.2",
 		"@tsconfig/strictest": "^2.0.5",
-		"@types/node": "^22.14.1",
-		"@vitest/ui": "^3.1.2",
-		"esbuild": "^0.25.3",
+		"@types/node": "^24.0.7",
+		"@vitest/ui": "^3.2.4",
+		"esbuild": "^0.25.5",
 		"fast-toml": "^0.5.4",
-		"pin-github-action": "^3.1.2",
+		"pin-github-action": "^3.4.0",
 		"typescript": "^5.8.3",
-		"vitest": "^3.1.2"
+		"vitest": "^3.2.4"
 	},
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
