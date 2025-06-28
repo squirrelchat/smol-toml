@@ -16,6 +16,9 @@ parser didn't feel too out of place.
 
 *[insert xkcd 927]*
 
+Nowadays, smol-toml is the most downloaded TOML parser on npm thanks to its quality. From frameworks to tooling, it
+has been battle-tested and is actively used in production systems.
+
 smol-toml passes most of the tests from the [`toml-test` suite](https://github.com/toml-lang/toml-test); use the
 `run-toml-test.bash` script to run the tests. Due to the nature of JavaScript and the limits of the language,
 it doesn't pass certain tests, namely:
@@ -24,7 +27,9 @@ it doesn't pass certain tests, namely:
 - Certain invalid dates are not rejected
   - For instance, `2023-02-30` would be accepted and parsed as `2023-03-02`. While additional checks could be performed
 	to reject these, they've not been added for performance reasons.
-- smol-toml doesn't preserve type information between integers and floats (in JS, everything is a float)
+
+Please also note that by default, the behavior regarding integers doesn't preserve type information, nor does it allow
+deserializing integers larger than 53 bits. See [Integers](#integers).
 
 You can see a list of all tests smol-toml fails (and the reason why it fails these) in the list of skipped tests in
 `run-toml-test.bash`. Note that some failures are *not* specification violations per-se. For instance, the TOML spec
@@ -59,10 +64,41 @@ A few notes on the `stringify` function:
 - `undefined` and `null` values on objects are ignored (does not produce a key/value).
 - `undefined` and `null` values in arrays are **rejected**.
 - Functions, classes and symbols are **rejected**.
-- floats will be serialized as integers if they don't have a decimal part.
+- By default, floats will be serialized as integers if they don't have a decimal part. See [Integers](#integers)
   - `stringify(parse('a = 1.0')) === 'a = 1'`
 - JS `Date` will be serialized as Offset Date Time
   - Use the [`TomlDate` object](#dates) for representing other types.
+
+### Integers
+When parsing, both integers and floats are read as plain JavaScript numbers, which essentially are floats. This means
+loss of type information, and makes it impossible to safely represent integers beyond 53 bits.
+
+When serializing, numbers without a decimal part are serialized as integers. This allows in most cases to preserve
+whether a number is an integer or not, but fails to preserve type information for numbers like `1.0`.
+
+#### Enabling BigInt support and type preservation
+To parse integers beyond 53 bits, it's possible to tell the parser to return all integers as BigInt. This will
+therefore preserve the type information at the cost of using a slightly more expensive container.
+
+```js
+import { parse } from 'smol-toml'
+
+const doc = '...'
+const parsed = parse(doc, { integersAsBigInt: true })
+```
+
+If you want to keep numbers for integers that can safely be represented as a JavaScript number, you can pass
+`"asNeeded"` instead.
+
+To get end-to-end type preservation, you can tell the serializer to always treat numbers as floating point numbers.
+Then, only BigInts will be serialized as integers and numbers without a decimal part will still be serialized as float.
+
+```js
+import { stringify } from 'smol-toml'
+
+const obj =  { ... }
+const toml = stringify(obj, { numbersAsFloat: true })
+```
 
 ### Dates
 `smol-toml` uses an extended `Date` object to represent all types of TOML Dates. In the future, `smol-toml` will use
@@ -107,6 +143,10 @@ const localTime = TomlDate.wrapAsLocalTime(jsDate)
 ```
 
 ## Performance
+> [!NOTE]
+> These benchmarks are starting to get a bit old. They will be updated in the (hopefully near) future to better
+> reflect numbers of the latest version of smol-toml on the latest version of Node.js.
+
 A note on these performance numbers: in some highly synthetic tests, other parsers such as `fast-toml` greatly
 outperform other parsers, mostly due to their lack of compliance with the spec. For example, to parse a string,
 `fast-toml` skips the entire string while `smol-toml` does validate the string, costing a fair share of performance.
@@ -187,7 +227,7 @@ I initially tried to benchmark `toml-nodejs`, but the 0.3.0 package is broken.
 I initially reported this to the library author, but the author decided to
 - a) advise to use a custom loader (via *experimental* flag) to circumvent the invalid imports.
   - Said flag, `--experimental-specifier-resolution`, has been removed in Node v20.
-- b) [delete the issue](https://github.com/huan231/toml-nodejs/issues/12) when pointed out links to the NodeJS
+- b) [delete the issue](https://github.com/huan231/toml-nodejs/issues/12) when pointed out links to the Node.js
 documentation about the flag removal and standard resolution algorithm.
 
 For the reference anyway, `toml-nodejs` (with proper imports) is ~8x slower on both parse benchmark with:
