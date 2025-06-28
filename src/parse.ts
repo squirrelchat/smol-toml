@@ -29,7 +29,7 @@
 import type { IntegersAsBigInt } from './primitive.js'
 import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
-import { skipVoid, type TomlTable, type TomlTableWithoutBigint } from './util.js'
+import { skipVoid, type TomlTable, type TomlTableWithoutBigInt } from './util.js'
 import { TomlError } from './error.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
@@ -120,7 +120,7 @@ export interface ParseOptions {
 }
 
 export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable;
-export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigint;
+export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt;
 export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
 	let res = {}
 	let meta = {}

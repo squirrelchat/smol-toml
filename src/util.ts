@@ -33,8 +33,8 @@ export type TomlPrimitive = string | number | bigint | boolean | TomlDate
 export type TomlTable = { [key: string]: TomlValue }
 export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 
-export type TomlTableWithoutBigint = { [key: string]: TomlValueWithoutBigint }
-export type TomlValueWithoutBigint = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigint[] | TomlTableWithoutBigint
+export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
+export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
 export function indexOfNewline (str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)
