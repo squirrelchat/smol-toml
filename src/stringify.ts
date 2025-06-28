@@ -177,11 +177,11 @@ function stringifyTable (obj: any, prefix: string, depth: number, numberAsFloat:
 
 export function stringify (
 	obj: any,
-	{ maxDepth = 1000, numberAsFloat = false }: { maxDepth?: number, numberAsFloat?: boolean } = {},
+	{ maxDepth = 1000, numbersAsFloat = false }: { maxDepth?: number, numbersAsFloat?: boolean } = {},
 ) {
 	if (extendedTypeOf(obj) !== 'object') {
 		throw new TypeError('stringify can only be called with an object')
 	}
 
-	return stringifyTable(obj, '', maxDepth, numberAsFloat)
+	return stringifyTable(obj, '', maxDepth, numbersAsFloat)
 }

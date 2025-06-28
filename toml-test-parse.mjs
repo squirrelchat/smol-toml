@@ -71,7 +71,7 @@ let toml = ''
 process.stdin.setEncoding('utf8')
 process.stdin.on('data', (t) => toml += t)
 process.stdin.on('end', () => {
-	const parsed = parse(toml)
+	const parsed = parse(toml, { integersAsBigInt: true })
 	const tagged = tagObject(parsed)
 	console.log(JSON.stringify(tagged, null ,2))
 })

@@ -42,9 +42,7 @@ function untagObject (obj) {
 			case 'bool':
 				return obj.value === 'true'
 			case 'integer':
-				// TODO: add an option to always serialize numbers as floats
-				// return BigInt(obj.value)
-				return Number(obj.value)
+				return BigInt(obj.value)
 			case 'float':
 				if (obj.value === 'nan') return NaN
 				if (obj.value === '+nan') return NaN
@@ -75,5 +73,5 @@ process.stdin.on('data', (j) => json += j)
 process.stdin.on('end', () => {
 	const tagged = JSON.parse(json)
 	const obj = untagObject(tagged)
-	console.log(stringify(obj))
+	console.log(stringify(obj, { numbersAsFloat: true }))
 })

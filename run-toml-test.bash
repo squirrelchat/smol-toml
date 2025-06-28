@@ -27,9 +27,6 @@ skip_decode=(
 )
 
 e=0
-# -int-as-float as there is no way to distinguish between them at this time.
-# For the encoder, distinction is made between floats and integers using JS bigint, however
-# due to the lack of option to always serialize plain numbers as floats, some tests fail (and are therefore skipped)
-toml-test -int-as-float          ${skip_decode[@]} ./toml-test-parse.mjs  || e=1
-toml-test -int-as-float -encoder                   ./toml-test-encode.mjs || e=1
+toml-test          ${skip_decode[@]} ./toml-test-parse.mjs  || e=1
+toml-test -encoder                   ./toml-test-encode.mjs || e=1
 exit $e
