@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { it, expect } from 'vitest'
+import { expect, it } from 'vitest'
 import { stringify } from '../src/stringify.js'
 import { TomlDate } from '../src/date.js'
 
@@ -198,7 +198,11 @@ a = 2
 a = 3
 `.trim()
 
-	expect(stringify({ 'test-key123_': { a: 1 }, 'test key 123': { a: 2 }, 'testkey@': { a: 3 } }).trim()).toBe(expected)
+	expect(stringify({
+		'test-key123_': { a: 1 },
+		'test key 123': { a: 2 },
+		'testkey@': { a: 3 },
+	}).trim()).toBe(expected)
 })
 
 it('does not produce invalid strings', () => {
@@ -226,7 +230,7 @@ it('ignores null and undefined on objects', () => {
 	const testObj = {
 		a: null,
 		b: void 0,
-		c: 1
+		c: 1,
 	}
 
 	expect(stringify(testObj).trim()).toBe('c = 1')
@@ -234,8 +238,8 @@ it('ignores null and undefined on objects', () => {
 
 
 it('rejects null and undefined in arrays', () => {
-	expect(() => stringify({ a: [ 1, null, 2 ]})).toThrow(TypeError)
-	expect(() => stringify({ a: [ 1, void 0, 2 ]})).toThrow(TypeError)
+	expect(() => stringify({ a: [ 1, null, 2 ] })).toThrow(TypeError)
+	expect(() => stringify({ a: [ 1, void 0, 2 ] })).toThrow(TypeError)
 })
 
 it('rejects functions and symbols', () => {
