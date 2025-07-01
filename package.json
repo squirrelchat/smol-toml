@@ -1,7 +1,7 @@
 {
 	"name": "smol-toml",
 	"license": "BSD-3-Clause",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"description": "A small, fast, and correct TOML parser/serializer",
 	"author": "Cynthia <cyyynthia@borkenware.com>",
 	"repository": "github:squirrelchat/smol-toml",
