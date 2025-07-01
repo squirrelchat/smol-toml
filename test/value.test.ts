@@ -83,6 +83,10 @@ it('supports floats larger than the max safe integer number', () => {
 	expect(parseValue('9007199254740992.0', '', 0, true)).toBe(9007199254740992.0)
 })
 
+it('only uses bigint for large values when bigints are enabled as needed', () => {
+	expect(parseValue('10', '', 0, "asNeeded")).toBe(10)
+})
+
 it('interprets TOML-floats larger than the Number max value as Infinity', () => {
 	let nineRepeatFloat = '9'.repeat(310) + ".0"
 	expect(parseValue(nineRepeatFloat, '', 0, false)).toBe(Infinity)

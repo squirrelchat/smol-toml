@@ -167,7 +167,7 @@ export function parseValue (value: string, toml: string, ptr: number, integersAs
 				})
 			}
 
-			if (isInt || integersAsBigInt) numeric = BigInt(value)
+			if (isInt || integersAsBigInt === true) numeric = BigInt(value)
 		}
 
 		return numeric
