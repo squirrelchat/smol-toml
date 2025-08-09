@@ -57,6 +57,15 @@ it('handles escapes in strings', () => {
 	// Reference: https://github.com/squirrelchat/smol-toml/issues/37
 	expect(parse('key = "value \\\\\\" value"')).toStrictEqual({ key: 'value \\" value' })
 	expect(parse('key = "value \\\\\\\\\\" value"')).toStrictEqual({ key: 'value \\\\" value' })
+
+	// Reference: https://github.com/squirrelchat/smol-toml/issues/45
+	expect(parse('key = "\\\\"')).toStrictEqual({ key: '\\' })
+	expect(parse('key = "\\\\\\\\"')).toStrictEqual({ key: '\\\\' })
+	expect(parse('key = "\\\\\\\\\\\\"')).toStrictEqual({ key: '\\\\\\' })
+
+	expect(parse('key = ["\\\\"]')).toStrictEqual({ key: [ '\\' ] })
+	expect(parse('key = ["\\\\\\\\"]')).toStrictEqual({ key: [ '\\\\' ] })
+	expect(parse('key = ["\\\\\\\\\\\\"]')).toStrictEqual({ key: [ '\\\\\\' ] })
 })
 
 it('rejects unspecified values', () => {
