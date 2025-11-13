@@ -131,7 +131,7 @@ function stringifyArrayTable (array: any[], key: string, depth: number, numberAs
 	for (let i = 0; i < array.length; i++) {
 		res += `[[${key}]]\n`
 		res += stringifyTable(array[i], key, depth, numberAsFloat)
-		res += '\n\n'
+		res += '\n'
 	}
 
 	return res
@@ -198,7 +198,7 @@ function stringifyTable (obj: any, prefix: string, depth: number, numberAsFloat:
 				const table = stringifyTable(obj[k], tblKey, depth - 1, numberAsFloat)
 				if(table !== "") {
 					tables += table
-					tables += '\n\n'
+					tables += '\n'
 				}
 			} else {
 				preamble += key
@@ -209,7 +209,9 @@ function stringifyTable (obj: any, prefix: string, depth: number, numberAsFloat:
 		}
 	}
 
-	return `${preamble}\n${tables}`.trim()
+	return preamble && tables
+		? `${preamble}\n${tables}`
+		: preamble || tables
 }
 
 export function stringify (
