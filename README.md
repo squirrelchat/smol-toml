@@ -2,7 +2,7 @@
 [![TOML 1.0.0](https://img.shields.io/badge/TOML-1.0.0-9c4221?style=flat-square)](https://toml.io/en/v1.0.0)
 [![License](https://img.shields.io/github/license/squirrelchat/smol-toml.svg?style=flat-square)](https://github.com/squirrelchat/smol-toml/blob/mistress/LICENSE)
 [![npm](https://img.shields.io/npm/v/smol-toml?style=flat-square)](https://npm.im/smol-toml)
-[![Build](https://img.shields.io/github/actions/workflow/status/squirrelchat/smol-toml/build.yml?style=flat-square&logo=github)](https://github.com/squirrelchat/smol-toml/actions/workflows/build.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/squirrelchat/smol-toml/build.yaml?style=flat-square&logo=github)](https://github.com/squirrelchat/smol-toml/actions/workflows/build.yaml)
 
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-support%20me-EA4AAA?style=flat-square)](https://github.com/sponsors/cyyynthia)
 [![Weekly downloads](https://img.shields.io/npm/dw/smol-toml?style=flat-square)](https://npm.im/smol-toml)
