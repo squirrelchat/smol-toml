@@ -137,6 +137,38 @@ function stringifyArrayTable (array: any[], key: string, depth: number, numberAs
 	return res
 }
 
+/** 
+ * If all children of a table are themselves tables or arrays we don't need to include the table key at this level.
+ * Otherwise, we'd end up with redundant output like this:
+ * 
+ *   [key]
+ *   [[key.array]]
+ *   key = "value"
+ * 
+ *   [key.table]
+ *   key = "value"
+ * 
+ * when that can be more simply expressed as just
+ * 
+ *   [[key.array]]
+ *   key = "value"
+ * 
+ *   [key.table]
+ *   key = "value"
+ * 
+ */
+function needsTableKey(obj: any): boolean {
+	return Object.keys(obj).length === 0 || !Object.keys(obj).every(
+		childKey => {
+			if(obj[childKey] !== null && obj[childKey] !== void 0) {
+				let childType = extendedTypeOf(obj[childKey]);
+				return childType === 'object' || (childType === 'array' && isArrayOfTables(obj[childKey]))
+			}
+			return false
+		}
+	)
+}
+
 function stringifyTable (obj: any, prefix: string, depth: number, numberAsFloat: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
@@ -160,9 +192,14 @@ function stringifyTable (obj: any, prefix: string, depth: number, numberAsFloat:
 				tables += stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat)
 			} else if (type === 'object') {
 				let tblKey = prefix ? `${prefix}.${key}` : key
-				tables += `[${tblKey}]\n`
-				tables += stringifyTable(obj[k], tblKey, depth - 1, numberAsFloat)
-				tables += '\n\n'
+				if (needsTableKey(obj[k])) {
+					tables += `[${tblKey}]\n`
+				}
+				const table = stringifyTable(obj[k], tblKey, depth - 1, numberAsFloat)
+				if(table !== "") {
+					tables += table
+					tables += '\n\n'
+				}
 			} else {
 				preamble += key
 				preamble += ' = '

@@ -154,6 +154,37 @@ c = 2
 	expect(stringify({ a: { b: 1, c: 2 }, d: 3 }).trim()).toBe(expected)
 })
 
+it('stringifies nested tables and handles top-level keys', () => {
+	const expected = `
+d = 3
+
+[a.b]
+b = 1
+c = 2
+`.trim()
+
+	expect(stringify({ a: {b: { b: 1, c: 2 },  }, d: 3}).trim()).toBe(expected)
+})
+
+it("stringifies empty tables with no gaps", () => {
+	const expected = `
+[animal]
+[fruit.apple]
+[fruit.orange]
+`.trim();
+
+	expect(
+		stringify({
+			animal: {},
+			fruit: {
+				apple: {},
+				orange: {},
+			},
+		}).trim()
+	).toBe(expected);
+});
+
+
 it('stringifies tables contained in arrays', () => {
 	const expected = `
 a = [ 1, { b = 2, c = 3 }, 4 ]
@@ -175,6 +206,59 @@ c = 4
 
 	expect(stringify({ a: [ { b: 1, c: 2 }, { b: 3, c: 4 } ] }).trim()).toBe(expected)
 })
+
+it("stringifies nested arrays of tables", () => {
+	const expected = `
+[[a.b]]
+b = 1
+c = 2
+
+[[a.b]]
+b = 3
+c = 4
+`.trim();
+
+	expect(
+		stringify({
+			a: {
+				b: [
+					{ b: 1, c: 2 },
+					{ b: 3, c: 4 },
+				],
+			},
+		}).trim()
+	).toBe(expected);
+});
+
+it("stringifies nested arrays of tables with top level keys", () => {
+	const expected = `
+key = "hello"
+
+[a]
+key = "hello"
+
+[[a.b]]
+b = 1
+c = 2
+
+[[a.b]]
+b = 3
+c = 4
+`.trim();
+
+	expect(
+		stringify({
+			key: "hello",
+			a: {
+				key: "hello",
+				b: [
+					{ b: 1, c: 2 },
+					{ b: 3, c: 4 },
+				],
+			},
+		}).trim()
+	).toBe(expected);
+});
 
 it('does not produce invalid keys', () => {
 	const expected = `
