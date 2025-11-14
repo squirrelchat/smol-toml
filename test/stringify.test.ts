@@ -36,42 +36,42 @@ a = 1
 b = "test"
 c = false
 d = 1.1
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: 1, b: 'test', c: false, d: 1.1 }).trim()).toBe(expected)
+	expect(stringify({ a: 1, b: 'test', c: false, d: 1.1 })).toBe(expected)
 })
 
 it('stringifies bigints as integers', () => {
 	const expected = `
 a = 100
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: 100n }).trim()).toBe(expected)
+	expect(stringify({ a: 100n })).toBe(expected)
 })
 
 it('stringifies integers as integers', () => {
 	const expected = `
 a = 100
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: 100 }).trim()).toBe(expected)
+	expect(stringify({ a: 100 })).toBe(expected)
 })
 
 it('stringifies integers as floats', () => {
 	const expected = `
 a = 100.0
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: 100 }, { numbersAsFloat: true }).trim()).toBe(expected)
+	expect(stringify({ a: 100 }, { numbersAsFloat: true })).toBe(expected)
 })
 
 it('stringifies floats as floats', () => {
 	const expected = `
 a = 100.146
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: 100.146 }).trim()).toBe(expected)
-	expect(stringify({ a: 100.146 }, { numbersAsFloat: true }).trim()).toBe(expected)
+	expect(stringify({ a: 100.146 })).toBe(expected)
+	expect(stringify({ a: 100.146 }, { numbersAsFloat: true })).toBe(expected)
 })
 
 it('stringifies special float values', () => {
@@ -79,7 +79,7 @@ it('stringifies special float values', () => {
 inf = inf
 ninf = -inf
 nan = nan
-`.trim()
+`.trimStart()
 
 	const obj = {
 		inf: Infinity,
@@ -87,8 +87,8 @@ nan = nan
 		nan: NaN,
 	}
 
-	expect(stringify(obj).trim()).toBe(expected)
-	expect(stringify(obj, { numbersAsFloat: true }).trim()).toBe(expected)
+	expect(stringify(obj)).toBe(expected)
+	expect(stringify(obj, { numbersAsFloat: true })).toBe(expected)
 })
 
 it('stringifies dates properly', () => {
@@ -98,7 +98,7 @@ date2 = 1979-05-27T07:32:00.000
 date3 = 1979-05-27
 date4 = 07:32:00.000
 date5 = 1979-05-27T15:32:00.000Z
-`.trim()
+`.trimStart()
 
 	const obj = {
 		date1: new TomlDate('1979-05-27T07:32:00-08:00'),
@@ -108,15 +108,15 @@ date5 = 1979-05-27T15:32:00.000Z
 		date5: new Date('1979-05-27T07:32:00-08:00'),
 	}
 
-	expect(stringify(obj).trim()).toBe(expected)
+	expect(stringify(obj)).toBe(expected)
 })
 
 it('stringifies arrays', () => {
 	const expected = `
 a = [ 10, 20, "30", false ]
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: [ 10, 20n, '30', false ] }).trim()).toBe(expected)
+	expect(stringify({ a: [ 10, 20n, '30', false ] })).toBe(expected)
 })
 
 it('stringifies empty arrays', () => {
@@ -127,9 +127,9 @@ a = []
 a = []
 
 [[e]]
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: [], e: [ { a: [] }, {} ] }).trim()).toBe(expected)
+	expect(stringify({ a: [], e: [ { a: [] }, {} ] })).toBe(expected)
 })
 
 it('stringifies tables', () => {
@@ -137,9 +137,9 @@ it('stringifies tables', () => {
 [a]
 b = 1
 c = 2
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: { b: 1, c: 2 } }).trim()).toBe(expected)
+	expect(stringify({ a: { b: 1, c: 2 } })).toBe(expected)
 })
 
 it('stringifies tables and handles top-level keys', () => {
@@ -149,9 +149,9 @@ d = 3
 [a]
 b = 1
 c = 2
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: { b: 1, c: 2 }, d: 3 }).trim()).toBe(expected)
+	expect(stringify({ a: { b: 1, c: 2 }, d: 3 })).toBe(expected)
 })
 
 it('stringifies nested tables and handles top-level keys', () => {
@@ -161,17 +161,17 @@ d = 3
 [a.b]
 b = 1
 c = 2
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: {b: { b: 1, c: 2 },  }, d: 3}).trim()).toBe(expected)
+	expect(stringify({ a: { b: { b: 1, c: 2 } }, d: 3 })).toBe(expected)
 })
 
-it("stringifies empty tables with no gaps", () => {
+it('stringifies empty tables with no gaps', () => {
 	const expected = `
 [animal]
 [fruit.apple]
 [fruit.orange]
-`.trim();
+`.trimStart()
 
 	expect(
 		stringify({
@@ -180,17 +180,48 @@ it("stringifies empty tables with no gaps", () => {
 				apple: {},
 				orange: {},
 			},
-		}).trim()
-	).toBe(expected);
-});
+		}),
+	).toBe(expected)
+})
 
+
+it('stringifies empty tables with consistent newlines', () => {
+	const expected = `
+[animal]
+[fruit.apple]
+[fruit.orange]
+key = "value"
+
+[language.french]
+tag = "fr"
+
+[language.english]
+tag = "en"
+`.trimStart()
+
+	expect(
+		stringify({
+			animal: {},
+			fruit: {
+				apple: {},
+				orange: {
+					key: 'value',
+				},
+			},
+			language: {
+				french: { tag: 'fr' },
+				english: { tag: 'en' },
+			},
+		}),
+	).toBe(expected)
+})
 
 it('stringifies tables contained in arrays', () => {
 	const expected = `
 a = [ 1, { b = 2, c = 3 }, 4 ]
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: [ 1, { b: 2, c: 3 }, 4 ] }).trim()).toBe(expected)
+	expect(stringify({ a: [ 1, { b: 2, c: 3 }, 4 ] })).toBe(expected)
 })
 
 it('stringifies arrays of tables', () => {
@@ -202,12 +233,12 @@ c = 2
 [[a]]
 b = 3
 c = 4
-`.trim()
+`.trimStart()
 
-	expect(stringify({ a: [ { b: 1, c: 2 }, { b: 3, c: 4 } ] }).trim()).toBe(expected)
+	expect(stringify({ a: [ { b: 1, c: 2 }, { b: 3, c: 4 } ] })).toBe(expected)
 })
 
-it("stringifies nested arrays of tables", () => {
+it('stringifies nested arrays of tables', () => {
 	const expected = `
 [[a.b]]
 b = 1
@@ -216,7 +247,7 @@ c = 2
 [[a.b]]
 b = 3
 c = 4
-`.trim();
+`.trimStart()
 
 	expect(
 		stringify({
@@ -226,11 +257,11 @@ c = 4
 					{ b: 3, c: 4 },
 				],
 			},
-		}).trim()
-	).toBe(expected);
-});
+		}),
+	).toBe(expected)
+})
 
-it("stringifies nested arrays of tables with top level keys", () => {
+it('stringifies nested arrays of tables with top level keys', () => {
 	const expected = `
 key = "hello"
 
@@ -244,30 +275,30 @@ c = 2
 [[a.b]]
 b = 3
 c = 4
-`.trim();
+`.trimStart()
 
 	expect(
 		stringify({
-			key: "hello",
+			key: 'hello',
 			a: {
-				key: "hello",
+				key: 'hello',
 				b: [
 					{ b: 1, c: 2 },
 					{ b: 3, c: 4 },
 				],
 			},
-		}).trim()
-	).toBe(expected);
-});
+		}),
+	).toBe(expected)
+})
 
 it('does not produce invalid keys', () => {
 	const expected = `
 test-key123_ = 1
 "test key 123" = 2
 "testkey@" = 3
-`.trim()
+`.trimStart()
 
-	expect(stringify({ 'test-key123_': 1, 'test key 123': 2, 'testkey@': 3 }).trim()).toBe(expected)
+	expect(stringify({ 'test-key123_': 1, 'test key 123': 2, 'testkey@': 3 })).toBe(expected)
 })
 
 it('does not produce invalid keys (table keys)', () => {
@@ -280,13 +311,13 @@ a = 2
 
 ["testkey@"]
 a = 3
-`.trim()
+`.trimStart()
 
 	expect(stringify({
 		'test-key123_': { a: 1 },
 		'test key 123': { a: 2 },
 		'testkey@': { a: 3 },
-	}).trim()).toBe(expected)
+	})).toBe(expected)
 })
 
 it('does not produce invalid strings', () => {
@@ -317,7 +348,7 @@ it('ignores null and undefined on objects', () => {
 		c: 1,
 	}
 
-	expect(stringify(testObj).trim()).toBe('c = 1')
+	expect(stringify(testObj)).toBe('c = 1\n')
 })
 
 

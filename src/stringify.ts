@@ -129,9 +129,8 @@ function stringifyArrayTable (array: any[], key: string, depth: number, numberAs
 
 	let res = ''
 	for (let i = 0; i < array.length; i++) {
-		res += `[[${key}]]\n`
+		res += `${res && '\n'}[[${key}]]\n`
 		res += stringifyTable(0, array[i], key, depth, numberAsFloat)
-		res += '\n'
 	}
 
 	return res
@@ -161,7 +160,7 @@ function stringifyTable (tableKey: string | 0, obj: any, prefix: string, depth: 
 			} else if (type === 'object') {
 				let tblKey = prefix ? `${prefix}.${key}` : key
 				let table = stringifyTable(tblKey, obj[k], tblKey, depth - 1, numberAsFloat)
-				if (table) tables += table + '\n'
+				tables += (tables && '\n') + table
 			} else {
 				preamble += key
 				preamble += ' = '
@@ -187,5 +186,7 @@ export function stringify (
 		throw new TypeError('stringify can only be called with an object')
 	}
 
-	return stringifyTable(0, obj, '', maxDepth, numbersAsFloat)
+	let str = stringifyTable(0, obj, '', maxDepth, numbersAsFloat)
+	if (str[str.length - 1] !== '\n') return str + '\n'
+	return str
 }
