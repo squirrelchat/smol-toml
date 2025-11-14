@@ -156,11 +156,10 @@ function stringifyTable (tableKey: string | 0, obj: any, prefix: string, depth: 
 			let key = BARE_KEY.test(k) ? k : formatString(k)
 
 			if (type === 'array' && isArrayOfTables(obj[k])) {
-				tables += stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat)
+				tables += (tables && '\n') + stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat)
 			} else if (type === 'object') {
 				let tblKey = prefix ? `${prefix}.${key}` : key
-				let table = stringifyTable(tblKey, obj[k], tblKey, depth - 1, numberAsFloat)
-				tables += (tables && '\n') + table
+				tables += (tables && '\n') + stringifyTable(tblKey, obj[k], tblKey, depth - 1, numberAsFloat)
 			} else {
 				preamble += key
 				preamble += ' = '

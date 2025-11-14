@@ -197,6 +197,14 @@ tag = "fr"
 
 [language.english]
 tag = "en"
+
+[country]
+[planet]
+[[books]]
+title = "an amazing book"
+
+[[books]]
+title = "another amazing book"
 `.trimStart()
 
 	expect(
@@ -212,6 +220,12 @@ tag = "en"
 				french: { tag: 'fr' },
 				english: { tag: 'en' },
 			},
+			country: {},
+			planet: {},
+			books: [
+				{ title: "an amazing book" },
+				{ title: "another amazing book" },
+			]
 		}),
 	).toBe(expected)
 })
