@@ -184,6 +184,9 @@ it('parses datetimes', () => {
 	expect(parseValue('1979-05-27T07:32:00Z', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
 	expect(parseValue('1979-05-27T00:32:00-07:00', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
 	expect(parseValue('1979-05-27T00:32:00.999999-07:00', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999-07:00'))
+	expect(parseValue('1979-05-27T07:32', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00'))
+	expect(parseValue('1979-05-27T07:32Z', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27T00:32-07:00', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
 })
 
 it('parses datetimes with a space instead of T', () => {
@@ -201,6 +204,7 @@ it('parses dates', () => {
 it('parses times', () => {
 	expect(parseValue('07:32:00', '', 0, false)).toStrictEqual(new TomlDate('07:32:00'))
 	expect(parseValue('00:32:00.999999', '', 0, false)).toStrictEqual(new TomlDate('00:32:00.999999'))
+	expect(parseValue('07:32', '', 0, false)).toStrictEqual(new TomlDate('07:32:00'))
 })
 
 it('rejects invalid dates', () => {
@@ -211,6 +215,8 @@ it('rejects invalid dates', () => {
 it('handles extreme datetimes', () => {
 	expect(parseValue('0001-01-01 00:00:00Z', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00Z'))
 	expect(parseValue('0001-01-01 00:00:00', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
+	expect(parseValue('0001-01-01 00:00Z', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
+	expect(parseValue('0001-01-01 00:00', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
 	expect(parseValue('0001-01-01', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01'))
 
 	expect(parseValue('9999-12-31 23:59:59Z', '', 0, false)).toStrictEqual(new TomlDate('9999-12-31 23:59:59Z'))
