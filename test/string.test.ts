@@ -41,7 +41,7 @@ it('handles escapes in strings', () => {
 	expect(parseString('"uwu \\n uwu"')).toBe('uwu \n uwu')
 	expect(parseString('"uwu \\f uwu"')).toBe('uwu \f uwu')
 	expect(parseString('"uwu \\r uwu"')).toBe('uwu \r uwu')
-	expect(parseString('"uwu \\e uwu"')).toBe('uwu \e uwu')
+	expect(parseString('"uwu \\e uwu"')).toBe('uwu \x1b uwu')
 	expect(parseString('"uwu \\" uwu"')).toBe('uwu " uwu')
 	expect(parseString('"uwu \\\\ uwu"')).toBe('uwu \\ uwu')
 	expect(parseString('"uwu \\x61 uwu"')).toBe('uwu a uwu')
