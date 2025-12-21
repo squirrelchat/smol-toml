@@ -1,5 +1,5 @@
 # smol-toml
-[![TOML 1.0.0](https://img.shields.io/badge/TOML-1.0.0-9c4221?style=flat-square)](https://toml.io/en/v1.0.0)
+[![TOML 1.1.0](https://img.shields.io/badge/TOML-1.1.0-9c4221?style=flat-square)](https://toml.io/en/v1.1.0)
 [![License](https://img.shields.io/github/license/squirrelchat/smol-toml.svg?style=flat-square)](https://github.com/squirrelchat/smol-toml/blob/mistress/LICENSE)
 [![npm](https://img.shields.io/npm/v/smol-toml?style=flat-square)](https://npm.im/smol-toml)
 [![Build](https://img.shields.io/github/actions/workflow/status/squirrelchat/smol-toml/build.yaml?style=flat-square&logo=github)](https://github.com/squirrelchat/smol-toml/actions/workflows/build.yaml)
@@ -8,7 +8,7 @@
 [![Weekly downloads](https://img.shields.io/npm/dw/smol-toml?style=flat-square)](https://npm.im/smol-toml)
 [![Monthly downloads](https://img.shields.io/npm/dm/smol-toml?style=flat-square)](https://npm.im/smol-toml)
 
-A small, fast, and correct TOML parser and serializer. smol-toml is fully(ish) spec-compliant with TOML v1.0.0.
+A small, fast, and correct TOML parser and serializer. smol-toml is fully(ish) spec-compliant with TOML v1.1.0.
 
 Why yet another TOML parser? Well, the ecosystem of TOML parsers in JavaScript is quite underwhelming, most likely due
 to a lack of interest. With most parsers being outdated, unmaintained, non-compliant, or a combination of these, a new
@@ -144,8 +144,11 @@ const localTime = TomlDate.wrapAsLocalTime(jsDate)
 
 ## Performance
 > [!NOTE]
-> These benchmarks are starting to get a bit old. They will be updated in the (hopefully near) future to better
-> reflect numbers of the latest version of smol-toml on the latest version of Node.js.
+> These benchmarks are starting to get quite old and were ran prior to the release of TOML 1.1.0 which changed subtle
+> implementation details.
+>
+> They will be updated in the (hopefully near) future to better reflect numbers of the latest version of smol-toml
+> on the latest version of Node.js.
 
 A note on these performance numbers: in some highly synthetic tests, other parsers such as `fast-toml` greatly
 outperform other parsers, mostly due to their lack of compliance with the spec. For example, to parse a string,
