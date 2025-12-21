@@ -124,18 +124,16 @@ export function parseInlineTable (
 	let res: TomlTable = {}
 	let seen = new Set()
 	let c: string
-	let comma = 0
 
 	ptr++
 	while ((c = str[ptr++]!) !== '}' && c) {
-		let err = { toml: str, ptr: ptr - 1 }
-		if (c === '\n') {
-			throw new TomlError('newlines are not allowed in inline tables', err)
-		} else if (c === '#') {
-			throw new TomlError('inline tables cannot contain comments', err)
-		} else if (c === ',') {
-			throw new TomlError('expected key-value, found comma', err)
-		} else if (c !== ' ' && c !== '\t') {
+		if (c === ',') {
+			throw new TomlError('expected value, found comma', {
+				toml: str,
+				ptr: ptr - 1,
+			})
+		} else if (c === '#') ptr = skipComment(str, ptr)
+		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
 			let k: string
 			let t: any = res
 			let hasOwn = false
@@ -169,15 +167,7 @@ export function parseInlineTable (
 
 			t[k!] = value
 			ptr = valueEndPtr
-			comma = str[ptr - 1] === ',' ? ptr - 1 : 0
 		}
-	}
-
-	if (comma) {
-		throw new TomlError('trailing commas are not allowed in inline tables', {
-			toml: str,
-			ptr: comma,
-		})
 	}
 
 	if (!c) {

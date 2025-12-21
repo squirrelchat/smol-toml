@@ -28,10 +28,10 @@
 
 import { type IntegersAsBigInt, parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import { indexOfNewline, skipVoid, skipUntil, skipComment, getStringEnd, type TomlValue } from './util.js'
+import { skipVoid, skipUntil, skipComment, getStringEnd, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
-function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allowNewLines?: boolean): [ string, number ] {
+function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number): [ string, number ] {
 	let value = str.slice(startPtr, endPtr)
 
 	let commentIdx = value.indexOf('#')
@@ -42,19 +42,7 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number, allow
 		value = value.slice(0, commentIdx)
 	}
 
-	let trimmed = value.trimEnd()
-
-	if (!allowNewLines) {
-		let newlineIdx = value.indexOf('\n', trimmed.length)
-		if (newlineIdx > -1) {
-			throw new TomlError('newlines are not allowed in inline tables', {
-				toml: str,
-				ptr: startPtr + newlineIdx
-			})
-		}
-	}
-
-	return [ trimmed, commentIdx ]
+	return [ value.trimEnd(), commentIdx ]
 }
 
 export function extractValue (
@@ -76,18 +64,18 @@ export function extractValue (
 			? parseArray(str, ptr, depth, integersAsBigInt)
 			: parseInlineTable(str, ptr, depth, integersAsBigInt)
 
-		let newPtr = end ? skipUntil(str, endPtr, ',', end) : endPtr
-		if (endPtr - newPtr && end === '}') {
-			let nextNewLine = indexOfNewline(str, endPtr, newPtr)
-			if (nextNewLine > -1) {
-				throw new TomlError('newlines are not allowed in inline tables', {
+		if (end) {
+			endPtr = skipVoid(str, endPtr)
+			if (str[endPtr] === ',') endPtr++
+			else if (str[endPtr] !== end) {
+				throw new TomlError('expected comma or end of structure', {
 					toml: str,
-					ptr: nextNewLine
+					ptr: endPtr,
 				})
 			}
 		}
 
-		return [ value, newPtr ]
+		return [ value, endPtr ]
 	}
 
 	let endPtr
@@ -95,7 +83,7 @@ export function extractValue (
 		endPtr = getStringEnd(str, ptr)
 		let parsed = parseString(str, ptr, endPtr)
 		if (end) {
-			endPtr = skipVoid(str, endPtr, end !== ']')
+			endPtr = skipVoid(str, endPtr)
 
 			if (str[endPtr] && str[endPtr] !== ',' && str[endPtr] !== end && str[endPtr] !== '\n' && str[endPtr] !== '\r') {
 				throw new TomlError('unexpected character encountered', {
@@ -111,7 +99,7 @@ export function extractValue (
 	}
 
 	endPtr = skipUntil(str, ptr, ',', end)
-	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')), end === ']')
+	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')))
 	if (!slice[0]) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {
 			toml: str,
