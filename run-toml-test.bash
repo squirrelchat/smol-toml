@@ -10,6 +10,7 @@ skip_decode=(
 	-skip='invalid/string/bad-uni-esc-6'
 	-skip='invalid/string/bad-uni-esc-06'
 	-skip='invalid/string/bad-uni-esc-ml-6'
+	-skip='invalid/string/bad-uni-esc-ml-06'
 
 	# JS* doesn't reject invalid dates, but interprets extra days such as "Feb 30 2023" as "Feb 28 2023 +2d" gracefully.
 	#
@@ -26,7 +27,6 @@ skip_decode=(
 	-skip='invalid/datetime/offset-overflow-hour'
 )
 
-e=0
-toml-test          ${skip_decode[@]} ./toml-test-parse.mjs  || e=1
-toml-test -encoder                   ./toml-test-encode.mjs || e=1
-exit $e
+toml-test test -toml=1.1 ${skip_decode[@]} \
+	-decoder="node ./toml-test-parse.mjs" \
+	-encoder="node ./toml-test-encode.mjs"

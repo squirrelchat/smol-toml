@@ -33,7 +33,7 @@ import { TomlError } from './error.js'
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
 let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/
 let LEADING_ZERO = /^[+-]?0[0-9_]/
-let ESCAPE_REGEX = /^[0-9a-f]{4,8}$/i
+let ESCAPE_REGEX = /^[0-9a-f]{2,8}$/i
 
 let ESC_MAP = {
 	b: '\b',
@@ -41,6 +41,7 @@ let ESC_MAP = {
 	n: '\n',
 	f: '\f',
 	r: '\r',
+	e: '\x1b',
 	'"': '"',
 	'\\': '\\',
 }
@@ -77,9 +78,9 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 
 		if (isEscape) {
 			isEscape = false
-			if (c === 'u' || c === 'U') {
+			if (c === 'x' || c === 'u' || c === 'U') {
 				// Unicode escape
-				let code = str.slice(ptr, (ptr += (c === 'u' ? 4 : 8)))
+				let code = str.slice(ptr, (ptr += (c === 'x' ? 2 : c === 'u' ? 4 : 8)))
 				if (!ESCAPE_REGEX.test(code)) {
 					throw new TomlError('invalid unicode escape', {
 						toml: str,
