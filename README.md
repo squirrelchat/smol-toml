@@ -55,7 +55,7 @@ console.log(toml)
 
 Alternatively, if you prefer something similar to the JSON global, you can import the library as follows
 ```js
-import TOML from 'smol-toml'
+import * as TOML from 'smol-toml'
 
 TOML.stringify({ ... })
 ```
