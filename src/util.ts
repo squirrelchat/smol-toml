@@ -70,11 +70,17 @@ export function skipComment (str: string, ptr: number) {
 
 export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
 	let c
-	while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r' && str[ptr + 1] === '\n'))) ptr++
+	while (1) {
+		while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r' && str[ptr + 1] === '\n'))) ptr++
 
-	return banComments || c !== '#'
-		? ptr
-		: skipVoid(str, skipComment(str, ptr), banNewLines)
+		// Tucking the return statement here would save 5 characters >:)
+		// But TypeScript fails to detect there is no way to exit the loop so it complains about the lack of final return
+		if (banComments || c !== '#') break
+
+		ptr = skipComment(str, ptr)
+	}
+
+	return ptr
 }
 
 export function skipUntil (str: string, ptr: number, sep: string, end?: string, banNewLines: boolean = false) {
