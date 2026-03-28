@@ -34,14 +34,23 @@ export type TomlPrimitive = string | number | bigint | boolean | TomlDate
 export type TomlTable = { [key: string]: TomlValue }
 export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 
+// may have TomlDate but not Temporal
 export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
+// may have Temporal and TomlDate
 export type TomlTableTemporal = { [key: string]: TomlValueTemporal }
-export type TomlValueTemporal = Exclude<TomlPrimitive, TomlDate>|TemporalUnion | TomlValueTemporal[] | TomlTableTemporal
+export type TomlValueTemporal = TomlPrimitive|TemporalUnion | TomlValueTemporal[] | TomlTableTemporal
 
 export type TomlTableTemporalWithoutBigInt = { [key: string]: TomlValueTemporalWithoutBigInt }
-export type TomlValueTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|TemporalUnion | TomlValueTemporalWithoutBigInt[] | TomlTableTemporalWithoutBigInt
+export type TomlValueTemporalWithoutBigInt = Exclude<TomlPrimitive, bigint>|TemporalUnion | TomlValueTemporalWithoutBigInt[] | TomlTableTemporalWithoutBigInt
+
+// may have Temporal but not TomlDate
+export type TomlTableOnlyTemporal = { [key: string]: TomlValueOnlyTemporal }
+export type TomlValueOnlyTemporal = Exclude<TomlPrimitive, TomlDate>|TemporalUnion | TomlValueOnlyTemporal[] | TomlTableOnlyTemporal
+
+export type TomlTableOnlyTemporalWithoutBigInt = { [key: string]: TomlValueOnlyTemporalWithoutBigInt }
+export type TomlValueOnlyTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|TemporalUnion | TomlValueOnlyTemporalWithoutBigInt[] | TomlTableOnlyTemporalWithoutBigInt
 
 function isEscaped(str: string, ptr: number) {
 	let i = 0

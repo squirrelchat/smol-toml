@@ -28,7 +28,7 @@
 
 import { type IntegersAsBigInt, parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { getStringEnd, indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
+import { getStringEnd, indexOfNewline, skipComment, skipVoid, type TomlTableTemporal, type TomlValueTemporal } from './util.js'
 import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
@@ -120,8 +120,9 @@ export function parseInlineTable (
 	str: string, ptr: number,
 	depth: number,
 	integersAsBigInt: IntegersAsBigInt,
-): [ TomlTable, number ] {
-	let res: TomlTable = {}
+	temporal: boolean,
+): [ TomlTableTemporal, number ] {
+	let res: TomlTableTemporal = {}
 	let seen = new Set()
 	let c: string
 
@@ -162,7 +163,7 @@ export function parseInlineTable (
 				})
 			}
 
-			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}', depth - 1, integersAsBigInt)
+			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}', depth - 1, integersAsBigInt, temporal)
 			seen.add(value)
 
 			t[k!] = value
@@ -180,8 +181,8 @@ export function parseInlineTable (
 	return [ res, ptr ]
 }
 
-export function parseArray (str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [ TomlValue[], number ] {
-	let res: TomlValue[] = []
+export function parseArray (str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt, temporal: boolean): [ TomlValueTemporal[], number ] {
+	let res: TomlValueTemporal[] = []
 	let c
 
 	ptr++
@@ -193,7 +194,7 @@ export function parseArray (str: string, ptr: number, depth: number, integersAsB
 			})
 		} else if (c === '#') ptr = skipComment(str, ptr)
 		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
-			let e = extractValue(str, ptr - 1, ']', depth - 1, integersAsBigInt)
+			let e = extractValue(str, ptr - 1, ']', depth - 1, integersAsBigInt, temporal)
 			res.push(e[0])
 			ptr = e[1]
 		}

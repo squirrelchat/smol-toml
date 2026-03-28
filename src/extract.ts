@@ -28,7 +28,7 @@
 
 import { type IntegersAsBigInt, parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import { skipVoid, skipUntil, skipComment, getStringEnd, type TomlValue } from './util.js'
+import { skipVoid, skipUntil, skipComment, getStringEnd, type TomlValueTemporal } from './util.js'
 import { TomlError } from './error.js'
 
 function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number): [ string, number ] {
@@ -50,7 +50,8 @@ export function extractValue (
 	end: string | undefined,
 	depth: number,
 	integersAsBigInt: IntegersAsBigInt,
-): [ TomlValue, number ] {
+	temporal: boolean,
+): [ TomlValueTemporal, number ] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
 			toml: str,
@@ -61,8 +62,8 @@ export function extractValue (
 	let c = str[ptr]
 	if (c === '[' || c === '{') {
 		let [ value, endPtr ] = c === '['
-			? parseArray(str, ptr, depth, integersAsBigInt)
-			: parseInlineTable(str, ptr, depth, integersAsBigInt)
+			? parseArray(str, ptr, depth, integersAsBigInt, temporal)
+			: parseInlineTable(str, ptr, depth, integersAsBigInt, temporal)
 
 		if (end) {
 			endPtr = skipVoid(str, endPtr)
@@ -113,7 +114,7 @@ export function extractValue (
 	}
 
 	return [
-		parseValue(slice[0], str, ptr, integersAsBigInt, false) as any, // TODO bubble up the temporal types and parameter
+		parseValue(slice[0], str, ptr, integersAsBigInt, temporal),
 		endPtr,
 	]
 }

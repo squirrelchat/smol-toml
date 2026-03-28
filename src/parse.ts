@@ -29,16 +29,16 @@
 import type { IntegersAsBigInt } from './primitive.js'
 import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
-import { skipVoid, type TomlTable, type TomlTableWithoutBigInt } from './util.js'
+import { skipVoid, type TomlTableOnlyTemporal, type TomlTableOnlyTemporalWithoutBigInt, type TomlTableTemporal, type TomlTable, type TomlTableWithoutBigInt } from './util.js'
 import { TomlError } from './error.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
 type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
-type PeekResult = [ string, TomlTable, MetaRecord ] | null
+type PeekResult = [ string, TomlTableTemporal, MetaRecord ] | null
 
-function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
+function peekTable (key: string[], table: TomlTableTemporal, meta: MetaRecord, type: Type): PeekResult {
 	let t: any = table
 	let m = meta
 	let k: string
@@ -117,11 +117,14 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 export interface ParseOptions {
 	maxDepth?: number
 	integersAsBigInt?: IntegersAsBigInt
+	temporal?: boolean
 }
 
+export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | true>, temporal: true }): TomlTableOnlyTemporal;
+export function parse(toml: string, options?: ParseOptions & { temporal: true }): TomlTableOnlyTemporalWithoutBigInt;
 export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable;
 export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt;
-export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
+export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt, temporal = false }: ParseOptions = {}): TomlTableTemporal {
 	let res = {}
 	let meta = {}
 
@@ -165,7 +168,7 @@ export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: Parse
 				})
 			}
 
-			let v = extractValue(toml, k[1], void 0, maxDepth, integersAsBigInt);
+			let v = extractValue(toml, k[1], void 0, maxDepth, integersAsBigInt, temporal)
 			p[1][p[0]] = v[0];
 			ptr = v[1];
 		}
