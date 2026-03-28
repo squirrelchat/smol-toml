@@ -31,10 +31,11 @@ import type { TemporalUnion } from './temporal.js'
 import { TomlError } from './error.js'
 
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate
+
+// may have TomlDate but no Temporal
 export type TomlTable = { [key: string]: TomlValue }
 export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
-
-// may have TomlDate but not Temporal
+// no-bigint version
 export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
@@ -42,13 +43,10 @@ export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueW
 export type TomlTableTemporal = { [key: string]: TomlValueTemporal }
 export type TomlValueTemporal = TomlPrimitive|TemporalUnion | TomlValueTemporal[] | TomlTableTemporal
 
-export type TomlTableTemporalWithoutBigInt = { [key: string]: TomlValueTemporalWithoutBigInt }
-export type TomlValueTemporalWithoutBigInt = Exclude<TomlPrimitive, bigint>|TemporalUnion | TomlValueTemporalWithoutBigInt[] | TomlTableTemporalWithoutBigInt
-
-// may have Temporal but not TomlDate
+// may have Temporal but no TomlDate
 export type TomlTableOnlyTemporal = { [key: string]: TomlValueOnlyTemporal }
 export type TomlValueOnlyTemporal = Exclude<TomlPrimitive, TomlDate>|TemporalUnion | TomlValueOnlyTemporal[] | TomlTableOnlyTemporal
-
+// no-bigint version
 export type TomlTableOnlyTemporalWithoutBigInt = { [key: string]: TomlValueOnlyTemporalWithoutBigInt }
 export type TomlValueOnlyTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|TemporalUnion | TomlValueOnlyTemporalWithoutBigInt[] | TomlTableOnlyTemporalWithoutBigInt
 
