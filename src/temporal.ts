@@ -29,7 +29,7 @@
 import 'temporal-polyfill/global' // FIXME temporary
 import { DATE_TIME_RE } from './date.js'
 
-type TemporalUnion =
+export type TemporalUnion =
     | Temporal.ZonedDateTime
     | Temporal.PlainDateTime
     | Temporal.PlainDate

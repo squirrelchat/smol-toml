@@ -27,6 +27,7 @@
  */
 
 import type { TomlDate } from './date.js'
+import type { TemporalUnion } from './temporal.js'
 import { TomlError } from './error.js'
 
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate
@@ -35,6 +36,12 @@ export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 
 export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
+
+export type TomlTableTemporal = { [key: string]: TomlValueTemporal }
+export type TomlValueTemporal = Exclude<TomlPrimitive, TomlDate>|TemporalUnion | TomlValueTemporal[] | TomlTableTemporal
+
+export type TomlTableTemporalWithoutBigInt = { [key: string]: TomlValueTemporalWithoutBigInt }
+export type TomlValueTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|TemporalUnion | TomlValueTemporalWithoutBigInt[] | TomlTableTemporalWithoutBigInt
 
 function isEscaped(str: string, ptr: number) {
 	let i = 0
