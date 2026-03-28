@@ -29,6 +29,7 @@
 import { expect, it } from 'vitest'
 import { stringify } from '../src/stringify.js'
 import { TomlDate } from '../src/date.js'
+import 'temporal-polyfill/global'
 
 it('stringifies a basic object', () => {
 	const expected = `
@@ -106,6 +107,34 @@ date5 = 1979-05-27T15:32:00.000Z
 		date3: new TomlDate('1979-05-27'),
 		date4: new TomlDate('07:32:00'),
 		date5: new Date('1979-05-27T07:32:00-08:00'),
+	}
+
+	expect(stringify(obj)).toBe(expected)
+})
+
+it('stringifies Temporal dates properly', () => {
+	const expected = `
+zonedDateTime = 1979-05-27T07:32:00.000-08:00
+offsetDateTime = 1979-05-27T07:32:00.000-08:00
+localDateTime = 1979-05-27T07:32:00.000
+localDate = 1979-05-27
+localTime = 07:32:00.000
+instant = 1979-05-27T15:32:00.000Z
+utcDateTime = 1979-05-27T15:32:00.000Z
+`.trimStart()
+
+	const obj = {
+		zonedDateTime: Temporal.ZonedDateTime.from({
+			year: 1979, month: 5, day: 27,
+			hour: 7, minute: 32, second: 0,
+			timeZone: "America/Yakutat",
+		}),
+		offsetDateTime: Temporal.ZonedDateTime.from("1979-05-27T07:32:00[-08:00]"),
+		localDateTime: Temporal.PlainDateTime.from("1979-05-27T07:32:00"),
+		localDate: Temporal.PlainDate.from("1979-05-27"),
+		localTime: Temporal.PlainTime.from("07:32:00"),
+		instant: Temporal.Instant.from("1979-05-27T07:32:00-08:00"),
+		utcDateTime: Temporal.Instant.from("1979-05-27T07:32:00-08:00").toZonedDateTimeISO("UTC"),
 	}
 
 	expect(stringify(obj)).toBe(expected)
