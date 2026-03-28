@@ -113,7 +113,7 @@ export function extractValue (
 	}
 
 	return [
-		parseValue(slice[0], str, ptr, integersAsBigInt),
+		parseValue(slice[0], str, ptr, integersAsBigInt, false) as any, // TODO bubble up the temporal types and parameter
 		endPtr,
 	]
 }

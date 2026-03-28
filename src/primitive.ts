@@ -29,7 +29,7 @@
 import { skipVoid } from './util.js'
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
-import { parseTemporal } from './temporal.js'
+import { parseTemporal, type TemporalUnion } from './temporal.js'
 
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
 let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/
@@ -130,7 +130,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
-export function parseValue (value: string, toml: string, ptr: number, integersAsBigInt: IntegersAsBigInt, temporal: boolean): boolean | number | bigint | TomlDate {
+export function parseValue (value: string, toml: string, ptr: number, integersAsBigInt: IntegersAsBigInt, temporal: boolean): boolean | number | bigint | TomlDate | TemporalUnion {
 	// Constant values
 	if (value === 'true') return true
 	if (value === 'false') return false
@@ -177,7 +177,7 @@ export function parseValue (value: string, toml: string, ptr: number, integersAs
 
 	if (temporal) {
 		try {
-			return parseTemporal(value) as any // TODO bubble up the new types
+			return parseTemporal(value)
 		} catch (e) {
 			if (e === 0) throw new TomlError("invalid value", { toml, ptr })
 			throw new TomlError(`invalid temporal value (${e})`, { toml, ptr })
