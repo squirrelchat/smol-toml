@@ -7,9 +7,9 @@ const EVIL_STRING = "e=" + "{e=".repeat(9999) + "{}" + "}".repeat(9999)
 const EVIL_OBJECT = JSON.parse('{"e":' + '{"e":'.repeat(9999) + "{}}" + "}".repeat(9999))
 
 it('should gracefully abort with a proper TomlError when parsing very deep documents', () => {
-	expect(() => parse(EVIL_STRING)).toThrowError(TomlError)
+	expect(() => parse(EVIL_STRING)).toThrow(TomlError)
 })
 
 it('should gracefully abort with a proper error when stringifying very deep objects', () => {
-	expect(() => stringify(EVIL_OBJECT)).toThrowError('Could not stringify the object')
+	expect(() => stringify(EVIL_OBJECT)).toThrow('Could not stringify the object')
 })

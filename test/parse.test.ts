@@ -69,21 +69,21 @@ it('handles escapes in strings', () => {
 })
 
 it('rejects unspecified values', () => {
-	expect(() => parse('key = # INVALID')).toThrowError(TomlError)
+	expect(() => parse('key = # INVALID')).toThrow(TomlError)
 })
 
 it('rejects invalid keys', () => {
-	expect(() => parse('key."uwu"owo = test')).toThrowError(TomlError)
+	expect(() => parse('key."uwu"owo = test')).toThrow(TomlError)
 })
 
 it('rejects multiple key-values on a single line', () => {
-	expect(() => parse('first = "Tom" last = "Preston-Werner" # INVALID')).toThrowError(TomlError)
-	expect(() => parse('a = [] b = 0 # INVALID')).toThrowError(TomlError)
-	expect(() => parse('a = {} b = 0 # INVALID')).toThrowError(TomlError)
+	expect(() => parse('first = "Tom" last = "Preston-Werner" # INVALID')).toThrow(TomlError)
+	expect(() => parse('a = [] b = 0 # INVALID')).toThrow(TomlError)
+	expect(() => parse('a = {} b = 0 # INVALID')).toThrow(TomlError)
 })
 
 it('rejects invalid strings', () => {
-	expect(() => parse('first = "To\nm"')).toThrowError(TomlError)
+	expect(() => parse('first = "To\nm"')).toThrow(TomlError)
 })
 
 it('parses docs with tables', () => {
@@ -104,11 +104,11 @@ key2 = 456
 })
 
 it('rejects unfinished tables', () => {
-	expect(() => parse('[test\nuwu = test')).toThrowError(TomlError)
+	expect(() => parse('[test\nuwu = test')).toThrow(TomlError)
 })
 
 it('rejects invalid tables', () => {
-	expect(() => parse('[key."uwu"owo]')).toThrowError(TomlError)
+	expect(() => parse('[key."uwu"owo]')).toThrow(TomlError)
 })
 
 it('parses docs with dotted table and dotted keys', () => {
@@ -184,7 +184,7 @@ apple = "red"
 texture = "smooth"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('parses arrays of tables', () => {
@@ -212,7 +212,7 @@ color = "gray"
 })
 
 it('rejects invalid arrays of table', () => {
-	expect(() => parse('[[uwu] ]')).toThrowError(TomlError)
+	expect(() => parse('[[uwu] ]')).toThrow(TomlError)
 })
 
 it('parses arrays of tables with subtables', () => {
@@ -275,7 +275,7 @@ shape = "round"
 name = "apple"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('does not allow redefining a statically defined array', () => {
@@ -285,7 +285,7 @@ fruits = []
 [[fruits]]
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('rejects conflicts between arrays of tables and normal tables (array then simple)', () => {
@@ -300,7 +300,7 @@ name = "red delicious"
 name = "granny smith"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('rejects conflicts between arrays of tables and normal tables (simple then array)', () => {
@@ -316,7 +316,7 @@ shape = "round"
 color = "green"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 describe('table clashes', () => {
@@ -329,7 +329,7 @@ apple = "red"
 orange = "orange"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow dotted keys to redefine tables', () => {
@@ -340,7 +340,7 @@ orange = "orange"
   b.c.t = 9
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow redefining tables with [table]', () => {
@@ -352,7 +352,7 @@ apple.color = "red"
 kind = "granny smith"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow clashes between [[table]] and [table]', () => {
@@ -361,7 +361,7 @@ kind = "granny smith"
 [uwu]
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow clashes between [[table.a]] and a dotted key within [table]', () => {
@@ -372,7 +372,7 @@ kind = "granny smith"
 owo.hehe = "meow!"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow clashes between [table] and [[table]]', () => {
@@ -381,7 +381,7 @@ owo.hehe = "meow!"
 [[uwu]]
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('rejects tables overriding a defined value (inline table)', () => {
@@ -393,7 +393,7 @@ apple = { uwu = "owo" }
 texture = "smooth"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('rejects tables overriding a defined value (inline table inner)', () => {
@@ -405,7 +405,7 @@ apple = { uwu = "owo" }
 texture = "smooth"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does NOT reject duplicate [tables] for arrays of tables', () => {

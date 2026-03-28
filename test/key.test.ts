@@ -51,7 +51,7 @@ it('parses quoted keys', () => {
 })
 
 it('parses empty keys', () => {
-	expect(() => parseKey(' =', 0)).toThrowError(TomlError)
+	expect(() => parseKey(' =', 0)).toThrow(TomlError)
 	expect(parseKey('"" =', 0)[0]).toStrictEqual([ '' ])
 	expect(parseKey("'' =", 0)[0]).toStrictEqual([ '' ])
 })
@@ -72,19 +72,19 @@ it('ignores whitespace', () => {
 })
 
 it('rejects invalid keys', () => {
-	expect(() => parseKey('"uwu"\n =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('uwu. =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('éwé =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('uwu..owo =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('uwu.\nowo =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('uwu\n.owo =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('"uwu"\n.owo =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('uwu\n =', 0)).toThrowError(TomlError)
-	expect(() => parseKey('"uwu =', 0)).toThrowError(TomlError)
+	expect(() => parseKey('"uwu"\n =', 0)).toThrow(TomlError)
+	expect(() => parseKey('uwu. =', 0)).toThrow(TomlError)
+	expect(() => parseKey('éwé =', 0)).toThrow(TomlError)
+	expect(() => parseKey('uwu..owo =', 0)).toThrow(TomlError)
+	expect(() => parseKey('uwu.\nowo =', 0)).toThrow(TomlError)
+	expect(() => parseKey('uwu\n.owo =', 0)).toThrow(TomlError)
+	expect(() => parseKey('"uwu"\n.owo =', 0)).toThrow(TomlError)
+	expect(() => parseKey('uwu\n =', 0)).toThrow(TomlError)
+	expect(() => parseKey('"uwu =', 0)).toThrow(TomlError)
 
-	expect(() => parseKey('uwu."owo"hehe =', 0)).toThrowError(TomlError)
+	expect(() => parseKey('uwu."owo"hehe =', 0)).toThrow(TomlError)
 
-	expect(() => parseKey('uwu hehe =', 0)).toThrowError(TomlError)
+	expect(() => parseKey('uwu hehe =', 0)).toThrow(TomlError)
 
-	expect(() => parseKey('"""long\nkey""" = 1', 0)).toThrowError(TomlError)
+	expect(() => parseKey('"""long\nkey""" = 1', 0)).toThrow(TomlError)
 })
