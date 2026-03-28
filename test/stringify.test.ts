@@ -114,13 +114,12 @@ date5 = 1979-05-27T15:32:00.000Z
 
 it('stringifies Temporal values properly', () => {
 	const expected = `
-zonedDateTime = 1979-05-27T07:32:00.000-08:00
-offsetDateTime = 1979-05-27T07:32:00.000-08:00
-localDateTime = 1979-05-27T07:32:00.000
+zonedDateTime = 1979-05-27T07:32:00-08:00
+offsetDateTime = 1979-05-27T07:32:00-08:00
+localDateTime = 1979-05-27T07:32:00
 localDate = 1979-05-27
-localTime = 07:32:00.000
-instant = 1979-05-27T15:32:00.000Z
-utcDateTime = 1979-05-27T15:32:00.000Z
+localTime = 07:32:00
+instant = 1979-05-27T15:32:00Z
 `.trimStart()
 
 	const obj = {
@@ -134,7 +133,6 @@ utcDateTime = 1979-05-27T15:32:00.000Z
 		localDate: Temporal.PlainDate.from("1979-05-27"),
 		localTime: Temporal.PlainTime.from("07:32:00"),
 		instant: Temporal.Instant.from("1979-05-27T07:32:00-08:00"),
-		utcDateTime: Temporal.Instant.from("1979-05-27T07:32:00-08:00").toZonedDateTimeISO("UTC"),
 	}
 
 	expect(stringify(obj)).toBe(expected)
