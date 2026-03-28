@@ -216,7 +216,7 @@ it('rejects invalid dates', () => {
 it('handles extreme datetimes', () => {
 	expect(parseValue('0001-01-01 00:00:00Z', '', 0, false, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00Z'))
 	expect(parseValue('0001-01-01 00:00:00', '', 0, false, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
-	expect(parseValue('0001-01-01 00:00Z', '', 0, false, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00')) // FIXME why no Z ?
+	expect(parseValue('0001-01-01 00:00Z', '', 0, false, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00Z'))
 	expect(parseValue('0001-01-01 00:00', '', 0, false, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
 	expect(parseValue('0001-01-01', '', 0, false, false)).toStrictEqual(new TomlDate('0001-01-01'))
 
