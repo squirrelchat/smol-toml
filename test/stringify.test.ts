@@ -112,7 +112,7 @@ date5 = 1979-05-27T15:32:00.000Z
 	expect(stringify(obj)).toBe(expected)
 })
 
-it('stringifies Temporal dates properly', () => {
+it('stringifies Temporal values properly', () => {
 	const expected = `
 zonedDateTime = 1979-05-27T07:32:00.000-08:00
 offsetDateTime = 1979-05-27T07:32:00.000-08:00
