@@ -29,6 +29,7 @@
 import { skipVoid } from './util.js'
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
+import { parseTemporal } from './temporal.js'
 
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
 let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/
@@ -174,13 +175,22 @@ export function parseValue (value: string, toml: string, ptr: number, integersAs
 		return numeric
 	}
 
-	const date = new TomlDate(value)
-	if (!date.isValid()) {
-		throw new TomlError('invalid value', {
-			toml: toml,
-			ptr: ptr,
-		})
-	}
+	if (temporal) {
+		try {
+			return parseTemporal(value) as any // TODO bubble up the new types
+		} catch (e) {
+			if (e === 0) throw new TomlError("invalid value", { toml, ptr })
+			throw new TomlError(`invalid temporal value (${e})`, { toml, ptr })
+		}
+	} else {
+		const date = new TomlDate(value)
+		if (!date.isValid()) {
+			throw new TomlError('invalid value', {
+				toml: toml,
+				ptr: ptr,
+			})
+		}
 
-	return date
+		return date
+	}
 }
