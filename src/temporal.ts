@@ -38,18 +38,14 @@ type TemporalUnion =
 export function parseTemporal(s: string): TemporalUnion {
     const match = s.match(DATE_TIME_RE)
     if (match) {
-        if(!match[1]) {
-            // has no date
-            return Temporal.PlainTime.from(s)
-        }
+        // if has no date
+        if (!match[1]) return Temporal.PlainTime.from(s)
 
-        const hasTime = !!match[2]
-        if (!hasTime) return Temporal.PlainDate.from(s)
+        // if has no time
+        if (!match[2]) return Temporal.PlainDate.from(s)
 
         let offset = match[3] || null
-        if (!offset) {
-            return Temporal.PlainDateTime.from(s)
-        }
+        if (!offset) return Temporal.PlainDateTime.from(s)
 
         if (offset.toLowerCase() == "z") offset = "UTC"
         return Temporal.Instant.from(s).toZonedDateTimeISO(offset)
