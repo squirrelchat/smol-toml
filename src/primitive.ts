@@ -129,7 +129,7 @@ export function parseString (str: string, ptr = 0, endPtr = str.length): string 
 
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
-export function parseValue (value: string, toml: string, ptr: number, integersAsBigInt: IntegersAsBigInt): boolean | number | bigint | TomlDate {
+export function parseValue (value: string, toml: string, ptr: number, integersAsBigInt: IntegersAsBigInt, temporal: boolean): boolean | number | bigint | TomlDate {
 	// Constant values
 	if (value === 'true') return true
 	if (value === 'false') return false
