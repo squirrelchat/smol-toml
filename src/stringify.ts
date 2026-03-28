@@ -97,11 +97,15 @@ function stringifyValue (val: any, type: ExtendedType, depth: number, numberAsFl
 	}
 
 	if (type === 'temporal') {
-		return val.toString({
-			calendarName: "never",
-			timeZoneName: "never",
-		})
+		return stringifyTemporal(val)
 	}
+}
+
+function stringifyTemporal(t: Temporal.Instant|Temporal.PlainDate|Temporal.PlainDateTime|Temporal.PlainTime|Temporal.ZonedDateTime) {
+	return t.toString({
+		calendarName: "never",
+		timeZoneName: "never",
+	})
 }
 
 function stringifyInlineTable (obj: any, depth: number, numberAsFloat: boolean) {
