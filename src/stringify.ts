@@ -26,6 +26,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import 'temporal-polyfill/global'
+
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
 type ExtendedType = ReturnType<typeof extendedTypeOf>
@@ -34,6 +36,12 @@ function extendedTypeOf (obj: any) {
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
 		if (obj instanceof Date) return 'date'
+		if (obj instanceof Temporal.Instant
+		 || obj instanceof Temporal.PlainDate
+		 || obj instanceof Temporal.PlainDateTime
+		 || obj instanceof Temporal.PlainTime
+		 || obj instanceof Temporal.ZonedDateTime
+		) return 'temporal'
 	}
 
 	return type
@@ -86,6 +94,13 @@ function stringifyValue (val: any, type: ExtendedType, depth: number, numberAsFl
 
 	if (type === 'array') {
 		return stringifyArray(val, depth, numberAsFloat)
+	}
+
+	if (type === 'temporal') {
+		return val.toString({
+			calendarName: "never",
+			timeZoneName: "never",
+		})
 	}
 }
 
