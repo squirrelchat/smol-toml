@@ -119,6 +119,15 @@ a = [ 10, 20, "30", false ]
 	expect(stringify({ a: [ 10, 20n, '30', false ] })).toBe(expected)
 })
 
+it.only('stringifies arrays: no whitespace', () => {
+	const expected = `
+a = [10, 20, "30", false]
+`.trimStart()
+
+	expect(stringify({ a: [ 10, 20n, '30', false ] }, {whitespace: false})).toBe(expected)
+})
+
+
 it('stringifies empty arrays', () => {
 	const expected = `
 a = []
