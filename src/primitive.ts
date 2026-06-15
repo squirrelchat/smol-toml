@@ -179,18 +179,13 @@ export function parseValue (value: string, toml: string, ptr: number, integersAs
 		try {
 			return parseTemporal(value)
 		} catch (e) {
-			if (e === 0) throw new TomlError("invalid value", { toml, ptr })
-			throw new TomlError(`invalid temporal value (${e})`, { toml, ptr })
+			if (e !== 0)
+				throw new TomlError(`invalid temporal value (${e})`, { toml, ptr })
 		}
 	} else {
 		const date = new TomlDate(value)
-		if (!date.isValid()) {
-			throw new TomlError('invalid value', {
-				toml: toml,
-				ptr: ptr,
-			})
-		}
-
-		return date
+		if (date.isValid())
+			return date
 	}
+	throw new TomlError("invalid value", { toml, ptr })
 }
