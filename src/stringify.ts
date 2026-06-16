@@ -31,7 +31,7 @@ import type { Temporal } from "temporal-spec"
 // Temporal not-polyfill
 
 // @ts-ignore
-const TT: typeof Temporal | undefined = globalThis.Temporal;
+const T: typeof Temporal | undefined = globalThis.Temporal;
 
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
@@ -41,11 +41,11 @@ function extendedTypeOf (obj: any) {
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
 		if (obj instanceof Date) return 'date'
-		if (TT && (obj instanceof TT.Instant
-		 || obj instanceof TT.PlainDate
-		 || obj instanceof TT.PlainDateTime
-		 || obj instanceof TT.PlainTime
-		 || obj instanceof TT.ZonedDateTime
+		if (T && (obj instanceof T.Instant
+		 || obj instanceof T.PlainDate
+		 || obj instanceof T.PlainDateTime
+		 || obj instanceof T.PlainTime
+		 || obj instanceof T.ZonedDateTime
 		)) return 'temporal'
 	}
 
