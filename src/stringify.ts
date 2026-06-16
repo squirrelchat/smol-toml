@@ -26,6 +26,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { Temporal } from "temporal-spec"
+
+// Temporal not-polyfill
+
+// @ts-ignore
+const TT: typeof Temporal | undefined = globalThis.Temporal;
+
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
 type ExtendedType = ReturnType<typeof extendedTypeOf>
@@ -34,6 +41,12 @@ function extendedTypeOf (obj: any) {
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
 		if (obj instanceof Date) return 'date'
+		if (TT && (obj instanceof TT.Instant
+		 || obj instanceof TT.PlainDate
+		 || obj instanceof TT.PlainDateTime
+		 || obj instanceof TT.PlainTime
+		 || obj instanceof TT.ZonedDateTime
+		)) return 'temporal'
 	}
 
 	return type
@@ -87,6 +100,17 @@ function stringifyValue (val: any, type: ExtendedType, depth: number, numberAsFl
 	if (type === 'array') {
 		return stringifyArray(val, depth, numberAsFloat)
 	}
+
+	if (type === 'temporal') {
+		return stringifyTemporal(val)
+	}
+}
+
+function stringifyTemporal(t: Temporal.Instant|Temporal.PlainDate|Temporal.PlainDateTime|Temporal.PlainTime|Temporal.ZonedDateTime) {
+	return t.toString({
+		calendarName: "never",
+		timeZoneName: "never",
+	})
 }
 
 function stringifyInlineTable (obj: any, depth: number, numberAsFloat: boolean) {
