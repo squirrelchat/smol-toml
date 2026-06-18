@@ -28,6 +28,7 @@
 
 import { expect, it } from 'vitest'
 import { stringify } from '../src/stringify.js'
+import { parse } from '../src/parse.js'
 import { TomlDate } from '../src/date.js'
 
 it('stringifies a basic object', () => {
@@ -89,6 +90,15 @@ nan = nan
 
 	expect(stringify(obj)).toBe(expected)
 	expect(stringify(obj, { numbersAsFloat: true })).toBe(expected)
+})
+
+it('stringifies integer-valued numbers outside the safe-integer range so they round-trip', () => {
+	// These are integer-valued floats; emitting them as bare integer literals
+	// produces tokens the parser rejects (an integer must be exactly
+	// representable), so they must be serialized in float notation.
+	for (const n of [ 1e16, 2 ** 53, -(2 ** 53), 123456789012345680000 ]) {
+		expect(parse(stringify({ a: n })).a).toBe(n)
+	}
 })
 
 it('stringifies dates properly', () => {
