@@ -63,7 +63,7 @@ it('parses binary integers', () => {
 })
 
 it('rejects integers too large on number_or_error', () => {
-	expect(() => parseValue('9007199254740992', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('9007199254740992', '', 0, false)).toThrow(TomlError)
 })
 
 it('supports integers larger than the max safe integer number when bigints are enabled', () => {
@@ -99,25 +99,25 @@ it('interprets TOML-floats larger than the Number max value as Infinity', () => 
 })
 
 it('rejects leading zeroes', () => {
-	expect(() => parseValue('0123', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('01.10', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('0_1.10', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('0123', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('01.10', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('0_1.10', '', 0, false)).toThrow(TomlError)
 })
 
 it('rejects invalid numbers', () => {
-	expect(() => parseValue('Infinity', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('NaN', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('+0x01', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('-0x01', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('Infinity', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('NaN', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('+0x01', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('-0x01', '', 0, false)).toThrow(TomlError)
 })
 
 it('rejects invalid underscores', () => {
-	expect(() => parseValue('_10', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('10_', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('1__0', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('_10', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('10_', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('1__0', '', 0, false)).toThrow(TomlError)
 
-	expect(() => parseValue('+_10', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('0x_10', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('+_10', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('0x_10', '', 0, false)).toThrow(TomlError)
 })
 
 it('parses floats', () => {
@@ -133,9 +133,9 @@ it('parses floats', () => {
 })
 
 it('rejects invalid floats', () => {
-	expect(() => parseValue('.7', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('7.', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('3.e+20', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('.7', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('7.', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('3.e+20', '', 0, false)).toThrow(TomlError)
 })
 
 it('parses floats with underscores', () => {
@@ -159,8 +159,8 @@ it('parses infinity', () => {
 	expect(parseValue('+inf', '', 0, false)).toBe(Infinity)
 	expect(parseValue('-inf', '', 0, false)).toBe(-Infinity)
 
-	expect(() => parseValue('Inf', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('Infinity', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('Inf', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('Infinity', '', 0, false)).toThrow(TomlError)
 })
 
 it('parses not a number', () => {
@@ -168,14 +168,14 @@ it('parses not a number', () => {
 	expect(parseValue('+nan', '', 0, false)).toBe(NaN)
 	expect(parseValue('-nan', '', 0, false)).toBe(NaN)
 
-	expect(() => parseValue('NaN', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('NaN', '', 0, false)).toThrow(TomlError)
 })
 
 it('parses booleans', () => {
 	expect(parseValue('true', '', 0, false)).toBe(true)
 	expect(parseValue('false', '', 0, false)).toBe(false)
 
-	expect(() => parseValue('True', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('True', '', 0, false)).toThrow(TomlError)
 })
 
 it('parses datetimes', () => {
@@ -208,8 +208,8 @@ it('parses times', () => {
 })
 
 it('rejects invalid dates', () => {
-	expect(() => parseValue('07:3:00', '', 0, false)).toThrowError(TomlError)
-	expect(() => parseValue('27-05-1979', '', 0, false)).toThrowError(TomlError)
+	expect(() => parseValue('07:3:00', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('27-05-1979', '', 0, false)).toThrow(TomlError)
 })
 
 it('handles extreme datetimes', () => {

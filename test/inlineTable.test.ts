@@ -58,11 +58,11 @@ it('parses multiline tables', () => {
 	expect(parseInlineTable('{\n  first = "Tom",\n  last = "Preston-Werner"\n}', 0, 10, false))
 		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 46 ])
 	expect(() => parseInlineTable('{ first = "Tom", last = \n "Preston-Werner" }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 	expect(parseInlineTable('{ first = "Tom" \n, last = "Preston-Werner" }', 0, 10, false))
 		.toStrictEqual([ { first: 'Tom', last: 'Preston-Werner' }, 44 ])
 	expect(() => parseInlineTable('{ first = "Tom",  last  \n = "Preston-Werner" }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 
 	expect(parseInlineTable('{ test = """Multiline\nstrings\nare\nvalid""" }', 0, 10, false))
 		.toStrictEqual([ { test: 'Multiline\nstrings\nare\nvalid' }, 44 ])
@@ -82,31 +82,31 @@ it('parses multiline nested structures', () => {
 
 it('rejects duplicate keys', () => {
 	expect(() => parseInlineTable('{ uwu = false, uwu = true }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 	expect(() => parseInlineTable('{ uwu.hehe = "owo", uwu = false }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 	expect(() => parseInlineTable('{ uwu = "owo", uwu.hehe = false }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 })
 
 it('rejects tables that are not finished', () => {
 	expect(() => parseInlineTable('{ first = "Tom", last = "Preston-Werner"\n', 0, 10, false))
-		.toThrowError(TomlError)
-	expect(() => parseInlineTable('{', 0, 10, false)).toThrowError(TomlError)
+		.toThrow(TomlError)
+	expect(() => parseInlineTable('{', 0, 10, false)).toThrow(TomlError)
 })
 
 it('rejects invalid tables', () => {
 	expect(() => parseInlineTable('{ first = "Tom",, last = "Preston-Werner" }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 	expect(() => parseInlineTable('{ first = "Tom" last = "Preston-Werner" }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 	expect(() => parseInlineTable('{ first = "Tom" \n last = "Preston-Werner" }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 	expect(() => parseInlineTable('{ first = {} last = "Preston-Werner" }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 	expect(() => parseInlineTable('{ first = [] last = "Preston-Werner" }', 0, 10, false))
-		.toThrowError(TomlError)
-	expect(() => parseInlineTable('{ first = "Tom", # }', 0, 10, false)).toThrowError(TomlError)
+		.toThrow(TomlError)
+	expect(() => parseInlineTable('{ first = "Tom", # }', 0, 10, false)).toThrow(TomlError)
 })
 
 it('handles JS quirks', () => {
@@ -128,5 +128,5 @@ it('consumes only a table and stops', () => {
 
 it('respects inner immutability', () => {
 	expect(() => parseInlineTable('{ type = { name = "pug", value = 1 }, type.owo = "uwu" }', 0, 10, false))
-		.toThrowError(TomlError)
+		.toThrow(TomlError)
 })

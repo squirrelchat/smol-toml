@@ -77,9 +77,9 @@ it('is not bothered by comments', () => {
 })
 
 it('rejects invalid arrays', () => {
-	expect(() => parseArray('[ 1,, 2]', 0, 10, false)).toThrowError(TomlError)
-	expect(() => parseArray('[ 1, 2, 3 ', 0, 10, false)).toThrowError(TomlError)
-	expect(() => parseArray('[ 1, "2" a, 3 ]', 0, 10, false)).toThrowError(TomlError)
+	expect(() => parseArray('[ 1,, 2]', 0, 10, false)).toThrow(TomlError)
+	expect(() => parseArray('[ 1, 2, 3 ', 0, 10, false)).toThrow(TomlError)
+	expect(() => parseArray('[ 1, "2" a, 3 ]', 0, 10, false)).toThrow(TomlError)
 })
 
 it('consumes only an array and aborts', () => {

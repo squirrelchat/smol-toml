@@ -54,26 +54,26 @@ it('ignores escapes in literal strings', () => {
 })
 
 it('rejects invalid escapes', () => {
-	expect(() => parseString('"uwu \\x uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\\' uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\\n uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\ uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"""uwu \\ uwu"""')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\UFFFFFFFF uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\x uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\' uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\n uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\ uwu"')).toThrow(TomlError)
+	expect(() => parseString('"""uwu \\ uwu"""')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\UFFFFFFFF uwu"')).toThrow(TomlError)
 
-	expect(() => parseString('"uwu \\u276 uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\U0001F43 uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\u276 uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\U0001F43 uwu"')).toThrow(TomlError)
 
-	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrow(TomlError)
 })
 
 it('rejects control characters', () => {
-	expect(() => parseString('"uwu \x00 uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \b uwu"')).toThrowError(TomlError)
-	expect(() => parseString('"uwu \x1f uwu"')).toThrowError(TomlError)
+	expect(() => parseString('"uwu \x00 uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \b uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \x1f uwu"')).toThrow(TomlError)
 })
 
 it('parses multiline strings', () => {
