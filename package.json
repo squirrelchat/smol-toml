@@ -30,24 +30,21 @@
 	},
 	"scripts": {
 		"test": "vitest",
-		"test-ui": "vitest --ui",
-		"bench": "vitest bench",
-		"build": "pnpm run build:mjs && pnpm run build:cjs && node test/package/package-test.mjs",
-		"build:mjs": "tsc",
-		"build:cjs": "esbuild dist/index.js --bundle --platform=node --target=node18 --format=cjs --outfile=dist/index.cjs",
 		"update-gha": "pin-github-action .github/workflows"
 	},
 	"devDependencies": {
 		"@iarna/toml": "3.0.0",
 		"@ltd/j-toml": "^1.38.0",
+		"@mitata/counters": "^0.0.8",
+		"@std/toml": "jsr:^1.0.11",
 		"@tsconfig/node-lts": "^24.0.0",
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/node": "^25.9.3",
-		"@vitest/ui": "^4.1.9",
 		"esbuild": "^0.28.1",
 		"fast-toml": "^0.5.4",
+		"mitata": "^1.0.34",
 		"pin-github-action": "^3.4.0",
-		"typescript": "^6.0.3",
+		"typescript": "7.0.1-rc",
 		"vitest": "^4.1.9"
 	},
 	"main": "./dist/index.cjs",

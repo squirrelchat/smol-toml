@@ -4,11 +4,18 @@
 		"@tsconfig/node-lts/tsconfig.json"
 	],
 	"compilerOptions": {
+		"isolatedModules": false, // TODO: remove
+		"preserveConstEnums": false, // TODO: remove
+		// "erasableSyntaxOnly": true, TODO: enable
+		"allowImportingTsExtensions": true,
+		"rewriteRelativeImportExtensions": true,
+		"sourceMap": true,
 		"declaration": true,
-		"isolatedModules": false,
-		"preserveConstEnums": false,
+		"declarationMap": true,
+		"stripInternal": true,
 		"rootDir": "./src",
-		"outDir": "./dist"
+		"outDir": "./dist",
+		"types": ["node"]
 	},
 	"include": [ "src" ]
 }
