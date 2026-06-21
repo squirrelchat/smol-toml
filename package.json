@@ -40,6 +40,7 @@
 		"pin-github-action": "^3.4.0",
 		"rolldown": "^1.1.2",
 		"typescript": "7.0.1-rc",
+		"vite": "^7.3.5",
 		"vitest": "^4.1.9"
 	},
 	"devEngines": {

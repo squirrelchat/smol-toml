@@ -2,6 +2,3 @@ ignoreScripts: true
 
 allowBuilds:
   esbuild: true
-
-overrides:
-  vite: ^8.0.16
