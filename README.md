@@ -73,7 +73,8 @@ A few notes on the `stringify` function:
 When parsing, both integers and floats are read as plain JavaScript numbers, which essentially are floats. This means
 loss of type information, and makes it impossible to safely represent integers beyond 53 bits.
 
-When serializing, numbers without a decimal part are serialized as integers. This allows in most cases to preserve
+When serializing, numbers without a decimal part are serialized as integers (except if they're outside of the safe
+range; i.e. they cannot be represented as a signed 53-bit integer). This allows in most cases to preserve
 whether a number is an integer or not, but fails to preserve type information for numbers like `1.0`.
 
 #### Enabling BigInt support and type preservation
