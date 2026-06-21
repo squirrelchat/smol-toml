@@ -16,12 +16,12 @@ jobs:
   build:
     runs-on: ubuntu-slim
     steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with: { persist-credentials: false }
+
       - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
       - uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1
         with: { cache: true }
-
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
-        with: { persist-credentials: false }
 
       - run: just build
 
@@ -37,11 +37,11 @@ jobs:
         node: [18, 20, 22, 24, 26]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1
-        with: { cache: true, runtime: "node@${{ matrix.node }}" }
-
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with: { persist-credentials: false }
+
+      - uses: pnpm/setup@5d160c5bc68a09337ad0d5654e237e03253b5879 # v1
+        with: { cache: true, runtime: "node@${{ matrix.node }}" }
 
       - run: pnpm run test
 
