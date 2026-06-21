@@ -31,7 +31,7 @@ import { parseArray, parseInlineTable } from './struct.js'
 import { skipVoid, skipUntil, skipComment, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
-function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number): [ string, number ] {
+function sliceAndTrimEndOf(str: string, startPtr: number, endPtr: number): [string, number] {
 	let value = str.slice(startPtr, endPtr)
 
 	let commentIdx = value.indexOf('#')
@@ -42,25 +42,20 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number): [ st
 		value = value.slice(0, commentIdx)
 	}
 
-	return [ value.trimEnd(), commentIdx ]
+	return [value.trimEnd(), commentIdx]
 }
 
-export function extractValue (
-	str: string, ptr: number,
-	end: string | undefined,
-	depth: number,
-	integersAsBigInt: IntegersAsBigInt,
-): [ TomlValue, number ] {
+export function extractValue(str: string, ptr: number, end: string | undefined, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlValue, number] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
 	let c = str[ptr]
 	if (c === '[' || c === '{') {
-		let [ value, endPtr ] = c === '['
+		let [value, endPtr] = c === '['
 			? parseArray(str, ptr, depth, integersAsBigInt)
 			: parseInlineTable(str, ptr, depth, integersAsBigInt)
 
@@ -75,7 +70,7 @@ export function extractValue (
 			}
 		}
 
-		return [ value, endPtr ]
+		return [value, endPtr]
 	}
 
 	if (c === '"' || c === "'") {
@@ -93,7 +88,7 @@ export function extractValue (
 			if (str[endPtr] === ',') endPtr++
 		}
 
-		return [ parsed, endPtr ]
+		return [parsed, endPtr]
 	}
 
 	let endPtr = skipUntil(str, ptr, ',', end)
@@ -101,7 +96,7 @@ export function extractValue (
 	if (!slice[0]) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 

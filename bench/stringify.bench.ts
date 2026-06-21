@@ -75,7 +75,7 @@ summary(() => {
 				}
 			})
 
-			bench('deno\'s @std/toml', function* () {
+			bench("deno's @std/toml", function* () {
 				yield {
 					[0]() {
 						return toml

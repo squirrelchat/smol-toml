@@ -34,11 +34,11 @@ import { TomlError } from './error.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
-type MetaState = { t: Type, d: boolean, i: number, c: MetaRecord }
+type MetaState = { t: Type; d: boolean; i: number; c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
-type PeekResult = [ string, TomlTable, MetaRecord ] | null
+type PeekResult = [string, TomlTable, MetaRecord] | null
 
-function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
+function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
 	let t: any = table
 	let m = meta
 	let k: string
@@ -111,7 +111,7 @@ function peekTable (key: string[], table: TomlTable, meta: MetaRecord, type: Typ
 		return null
 	}
 
-	return [ k!, t, state.c ]
+	return [k!, t, state.c]
 }
 
 export interface ParseOptions {
@@ -119,9 +119,9 @@ export interface ParseOptions {
 	integersAsBigInt?: IntegersAsBigInt
 }
 
-export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable;
-export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt;
-export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
+export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable
+export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt
+export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
 	let res = {}
 	let meta = {}
 
@@ -131,7 +131,7 @@ export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: Parse
 	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
 		if (toml[ptr] === '[') {
 			let isTableArray = toml[++ptr] === '['
-			let k = parseKey(toml, ptr += +isTableArray, ']')
+			let k = parseKey(toml, (ptr += +isTableArray), ']')
 
 			if (isTableArray) {
 				if (toml[k[1] - 1] !== ']') {
@@ -165,16 +165,16 @@ export function parse(toml: string,	{ maxDepth = 1000, integersAsBigInt }: Parse
 				})
 			}
 
-			let v = extractValue(toml, k[1], void 0, maxDepth, integersAsBigInt);
-			p[1][p[0]] = v[0];
-			ptr = v[1];
+			let v = extractValue(toml, k[1], void 0, maxDepth, integersAsBigInt)
+			p[1][p[0]] = v[0]
+			ptr = v[1]
 		}
 
 		ptr = skipVoid(toml, ptr, true)
 		if (toml[ptr] && toml[ptr] !== '\n' && toml[ptr] !== '\r') {
 			throw new TomlError('each key-value declaration must be followed by an end-of-line', {
 				toml: toml,
-				ptr: ptr
+				ptr: ptr,
 			})
 		}
 		ptr = skipVoid(toml, ptr)

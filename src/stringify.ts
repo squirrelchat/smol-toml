@@ -29,7 +29,7 @@
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
 type ExtendedType = ReturnType<typeof extendedTypeOf>
-function extendedTypeOf (obj: any) {
+function extendedTypeOf(obj: any) {
 	let type = typeof obj
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
@@ -39,7 +39,7 @@ function extendedTypeOf (obj: any) {
 	return type
 }
 
-function isArrayOfTables (obj: any[]) {
+function isArrayOfTables(obj: any[]) {
 	for (let i = 0; i < obj.length; i++) {
 		if (extendedTypeOf(obj[i]) !== 'object') return false
 	}
@@ -47,11 +47,11 @@ function isArrayOfTables (obj: any[]) {
 	return obj.length != 0
 }
 
-function formatString (s: string) {
+function formatString(s: string) {
 	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
 }
 
-function stringifyValue (val: any, type: ExtendedType, depth: number, numberAsFloat: boolean) {
+function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFloat: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}
@@ -89,7 +89,7 @@ function stringifyValue (val: any, type: ExtendedType, depth: number, numberAsFl
 	}
 }
 
-function stringifyInlineTable (obj: any, depth: number, numberAsFloat: boolean) {
+function stringifyInlineTable(obj: any, depth: number, numberAsFloat: boolean) {
 	let keys = Object.keys(obj)
 	if (keys.length === 0) return '{}'
 
@@ -106,7 +106,7 @@ function stringifyInlineTable (obj: any, depth: number, numberAsFloat: boolean) 
 	return res + ' }'
 }
 
-function stringifyArray (array: any[], depth: number, numberAsFloat: boolean) {
+function stringifyArray(array: any[], depth: number, numberAsFloat: boolean) {
 	if (array.length === 0) return '[]'
 
 	let res = '[ '
@@ -122,7 +122,7 @@ function stringifyArray (array: any[], depth: number, numberAsFloat: boolean) {
 	return res + ' ]'
 }
 
-function stringifyArrayTable (array: any[], key: string, depth: number, numberAsFloat: boolean) {
+function stringifyArrayTable(array: any[], key: string, depth: number, numberAsFloat: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}
@@ -136,7 +136,7 @@ function stringifyArrayTable (array: any[], key: string, depth: number, numberAs
 	return res
 }
 
-function stringifyTable (tableKey: string | 0, obj: any, prefix: string, depth: number, numberAsFloat: boolean) {
+function stringifyTable(tableKey: string | 0, obj: any, prefix: string, depth: number, numberAsFloat: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}

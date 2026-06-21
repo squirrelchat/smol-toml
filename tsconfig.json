@@ -1,8 +1,5 @@
 {
-	"extends": [
-		"@tsconfig/strictest/tsconfig.json",
-		"@tsconfig/node-lts/tsconfig.json"
-	],
+	"extends": ["@tsconfig/strictest/tsconfig.json", "@tsconfig/node-lts/tsconfig.json"],
 	"compilerOptions": {
 		"isolatedModules": false, // TODO: remove
 		"preserveConstEnums": false, // TODO: remove
@@ -17,5 +14,5 @@
 		"outDir": "./dist",
 		"types": ["node"]
 	},
-	"include": [ "src" ]
+	"include": ["src"]
 }
