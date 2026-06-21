@@ -57,12 +57,20 @@ a = 100
 	expect(stringify({ a: 100 })).toBe(expected)
 })
 
-it('stringifies integers as floats', () => {
+it('stringifies integers as floats with numbersAsFloat', () => {
 	const expected = `
 a = 100.0
 `.trimStart()
 
 	expect(stringify({ a: 100 }, { numbersAsFloat: true })).toBe(expected)
+})
+
+it('stringifies very large integers as floats', () => {
+	const expected = `
+a = 36028797018963968.0
+`.trimStart()
+
+	expect(stringify({ a: 2 ** 55 }, { numbersAsFloat: true })).toBe(expected)
 })
 
 it('stringifies floats as floats', () => {
