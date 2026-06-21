@@ -29,8 +29,7 @@
 	},
 	"scripts": {
 		"test": "vitest",
-		"update-gha": "pin-github-action .github/workflows",
-		"prepare": "mise x -- just build"
+		"update-gha": "pin-github-action .github/workflows"
 	},
 	"devDependencies": {
 		"@mitata/counters": "^0.0.8",

@@ -1,3 +1,5 @@
+ignoreScripts: true
+
 allowBuilds:
   esbuild: true
 
