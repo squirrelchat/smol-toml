@@ -38,5 +38,5 @@ export { parse, stringify, TomlDate, TomlError }
 
 export type {
 	/** @deprecated use TomlValue instead */
-	TomlValue as TomlPrimitive
+	TomlValue as TomlPrimitive,
 } from './util.js'

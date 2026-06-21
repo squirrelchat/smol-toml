@@ -28,12 +28,12 @@
 
 import { type IntegersAsBigInt, parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { getStringEnd, indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
+import { indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
 
-export function parseKey (str: string, ptr: number, end = '='): [ string[], number ] {
+export function parseKey(str: string, ptr: number, end = '='): [string[], number] {
 	let dot = ptr - 1
 	let parsed = []
 
@@ -46,12 +46,12 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 	}
 
 	do {
-		let c = str[ptr = ++dot]
+		let c = str[(ptr = ++dot)]
 
 		// If it's whitespace, ignore
 		if (c !== ' ' && c !== '\t') {
 			// If it's a string
-			if (c === '"' || c === '\'') {
+			if (c === '"' || c === "'") {
 				if (c === str[ptr + 1] && c === str[ptr + 2]) {
 					throw new TomlError('multiline strings are not allowed in keys', {
 						toml: str,
@@ -59,17 +59,10 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 					})
 				}
 
-				let eos = getStringEnd(str, ptr)
-				if (eos < 0) {
-					throw new TomlError('unfinished string encountered', {
-						toml: str,
-						ptr: ptr,
-					})
-				}
-
+				let [part, eos] = parseString(str, ptr)
 				dot = str.indexOf('.', eos)
-				let strEnd = str.slice(eos, dot < 0 || dot > endPtr ? endPtr : dot)
 
+				let strEnd = str.slice(eos, dot < 0 || dot > endPtr ? endPtr : dot)
 				let newLine = indexOfNewline(strEnd)
 				if (newLine > -1) {
 					throw new TomlError('newlines are not allowed in keys', {
@@ -95,7 +88,7 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 					}
 				}
 
-				parsed.push(parseString(str, ptr, eos))
+				parsed.push(part)
 			} else {
 				// Normal raw key part consumption and validation
 				dot = str.indexOf('.', ptr)
@@ -113,14 +106,10 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 		// Until there's no more dot
 	} while (dot + 1 && dot < endPtr)
 
-	return [ parsed, skipVoid(str, endPtr + 1, true, true) ]
+	return [parsed, skipVoid(str, endPtr + 1, true, true)]
 }
 
-export function parseInlineTable (
-	str: string, ptr: number,
-	depth: number,
-	integersAsBigInt: IntegersAsBigInt,
-): [ TomlTable, number ] {
+export function parseInlineTable(str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlTable, number] {
 	let res: TomlTable = {}
 	let seen = new Set()
 	let c: string
@@ -138,7 +127,7 @@ export function parseInlineTable (
 			let t: any = res
 			let hasOwn = false
 
-			let [ key, keyEndPtr ] = parseKey(str, ptr - 1)
+			let [key, keyEndPtr] = parseKey(str, ptr - 1)
 			for (let i = 0; i < key.length; i++) {
 				if (i) t = hasOwn! ? t[k!] : (t[k!] = {})
 
@@ -162,7 +151,7 @@ export function parseInlineTable (
 				})
 			}
 
-			let [ value, valueEndPtr ] = extractValue(str, keyEndPtr, '}', depth - 1, integersAsBigInt)
+			let [value, valueEndPtr] = extractValue(str, keyEndPtr, '}', depth - 1, integersAsBigInt)
 			seen.add(value)
 
 			t[k!] = value
@@ -177,10 +166,10 @@ export function parseInlineTable (
 		})
 	}
 
-	return [ res, ptr ]
+	return [res, ptr]
 }
 
-export function parseArray (str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [ TomlValue[], number ] {
+export function parseArray(str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlValue[], number] {
 	let res: TomlValue[] = []
 	let c
 
@@ -206,5 +195,5 @@ export function parseArray (str: string, ptr: number, depth: number, integersAsB
 		})
 	}
 
-	return [ res, ptr ]
+	return [res, ptr]
 }

@@ -36,19 +36,13 @@ export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
-function isEscaped(str: string, ptr: number) {
-	let i = 0
-	while (str[ptr - ++i] === '\\');
-	return --i && (i % 2)
-}
-
-export function indexOfNewline (str: string, start = 0, end = str.length) {
+export function indexOfNewline(str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)
 	if (str[idx - 1] === '\r') idx--
 	return idx <= end ? idx : -1
 }
 
-export function skipComment (str: string, ptr: number) {
+export function skipComment(str: string, ptr: number) {
 	for (let i = ptr; i < str.length; i++) {
 		let c = str[i]!
 		if (c === '\n')
@@ -68,10 +62,10 @@ export function skipComment (str: string, ptr: number) {
 	return str.length
 }
 
-export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
+export function skipVoid(str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
 	let c
 	while (1) {
-		while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || c === '\r' && str[ptr + 1] === '\n'))) ptr++
+		while ((c = str[ptr]) === ' ' || c === '\t' || (!banNewLines && (c === '\n' || (c === '\r' && str[ptr + 1] === '\n')))) ptr++
 
 		// Tucking the return statement here would save 5 characters >:)
 		// But TypeScript fails to detect there is no way to exit the loop so it complains about the lack of final return
@@ -83,7 +77,7 @@ export function skipVoid (str: string, ptr: number, banNewLines?: boolean, banCo
 	return ptr
 }
 
-export function skipUntil (str: string, ptr: number, sep: string, end?: string, banNewLines: boolean = false) {
+export function skipUntil(str: string, ptr: number, sep: string, end?: string, banNewLines: boolean = false) {
 	if (!end) {
 		ptr = indexOfNewline(str, ptr)
 		return ptr < 0 ? str.length : ptr
@@ -102,27 +96,6 @@ export function skipUntil (str: string, ptr: number, sep: string, end?: string, 
 
 	throw new TomlError('cannot find end of structure', {
 		toml: str,
-		ptr: ptr
+		ptr: ptr,
 	})
-}
-
-export function getStringEnd (str: string, seek: number) {
-	let first = str[seek]!
-	let target = first === str[seek + 1] && str[seek + 1] === str[seek + 2]
-		? str.slice(seek, seek + 3)
-		: first
-
-	seek += target.length - 1
-	do seek = str.indexOf(target, ++seek)
-	while (seek > -1 && first !== "'" && isEscaped(str, seek))
-
-	if (seek > -1) {
-		seek += target.length
-		if (target.length > 1) {
-			if (str[seek] === first) seek++
-			if (str[seek] === first) seek++
-		}
-	}
-
-	return seek
 }

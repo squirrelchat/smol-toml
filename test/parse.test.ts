@@ -37,8 +37,7 @@ it('parses a simple key-value', () => {
 })
 
 it('parses dotted key-values', () => {
-	expect(parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true'))
-		.toStrictEqual({ fruit: { apple: { color: 'red', taste: { sweet: true } } } })
+	expect(parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true')).toStrictEqual({ fruit: { apple: { color: 'red', taste: { sweet: true } } } })
 })
 
 it('handles comments', () => {
@@ -63,27 +62,27 @@ it('handles escapes in strings', () => {
 	expect(parse('key = "\\\\\\\\"')).toStrictEqual({ key: '\\\\' })
 	expect(parse('key = "\\\\\\\\\\\\"')).toStrictEqual({ key: '\\\\\\' })
 
-	expect(parse('key = ["\\\\"]')).toStrictEqual({ key: [ '\\' ] })
-	expect(parse('key = ["\\\\\\\\"]')).toStrictEqual({ key: [ '\\\\' ] })
-	expect(parse('key = ["\\\\\\\\\\\\"]')).toStrictEqual({ key: [ '\\\\\\' ] })
+	expect(parse('key = ["\\\\"]')).toStrictEqual({ key: ['\\'] })
+	expect(parse('key = ["\\\\\\\\"]')).toStrictEqual({ key: ['\\\\'] })
+	expect(parse('key = ["\\\\\\\\\\\\"]')).toStrictEqual({ key: ['\\\\\\'] })
 })
 
 it('rejects unspecified values', () => {
-	expect(() => parse('key = # INVALID')).toThrowError(TomlError)
+	expect(() => parse('key = # INVALID')).toThrow(TomlError)
 })
 
 it('rejects invalid keys', () => {
-	expect(() => parse('key."uwu"owo = test')).toThrowError(TomlError)
+	expect(() => parse('key."uwu"owo = test')).toThrow(TomlError)
 })
 
 it('rejects multiple key-values on a single line', () => {
-	expect(() => parse('first = "Tom" last = "Preston-Werner" # INVALID')).toThrowError(TomlError)
-	expect(() => parse('a = [] b = 0 # INVALID')).toThrowError(TomlError)
-	expect(() => parse('a = {} b = 0 # INVALID')).toThrowError(TomlError)
+	expect(() => parse('first = "Tom" last = "Preston-Werner" # INVALID')).toThrow(TomlError)
+	expect(() => parse('a = [] b = 0 # INVALID')).toThrow(TomlError)
+	expect(() => parse('a = {} b = 0 # INVALID')).toThrow(TomlError)
 })
 
 it('rejects invalid strings', () => {
-	expect(() => parse('first = "To\nm"')).toThrowError(TomlError)
+	expect(() => parse('first = "To\nm"')).toThrow(TomlError)
 })
 
 it('parses docs with tables', () => {
@@ -104,11 +103,11 @@ key2 = 456
 })
 
 it('rejects unfinished tables', () => {
-	expect(() => parse('[test\nuwu = test')).toThrowError(TomlError)
+	expect(() => parse('[test\nuwu = test')).toThrow(TomlError)
 })
 
 it('rejects invalid tables', () => {
-	expect(() => parse('[key."uwu"owo]')).toThrowError(TomlError)
+	expect(() => parse('[key."uwu"owo]')).toThrow(TomlError)
 })
 
 it('parses docs with dotted table and dotted keys', () => {
@@ -139,7 +138,7 @@ uwu = "owo"
 		a: { b: { c: { uwu: 'owo' } } },
 		d: { e: { f: { uwu: 'owo' } } },
 		g: { h: { i: { uwu: 'owo' } } },
-		j: { 'ʞ': { l: { uwu: 'owo' } } },
+		j: { ʞ: { l: { uwu: 'owo' } } },
 	})
 })
 
@@ -157,7 +156,7 @@ b = 0
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		x: { b: 0, y: { z: { w: { a: 0 } } } }
+		x: { b: 0, y: { z: { w: { a: 0 } } } },
 	})
 })
 
@@ -171,7 +170,7 @@ smooth = true
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		fruit: { apple: { color: 'red', taste: { sweet: true }, texture: { smooth: true } } }
+		fruit: { apple: { color: 'red', taste: { sweet: true }, texture: { smooth: true } } },
 	})
 })
 
@@ -184,7 +183,7 @@ apple = "red"
 texture = "smooth"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('parses arrays of tables', () => {
@@ -203,16 +202,12 @@ color = "gray"
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		products: [
-			{ name: 'Hammer', sku: 738594937 },
-			{},
-			{ name: 'Nail', sku: 284758393, color: 'gray' },
-		]
+		products: [{ name: 'Hammer', sku: 738594937 }, {}, { name: 'Nail', sku: 284758393, color: 'gray' }],
 	})
 })
 
 it('rejects invalid arrays of table', () => {
-	expect(() => parse('[[uwu] ]')).toThrowError(TomlError)
+	expect(() => parse('[[uwu] ]')).toThrow(TomlError)
 })
 
 it('parses arrays of tables with subtables', () => {
@@ -243,26 +238,21 @@ name = "plantain"
 
 	expect(parse(doc)).toStrictEqual({
 		fruits: [
-		  {
-			name: 'apple',
-			physical: {
-			  color: 'red',
-			  shape: 'round',
-			  cute: { uwu: true },
+			{
+				name: 'apple',
+				physical: {
+					color: 'red',
+					shape: 'round',
+					cute: { uwu: true },
+				},
+				varieties: [{ name: 'red delicious' }, { name: 'granny smith' }],
 			},
-			varieties: [
-			  { name: 'red delicious' },
-			  { name: 'granny smith' },
-			]
-		  },
-		  {
-			name: 'banana',
-			varieties: [
-			  { name: 'plantain' },
-			],
-		  },
+			{
+				name: 'banana',
+				varieties: [{ name: 'plantain' }],
+			},
 		],
-	  })
+	})
 })
 
 it('rejects subtables of an array of tables if order is reversed', () => {
@@ -275,7 +265,7 @@ shape = "round"
 name = "apple"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('does not allow redefining a statically defined array', () => {
@@ -285,7 +275,7 @@ fruits = []
 [[fruits]]
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('rejects conflicts between arrays of tables and normal tables (array then simple)', () => {
@@ -300,7 +290,7 @@ name = "red delicious"
 name = "granny smith"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 it('rejects conflicts between arrays of tables and normal tables (simple then array)', () => {
@@ -316,7 +306,7 @@ shape = "round"
 color = "green"
 `.trim()
 
-	expect(() => parse(doc)).toThrowError(TomlError)
+	expect(() => parse(doc)).toThrow(TomlError)
 })
 
 describe('table clashes', () => {
@@ -329,7 +319,7 @@ apple = "red"
 orange = "orange"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow dotted keys to redefine tables', () => {
@@ -340,7 +330,7 @@ orange = "orange"
   b.c.t = 9
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow redefining tables with [table]', () => {
@@ -352,7 +342,7 @@ apple.color = "red"
 kind = "granny smith"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow clashes between [[table]] and [table]', () => {
@@ -361,7 +351,7 @@ kind = "granny smith"
 [uwu]
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow clashes between [[table.a]] and a dotted key within [table]', () => {
@@ -372,7 +362,7 @@ kind = "granny smith"
 owo.hehe = "meow!"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does not allow clashes between [table] and [[table]]', () => {
@@ -381,7 +371,7 @@ owo.hehe = "meow!"
 [[uwu]]
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('rejects tables overriding a defined value (inline table)', () => {
@@ -393,7 +383,7 @@ apple = { uwu = "owo" }
 texture = "smooth"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('rejects tables overriding a defined value (inline table inner)', () => {
@@ -405,7 +395,7 @@ apple = { uwu = "owo" }
 texture = "smooth"
 `.trim()
 
-		expect(() => parse(doc)).toThrowError(TomlError)
+		expect(() => parse(doc)).toThrow(TomlError)
 	})
 
 	it('does NOT reject duplicate [tables] for arrays of tables', () => {
@@ -420,10 +410,7 @@ hehe = true
 `.trim()
 
 		expect(parse(doc)).toStrictEqual({
-			uwu: [
-				{ owo: { hehe: true } },
-				{ owo: { hehe: true } },
-			]
+			uwu: [{ owo: { hehe: true } }, { owo: { hehe: true } }],
 		})
 	})
 
@@ -441,11 +428,8 @@ meow = "nya"
 
 		expect(parse(doc)).toStrictEqual({
 			uwu: {
-				owo: [
-					{ hehe: true },
-					{ hehe: false },
-				],
-				meow: "nya",
+				owo: [{ hehe: true }, { hehe: false }],
+				meow: 'nya',
 			},
 		})
 	})
