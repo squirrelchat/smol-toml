@@ -28,7 +28,7 @@
 
 import { type IntegersAsBigInt, parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { getStringEnd, indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
+import { indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
@@ -59,17 +59,10 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 					})
 				}
 
-				let eos = getStringEnd(str, ptr)
-				if (eos < 0) {
-					throw new TomlError('unfinished string encountered', {
-						toml: str,
-						ptr: ptr,
-					})
-				}
-
+				let [part, eos] = parseString(str, ptr)
 				dot = str.indexOf('.', eos)
-				let strEnd = str.slice(eos, dot < 0 || dot > endPtr ? endPtr : dot)
 
+				let strEnd = str.slice(eos, dot < 0 || dot > endPtr ? endPtr : dot)
 				let newLine = indexOfNewline(strEnd)
 				if (newLine > -1) {
 					throw new TomlError('newlines are not allowed in keys', {
@@ -95,7 +88,7 @@ export function parseKey (str: string, ptr: number, end = '='): [ string[], numb
 					}
 				}
 
-				parsed.push(parseString(str, ptr, eos))
+				parsed.push(part)
 			} else {
 				// Normal raw key part consumption and validation
 				dot = str.indexOf('.', ptr)

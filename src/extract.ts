@@ -28,7 +28,7 @@
 
 import { type IntegersAsBigInt, parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import { skipVoid, skipUntil, skipComment, getStringEnd, type TomlValue } from './util.js'
+import { skipVoid, skipUntil, skipComment, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number): [ string, number ] {
@@ -78,10 +78,8 @@ export function extractValue (
 		return [ value, endPtr ]
 	}
 
-	let endPtr
 	if (c === '"' || c === "'") {
-		endPtr = getStringEnd(str, ptr)
-		let parsed = parseString(str, ptr, endPtr)
+		let [parsed, endPtr] = parseString(str, ptr)
 		if (end) {
 			endPtr = skipVoid(str, endPtr)
 
@@ -98,7 +96,7 @@ export function extractValue (
 		return [ parsed, endPtr ]
 	}
 
-	endPtr = skipUntil(str, ptr, ',', end)
+	let endPtr = skipUntil(str, ptr, ',', end)
 	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')))
 	if (!slice[0]) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {

@@ -36,12 +36,6 @@ export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
-function isEscaped(str: string, ptr: number) {
-	let i = 0
-	while (str[ptr - ++i] === '\\');
-	return --i && (i % 2)
-}
-
 export function indexOfNewline (str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)
 	if (str[idx - 1] === '\r') idx--
@@ -104,25 +98,4 @@ export function skipUntil (str: string, ptr: number, sep: string, end?: string, 
 		toml: str,
 		ptr: ptr
 	})
-}
-
-export function getStringEnd (str: string, seek: number) {
-	let first = str[seek]!
-	let target = first === str[seek + 1] && str[seek + 1] === str[seek + 2]
-		? str.slice(seek, seek + 3)
-		: first
-
-	seek += target.length - 1
-	do seek = str.indexOf(target, ++seek)
-	while (seek > -1 && first !== "'" && isEscaped(str, seek))
-
-	if (seek > -1) {
-		seek += target.length
-		if (target.length > 1) {
-			if (str[seek] === first) seek++
-			if (str[seek] === first) seek++
-		}
-	}
-
-	return seek
 }

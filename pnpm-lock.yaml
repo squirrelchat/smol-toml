@@ -207,18 +207,9 @@ importers:
 
   .:
     devDependencies:
-      '@iarna/toml':
-        specifier: 3.0.0
-        version: 3.0.0
-      '@ltd/j-toml':
-        specifier: ^1.38.0
-        version: 1.38.0
       '@mitata/counters':
         specifier: ^0.0.8
         version: 0.0.8
-      '@std/toml':
-        specifier: jsr:^1.0.11
-        version: '@jsr/std__toml@1.0.11'
       '@tsconfig/node-lts':
         specifier: ^24.0.0
         version: 24.0.0
@@ -231,9 +222,6 @@ importers:
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
-      fast-toml:
-        specifier: ^0.5.4
-        version: 0.5.4
       mitata:
         specifier: ^1.0.34
         version: 1.0.34
@@ -561,20 +549,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@iarna/toml@3.0.0':
-    resolution: {integrity: sha512-td6ZUkz2oS3VeleBcN+m//Q6HlCFCPrnI0FZhrt/h4XqLEdOyYp2u21nd8MdsR+WJy5r9PTDaHTDDfhf4H4l6Q==}
-
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
-
-  '@jsr/std__collections@1.2.0':
-    resolution: {integrity: sha512-R58weKPNZ3sFOo9pRAhasq0m0aIVEJau4/bid0VFWp9hoQZ07qpa1vtDLFWNrQK96ZJS0ql6IuOHVrXXsHOE/w==, tarball: https://npm.jsr.io/~/11/@jsr/std__collections/1.2.0.tgz}
-
-  '@jsr/std__toml@1.0.11':
-    resolution: {integrity: sha512-+LZAizoPAPwMDmRZr86/xPrbO8E0Oq0BJ70mr1fNMobJ/6X6v15Jk16ZClFGukWgzBMd8ggiMWnzp24+N3VNZg==, tarball: https://npm.jsr.io/~/11/@jsr/std__toml/1.0.11.tgz}
-
-  '@ltd/j-toml@1.38.0':
-    resolution: {integrity: sha512-lYtBcmvHustHQtg4X7TXUu1Xa/tbLC3p2wLvgQI+fWVySguVZJF60Snxijw5EiohumxZbR10kWYFFebh1zotiw==}
 
   '@mitata/counters@0.0.8':
     resolution: {integrity: sha512-f11w0Y1ETFlarDP7CePj8Z+y8Gv5Ax4gMxWsEwrqh0kH/YIY030Ezx5SUJeQg0YPTZ2OHKGcLG1oGJbIqHzaJA==}
@@ -1027,9 +1003,6 @@ packages:
     resolution: {integrity: sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==}
     engines: {node: '>=8.6.0'}
 
-  fast-toml@0.5.4:
-    resolution: {integrity: sha512-nUX94P84wE3gcem12g4FAH3xV7BmcCoV8FXcFVV+NIQAOwRJnyqVKhdGd9DqI4CunW+wOZhVBGKI6Jut/OlLTw==}
-
   fastq@1.20.1:
     resolution: {integrity: sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==}
 
@@ -1444,17 +1417,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
-  '@iarna/toml@3.0.0': {}
-
   '@jridgewell/sourcemap-codec@1.5.5': {}
-
-  '@jsr/std__collections@1.2.0': {}
-
-  '@jsr/std__toml@1.0.11':
-    dependencies:
-      '@jsr/std__collections': 1.2.0
-
-  '@ltd/j-toml@1.38.0': {}
 
   '@mitata/counters@0.0.8': {}
 
@@ -1843,8 +1806,6 @@ snapshots:
       glob-parent: 5.1.2
       merge2: 1.4.1
       micromatch: 4.0.8
-
-  fast-toml@0.5.4: {}
 
   fastq@1.20.1:
     dependencies:

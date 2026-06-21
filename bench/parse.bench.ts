@@ -33,126 +33,106 @@ import { parse as smolTomlParse } from '../dist/index.js'
 import { parse as iarnaTomlParse } from '@iarna/toml'
 import { parse as ltdJTomlParse } from '@ltd/j-toml'
 import { parse as denoStdParse } from '@std/toml'
+import { parse as nodeTomlParse } from 'toml'
+import { load as jsTomlParse } from 'js-toml'
+import { parse as dtTomlPatchParse } from '@decimalturn/toml-patch'
 import fastTomlParse from 'fast-toml'
 
 const tomlSpec = await readFile(new URL('./testfiles/toml-spec-example.toml', import.meta.url), 'utf8')
 const toml5MB = await readFile(new URL('./testfiles/5mb-mixed.toml', import.meta.url), 'utf8')
 
 summary(() => {
-	group('spec document', () => {
-		bench('smol-toml', function* () {
-			yield {
-				[0]() {
-					return tomlSpec
-				},
-				bench(toml: string) {
-					return do_not_optimize(smolTomlParse(toml))
-				},
-			}
-		})
+	for (const [name, toml] of [['spec document', tomlSpec], ['5MB document', toml5MB]] as const) {
+		group(name, () => {
+			bench('smol-toml', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(smolTomlParse(toml))
+					},
+				}
+			})
 
-		bench('@iarna/toml', function* () {
-			yield {
-				[0]() {
-					return tomlSpec
-				},
-				bench(toml: string) {
-					return do_not_optimize(iarnaTomlParse(toml))
-				},
-			}
-		})
+			bench('@iarna/toml', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(iarnaTomlParse(toml))
+					},
+				}
+			})
 
-		bench('@ltd/j-toml', function* () {
-			yield {
-				[0]() {
-					return tomlSpec
-				},
-				bench(toml: string) {
-					return do_not_optimize(ltdJTomlParse(toml, { joiner: '\n' }))
-				},
-			}
-		})
+			bench('@ltd/j-toml', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(ltdJTomlParse(toml, { joiner: '\n' }))
+					},
+				}
+			})
 
-		bench('fast-toml', function* () {
-			yield {
-				[0]() {
-					return tomlSpec
-				},
-				bench(toml: string) {
-					return do_not_optimize(fastTomlParse(toml))
-				},
-			}
-		})
+			bench('fast-toml', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(fastTomlParse(toml))
+					},
+				}
+			})
 
-		bench('deno\'s @std/toml', function* () {
-			yield {
-				[0]() {
-					return tomlSpec
-				},
-				bench(toml: string) {
-					return do_not_optimize(denoStdParse(toml))
-				},
-			}
-		})
-	})
+			bench('deno\'s @std/toml', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(denoStdParse(toml))
+					},
+				}
+			})
 
-	group('5MB document', () => {
-		bench('smol-toml', function* () {
-			yield {
-				[0]() {
-					return toml5MB
-				},
-				bench(toml: string) {
-					return do_not_optimize(smolTomlParse(toml))
-				},
-			}
-		})
+			bench('node-toml', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(nodeTomlParse(toml))
+					},
+				}
+			})
 
-		// DNF
-		// bench('@iarna/toml', function* () {
-		// 	yield {
-		// 		[0]() {
-		// 			return toml5MB
-		// 		},
-		// 		bench(toml: string) {
-		// 			return do_not_optimize(iarnaTomlParse(toml))
-		// 		},
-		// 	}
-		// })
+			bench('js-toml', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(jsTomlParse(toml))
+					},
+				}
+			})
 
-		bench('@ltd/j-toml', function* () {
-			yield {
-				[0]() {
-					return toml5MB
-				},
-				bench(toml: string) {
-					return do_not_optimize(ltdJTomlParse(toml, { joiner: '\n' }))
-				},
-			}
+			bench('@decimalturn/toml-patch', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(dtTomlPatchParse(toml))
+					},
+				}
+			})
 		})
-
-		bench('fast-toml', function* () {
-			yield {
-				[0]() {
-					return toml5MB
-				},
-				bench(toml: string) {
-					return do_not_optimize(fastTomlParse(toml))
-				},
-			}
-		})
-
-		bench('deno\'s @std/toml', function* () {
-			yield {
-				[0]() {
-					return toml5MB
-				},
-				bench(toml: string) {
-					return do_not_optimize(denoStdParse(toml))
-				},
-			}
-		})
-	})
+	}
 })
 
 await run()

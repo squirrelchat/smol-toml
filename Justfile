@@ -14,5 +14,11 @@ publish: build
 	pnpm publish --provenance --access public --no-git-checks
 
 bench: build
-	node bench/parse.bench.ts
-	node bench/stringify.bench.ts
+	node --expose-gc bench/parse.bench.ts
+	node --expose-gc bench/stringify.bench.ts
+
+bench-parse: build
+	node --expose-gc bench/parse.bench.ts
+
+bench-stringify: build
+	node --expose-gc bench/stringify.bench.ts
