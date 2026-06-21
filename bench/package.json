@@ -1,0 +1,12 @@
+{
+	"type": "module",
+	"devDependencies": {
+		"@decimalturn/toml-patch": "^2.0.0",
+		"@iarna/toml": "3.0.0",
+		"@ltd/j-toml": "^1.38.0",
+		"@std/toml": "jsr:^1.0.11",
+		"fast-toml": "^0.5.4",
+		"js-toml": "^1.1.2",
+		"toml": "^4.1.1"
+	}
+}

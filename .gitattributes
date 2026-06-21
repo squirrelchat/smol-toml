@@ -1,0 +1,19 @@
+* text=auto eol=lf
+
+# By default, Git heavily favours C in diff output.
+# However it is possible to enhance the output by setting the hunk-header.
+# See https://man.archlinux.org/man/gitattributes.5#Generating_diff_text
+*.md      text diff=markdown
+*.mdx     text diff=markdown
+
+# Windows-specific files must have CRLF line endings
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# Linguist-specific attributes
+*.md                 linguist-documentation linguist-language=Markdown
+*.mdx                linguist-documentation
+LICENSE              linguist-documentation
+
+# Fix highlighting
+tsconfig.json        linguist-language=JSON-with-Comments

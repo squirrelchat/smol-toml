@@ -31,71 +31,72 @@ import { parseString } from '../src/primitive.js'
 import { TomlError } from '../src/error.js'
 
 it('parses a string', () => {
-	expect(parseString('"this is a string"')).toBe('this is a string')
-	expect(parseString("'this is a string'")).toBe('this is a string')
+	expect(parseString('"this is a string"', 0)).toStrictEqual(['this is a string', 18])
+	expect(parseString("'this is a string'", 0)).toStrictEqual(['this is a string', 18])
 })
 
 it('handles escapes in strings', () => {
-	expect(parseString('"uwu \\b uwu"')).toBe('uwu \b uwu')
-	expect(parseString('"uwu \\t uwu"')).toBe('uwu \t uwu')
-	expect(parseString('"uwu \\n uwu"')).toBe('uwu \n uwu')
-	expect(parseString('"uwu \\f uwu"')).toBe('uwu \f uwu')
-	expect(parseString('"uwu \\r uwu"')).toBe('uwu \r uwu')
-	expect(parseString('"uwu \\e uwu"')).toBe('uwu \x1b uwu')
-	expect(parseString('"uwu \\" uwu"')).toBe('uwu " uwu')
-	expect(parseString('"uwu \\\\ uwu"')).toBe('uwu \\ uwu')
-	expect(parseString('"uwu \\x61 uwu"')).toBe('uwu a uwu')
-	expect(parseString('"uwu \\u2764 uwu"')).toBe('uwu ❤ uwu')
-	expect(parseString('"uwu \\U0001F43F uwu"')).toBe('uwu 🐿 uwu')
+	expect(parseString('"uwu \\b uwu"', 0)).toStrictEqual(['uwu \b uwu', 12])
+	expect(parseString('"uwu \\t uwu"', 0)).toStrictEqual(['uwu \t uwu', 12])
+	expect(parseString('"uwu \\n uwu"', 0)).toStrictEqual(['uwu \n uwu', 12])
+	expect(parseString('"uwu \\f uwu"', 0)).toStrictEqual(['uwu \f uwu', 12])
+	expect(parseString('"uwu \\r uwu"', 0)).toStrictEqual(['uwu \r uwu', 12])
+	expect(parseString('"uwu \\e uwu"', 0)).toStrictEqual(['uwu \x1b uwu', 12])
+	expect(parseString('"uwu \\" uwu"', 0)).toStrictEqual(['uwu " uwu', 12])
+	expect(parseString('"uwu \\\\ uwu"', 0)).toStrictEqual(['uwu \\ uwu', 12])
+	expect(parseString('"uwu \\x61 uwu"', 0)).toStrictEqual(['uwu a uwu', 14])
+	expect(parseString('"uwu \\u2764 uwu"', 0)).toStrictEqual(['uwu ❤ uwu', 16])
+	expect(parseString('"uwu \\U0001F43F uwu"', 0)).toStrictEqual(['uwu 🐿 uwu', 20])
 })
 
 it('ignores escapes in literal strings', () => {
-	expect(parseString("'uwu \\ uwu'")).toBe('uwu \\ uwu')
+	expect(parseString("'uwu \\ uwu'", 0)).toStrictEqual(['uwu \\ uwu', 11])
 })
 
 it('rejects invalid escapes', () => {
-	expect(() => parseString('"uwu \\x uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\\' uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\\n uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\ uwu"')).toThrow(TomlError)
-	expect(() => parseString('"""uwu \\ uwu"""')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\UFFFFFFFF uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\x uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\' uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\n uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\ uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"""uwu \\ uwu"""', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\UFFFFFFFF uwu"', 0)).toThrow(TomlError)
 
-	expect(() => parseString('"uwu \\u276 uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\U0001F43 uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\u276 uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\U0001F43 uwu"', 0)).toThrow(TomlError)
 
-	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\\\\\ uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \\\\\\\\\\ uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\\\\ uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\\\\ uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\\\\\\\\ uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \\\\\\\\\\ uwu"', 0)).toThrow(TomlError)
 })
 
 it('rejects control characters', () => {
-	expect(() => parseString('"uwu \x00 uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \b uwu"')).toThrow(TomlError)
-	expect(() => parseString('"uwu \x1f uwu"')).toThrow(TomlError)
+	expect(() => parseString('"uwu \x00 uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \b uwu"', 0)).toThrow(TomlError)
+	expect(() => parseString('"uwu \x1f uwu"', 0)).toThrow(TomlError)
 })
 
 it('parses multiline strings', () => {
-	expect(parseString('"""this is a\nmultiline string"""')).toBe('this is a\nmultiline string')
-	expect(parseString("'''this is a\nmultiline string'''")).toBe('this is a\nmultiline string')
+	expect(parseString('"""this is a\nmultiline string"""', 0)).toStrictEqual(['this is a\nmultiline string', 32])
+	expect(parseString("'''this is a\nmultiline string'''", 0)).toStrictEqual(['this is a\nmultiline string', 32])
 
-	expect(parseString('"""this is a "multiline string""""')).toBe('this is a "multiline string"')
+	expect(parseString('"""this is a "multiline string""""', 0)).toStrictEqual(['this is a "multiline string"', 34])
+	expect(parseString("'''this is a 'multiline string''''", 0)).toStrictEqual(["this is a 'multiline string'", 34])
 })
 
 it('handles escaped line returns in multiline', () => {
-	expect(parseString('"""this is a \\\nmultiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
-	expect(parseString('"""this is a \\\n\n\n   multiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
+	expect(parseString('"""this is a \\\nmultiline string that has no real linebreak"""', 0)).toStrictEqual(['this is a multiline string that has no real linebreak', 61])
+	expect(parseString('"""this is a \\\n\n\n   multiline string that has no real linebreak"""', 0)).toStrictEqual(['this is a multiline string that has no real linebreak', 66])
 
-	expect(parseString('"""this is a \\\r\nmultiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
-	expect(parseString('"""this is a \\\r\n\r\n\r\n   multiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
-	expect(parseString('"""this is a \\    \nmultiline string that has no real linebreak"""')).toBe('this is a multiline string that has no real linebreak')
+	expect(parseString('"""this is a \\\r\nmultiline string that has no real linebreak"""', 0)).toStrictEqual(['this is a multiline string that has no real linebreak', 62])
+	expect(parseString('"""this is a \\\r\n\r\n\r\n   multiline string that has no real linebreak"""', 0)).toStrictEqual(['this is a multiline string that has no real linebreak', 69])
+	expect(parseString('"""this is a \\    \nmultiline string that has no real linebreak"""', 0)).toStrictEqual(['this is a multiline string that has no real linebreak', 65])
 })
 
 it('trims initial whitespace in multiline strings', () => {
-	expect(parseString('"""\nuwu"""')).toBe('uwu')
-	expect(parseString('"""\ruwu"""')).toBe('uwu')
-	expect(parseString('"""\r\nuwu"""')).toBe('uwu')
+	expect(parseString('"""\nuwu"""', 0)).toStrictEqual(['uwu', 10])
+	expect(parseString('"""\r\nuwu"""', 0)).toStrictEqual(['uwu', 11])
 
-	expect(parseString('"""\nuwu\n"""')).toBe('uwu\n')
+	expect(parseString('"""\nuwu\n"""', 0)).toStrictEqual(['uwu\n', 11])
+	expect(() => parseString('"""\ruwu"""', 0)).toThrow()
 })

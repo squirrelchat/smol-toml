@@ -1,2 +1,4 @@
-onlyBuiltDependencies:
-  - esbuild
+ignoreScripts: true
+
+allowBuilds:
+  esbuild: true

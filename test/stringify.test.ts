@@ -58,12 +58,20 @@ a = 100
 	expect(stringify({ a: 100 })).toBe(expected)
 })
 
-it('stringifies integers as floats', () => {
+it('stringifies integers as floats with numbersAsFloat', () => {
 	const expected = `
 a = 100.0
 `.trimStart()
 
 	expect(stringify({ a: 100 }, { numbersAsFloat: true })).toBe(expected)
+})
+
+it('stringifies very large integers as floats', () => {
+	const expected = `
+a = 36028797018963968.0
+`.trimStart()
+
+	expect(stringify({ a: 2 ** 55 }, { numbersAsFloat: true })).toBe(expected)
 })
 
 it('stringifies floats as floats', () => {
@@ -143,7 +151,7 @@ it('stringifies arrays', () => {
 a = [ 10, 20, "30", false ]
 `.trimStart()
 
-	expect(stringify({ a: [ 10, 20n, '30', false ] })).toBe(expected)
+	expect(stringify({ a: [10, 20n, '30', false] })).toBe(expected)
 })
 
 it('stringifies empty arrays', () => {
@@ -156,7 +164,7 @@ a = []
 [[e]]
 `.trimStart()
 
-	expect(stringify({ a: [], e: [ { a: [] }, {} ] })).toBe(expected)
+	expect(stringify({ a: [], e: [{ a: [] }, {}] })).toBe(expected)
 })
 
 it('stringifies tables', () => {
@@ -211,7 +219,6 @@ it('stringifies empty tables with no gaps', () => {
 	).toBe(expected)
 })
 
-
 it('stringifies empty tables with consistent newlines', () => {
 	const expected = `
 [animal]
@@ -249,10 +256,7 @@ title = "another amazing book"
 			},
 			country: {},
 			planet: {},
-			books: [
-				{ title: "an amazing book" },
-				{ title: "another amazing book" },
-			]
+			books: [{ title: 'an amazing book' }, { title: 'another amazing book' }],
 		}),
 	).toBe(expected)
 })
@@ -262,7 +266,7 @@ it('stringifies tables contained in arrays', () => {
 a = [ 1, { b = 2, c = 3 }, 4 ]
 `.trimStart()
 
-	expect(stringify({ a: [ 1, { b: 2, c: 3 }, 4 ] })).toBe(expected)
+	expect(stringify({ a: [1, { b: 2, c: 3 }, 4] })).toBe(expected)
 })
 
 it('stringifies arrays of tables', () => {
@@ -276,7 +280,14 @@ b = 3
 c = 4
 `.trimStart()
 
-	expect(stringify({ a: [ { b: 1, c: 2 }, { b: 3, c: 4 } ] })).toBe(expected)
+	expect(
+		stringify({
+			a: [
+				{ b: 1, c: 2 },
+				{ b: 3, c: 4 },
+			],
+		}),
+	).toBe(expected)
 })
 
 it('stringifies nested arrays of tables', () => {
@@ -354,11 +365,13 @@ a = 2
 a = 3
 `.trimStart()
 
-	expect(stringify({
-		'test-key123_': { a: 1 },
-		'test key 123': { a: 2 },
-		'testkey@': { a: 3 },
-	})).toBe(expected)
+	expect(
+		stringify({
+			'test-key123_': { a: 1 },
+			'test key 123': { a: 2 },
+			'testkey@': { a: 3 },
+		}),
+	).toBe(expected)
 })
 
 it('does not produce invalid strings', () => {
@@ -392,10 +405,9 @@ it('ignores null and undefined on objects', () => {
 	expect(stringify(testObj)).toBe('c = 1\n')
 })
 
-
 it('rejects null and undefined in arrays', () => {
-	expect(() => stringify({ a: [ 1, null, 2 ] })).toThrow(TypeError)
-	expect(() => stringify({ a: [ 1, void 0, 2 ] })).toThrow(TypeError)
+	expect(() => stringify({ a: [1, null, 2] })).toThrow(TypeError)
+	expect(() => stringify({ a: [1, void 0, 2] })).toThrow(TypeError)
 })
 
 it('rejects functions and symbols', () => {

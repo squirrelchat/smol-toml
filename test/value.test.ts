@@ -47,16 +47,15 @@ it('parses integers with underscores', () => {
 })
 
 it('parses hex integers', () => {
-	expect(parseValue('0xDEADBEEF', '', 0, false, false)).toBe(0xDEADBEEF)
-	expect(parseValue('0xdeadbeef', '', 0, false, false)).toBe(0xDEADBEEF)
-	expect(parseValue('0xdead_beef', '', 0, false, false)).toBe(0xDEADBEEF)
+	expect(parseValue('0xDEADBEEF', '', 0, false, false)).toBe(0xdeadbeef)
+	expect(parseValue('0xdeadbeef', '', 0, false, false)).toBe(0xdeadbeef)
+	expect(parseValue('0xdead_beef', '', 0, false, false)).toBe(0xdeadbeef)
 })
 
 it('parses octal integers', () => {
 	expect(parseValue('0o01234567', '', 0, false, false)).toBe(0o01234567)
 	expect(parseValue('0o0123_4567', '', 0, false, false)).toBe(0o01234567)
 })
-
 
 it('parses binary integers', () => {
 	expect(parseValue('0b11010110', '', 0, false, false)).toBe(0b11010110)
@@ -68,34 +67,34 @@ it('rejects integers too large on number_or_error', () => {
 })
 
 it('supports integers larger than the max safe integer number when bigints are enabled', () => {
-	expect(parseValue('9007199254740992', '', 0, "asNeeded", false)).toBe(9007199254740992n)
+	expect(parseValue('9007199254740992', '', 0, 'asNeeded', false)).toBe(9007199254740992n)
 	expect(parseValue('9007199254740992', '', 0, true, false)).toBe(9007199254740992n)
 })
 
 it('supports integers larger than the Number max value when bigints are enabled', () => {
 	const nineRepeat = '9'.repeat(310)
-	expect(parseValue(nineRepeat, '', 0, "asNeeded", false)).toBe(BigInt(nineRepeat))
+	expect(parseValue(nineRepeat, '', 0, 'asNeeded', false)).toBe(BigInt(nineRepeat))
 	expect(parseValue(nineRepeat, '', 0, true, false)).toBe(BigInt(nineRepeat))
 })
 
 it('supports floats larger than the max safe integer number', () => {
 	expect(parseValue('9007199254740992.0', '', 0, false, false)).toBe(9007199254740992.0)
-	expect(parseValue('9007199254740992.0', '', 0, "asNeeded", false)).toBe(9007199254740992.0)
+	expect(parseValue('9007199254740992.0', '', 0, 'asNeeded', false)).toBe(9007199254740992.0)
 	expect(parseValue('9007199254740992.0', '', 0, true, false)).toBe(9007199254740992.0)
 })
 
 it('only uses bigint for large values when bigints are enabled as needed', () => {
-	expect(parseValue('10', '', 0, "asNeeded", false)).toBe(10)
+	expect(parseValue('10', '', 0, 'asNeeded', false)).toBe(10)
 })
 
 it('interprets TOML-floats larger than the Number max value as Infinity', () => {
-	let nineRepeatFloat = '9'.repeat(310) + ".0"
+	let nineRepeatFloat = '9'.repeat(310) + '.0'
 	expect(parseValue(nineRepeatFloat, '', 0, false, false)).toBe(Infinity)
-	expect(parseValue(nineRepeatFloat, '', 0, "asNeeded", false)).toBe(Infinity)
+	expect(parseValue(nineRepeatFloat, '', 0, 'asNeeded', false)).toBe(Infinity)
 	expect(parseValue(nineRepeatFloat, '', 0, true, false)).toBe(Infinity)
 	nineRepeatFloat = '-' + nineRepeatFloat
 	expect(parseValue(nineRepeatFloat, '', 0, false, false)).toBe(-Infinity)
-	expect(parseValue(nineRepeatFloat, '', 0, "asNeeded", false)).toBe(-Infinity)
+	expect(parseValue(nineRepeatFloat, '', 0, 'asNeeded', false)).toBe(-Infinity)
 	expect(parseValue(nineRepeatFloat, '', 0, true, false)).toBe(-Infinity)
 })
 
@@ -149,10 +148,8 @@ it('handles signed zero floating-point TOML values', () => {
 })
 
 it('handles signed zero integer TOML values', () => {
-	expect(parseValue('+0', '', 0, false, false))
-		.toBe(parseValue('-0', '', 0, false, false))
-	expect(parseValue('+0', '', 0, true, false))
-		.toBe(parseValue('-0', '', 0, true, false))
+	expect(parseValue('+0', '', 0, false, false)).toBe(parseValue('-0', '', 0, false, false))
+	expect(parseValue('+0', '', 0, true, false)).toBe(parseValue('-0', '', 0, true, false))
 })
 
 it('parses infinity', () => {

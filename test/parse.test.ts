@@ -37,8 +37,7 @@ it('parses a simple key-value', () => {
 })
 
 it('parses dotted key-values', () => {
-	expect(parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true'))
-		.toStrictEqual({ fruit: { apple: { color: 'red', taste: { sweet: true } } } })
+	expect(parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true')).toStrictEqual({ fruit: { apple: { color: 'red', taste: { sweet: true } } } })
 })
 
 it('handles comments', () => {
@@ -63,9 +62,9 @@ it('handles escapes in strings', () => {
 	expect(parse('key = "\\\\\\\\"')).toStrictEqual({ key: '\\\\' })
 	expect(parse('key = "\\\\\\\\\\\\"')).toStrictEqual({ key: '\\\\\\' })
 
-	expect(parse('key = ["\\\\"]')).toStrictEqual({ key: [ '\\' ] })
-	expect(parse('key = ["\\\\\\\\"]')).toStrictEqual({ key: [ '\\\\' ] })
-	expect(parse('key = ["\\\\\\\\\\\\"]')).toStrictEqual({ key: [ '\\\\\\' ] })
+	expect(parse('key = ["\\\\"]')).toStrictEqual({ key: ['\\'] })
+	expect(parse('key = ["\\\\\\\\"]')).toStrictEqual({ key: ['\\\\'] })
+	expect(parse('key = ["\\\\\\\\\\\\"]')).toStrictEqual({ key: ['\\\\\\'] })
 })
 
 it('rejects unspecified values', () => {
@@ -139,7 +138,7 @@ uwu = "owo"
 		a: { b: { c: { uwu: 'owo' } } },
 		d: { e: { f: { uwu: 'owo' } } },
 		g: { h: { i: { uwu: 'owo' } } },
-		j: { 'ʞ': { l: { uwu: 'owo' } } },
+		j: { ʞ: { l: { uwu: 'owo' } } },
 	})
 })
 
@@ -157,7 +156,7 @@ b = 0
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		x: { b: 0, y: { z: { w: { a: 0 } } } }
+		x: { b: 0, y: { z: { w: { a: 0 } } } },
 	})
 })
 
@@ -171,7 +170,7 @@ smooth = true
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		fruit: { apple: { color: 'red', taste: { sweet: true }, texture: { smooth: true } } }
+		fruit: { apple: { color: 'red', taste: { sweet: true }, texture: { smooth: true } } },
 	})
 })
 
@@ -203,11 +202,7 @@ color = "gray"
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		products: [
-			{ name: 'Hammer', sku: 738594937 },
-			{},
-			{ name: 'Nail', sku: 284758393, color: 'gray' },
-		]
+		products: [{ name: 'Hammer', sku: 738594937 }, {}, { name: 'Nail', sku: 284758393, color: 'gray' }],
 	})
 })
 
@@ -243,26 +238,21 @@ name = "plantain"
 
 	expect(parse(doc)).toStrictEqual({
 		fruits: [
-		  {
-			name: 'apple',
-			physical: {
-			  color: 'red',
-			  shape: 'round',
-			  cute: { uwu: true },
+			{
+				name: 'apple',
+				physical: {
+					color: 'red',
+					shape: 'round',
+					cute: { uwu: true },
+				},
+				varieties: [{ name: 'red delicious' }, { name: 'granny smith' }],
 			},
-			varieties: [
-			  { name: 'red delicious' },
-			  { name: 'granny smith' },
-			]
-		  },
-		  {
-			name: 'banana',
-			varieties: [
-			  { name: 'plantain' },
-			],
-		  },
+			{
+				name: 'banana',
+				varieties: [{ name: 'plantain' }],
+			},
 		],
-	  })
+	})
 })
 
 it('rejects subtables of an array of tables if order is reversed', () => {
@@ -420,10 +410,7 @@ hehe = true
 `.trim()
 
 		expect(parse(doc)).toStrictEqual({
-			uwu: [
-				{ owo: { hehe: true } },
-				{ owo: { hehe: true } },
-			]
+			uwu: [{ owo: { hehe: true } }, { owo: { hehe: true } }],
 		})
 	})
 
@@ -441,11 +428,8 @@ meow = "nya"
 
 		expect(parse(doc)).toStrictEqual({
 			uwu: {
-				owo: [
-					{ hehe: true },
-					{ hehe: false },
-				],
-				meow: "nya",
+				owo: [{ hehe: true }, { hehe: false }],
+				meow: 'nya',
 			},
 		})
 	})

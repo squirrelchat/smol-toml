@@ -38,7 +38,7 @@ export class TomlDate extends Date {
 	#hasTime = false
 	#offset: Offset = null
 
-	constructor (date: string | Date) {
+	constructor(date: string | Date) {
 		let hasDate = true
 		let hasTime = true
 		let offset: Offset = 'Z'
@@ -75,23 +75,23 @@ export class TomlDate extends Date {
 		}
 	}
 
-	isDateTime () {
+	isDateTime() {
 		return this.#hasDate && this.#hasTime
 	}
 
-	isLocal () {
+	isLocal() {
 		return !this.#hasDate || !this.#hasTime || !this.#offset
 	}
 
-	isDate () {
+	isDate() {
 		return this.#hasDate && !this.#hasTime
 	}
 
-	isTime () {
+	isTime() {
 		return this.#hasTime && !this.#hasDate
 	}
 
-	isValid () {
+	isValid() {
 		return this.#hasDate || this.#hasTime
 	}
 
@@ -124,26 +124,26 @@ export class TomlDate extends Date {
 		return offsetDate.toISOString().slice(0, -1) + this.#offset
 	}
 
-	static wrapAsOffsetDateTime (jsDate: Date, offset = 'Z') {
+	static wrapAsOffsetDateTime(jsDate: Date, offset = 'Z') {
 		let date = new TomlDate(jsDate)
 		date.#offset = offset
 		return date
 	}
 
-	static wrapAsLocalDateTime (jsDate: Date) {
+	static wrapAsLocalDateTime(jsDate: Date) {
 		let date = new TomlDate(jsDate)
 		date.#offset = null
 		return date
 	}
 
-	static wrapAsLocalDate (jsDate: Date) {
+	static wrapAsLocalDate(jsDate: Date) {
 		let date = new TomlDate(jsDate)
 		date.#hasTime = false
 		date.#offset = null
 		return date
 	}
 
-	static wrapAsLocalTime (jsDate: Date) {
+	static wrapAsLocalTime(jsDate: Date) {
 		let date = new TomlDate(jsDate)
 		date.#hasDate = false
 		date.#offset = null

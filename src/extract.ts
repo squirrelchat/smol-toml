@@ -28,10 +28,10 @@
 
 import { type IntegersAsBigInt, parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import { skipVoid, skipUntil, skipComment, getStringEnd, type TomlValueTemporal } from './util.js'
+import { skipVoid, skipUntil, skipComment, type TomlValueTemporal } from './util.js'
 import { TomlError } from './error.js'
 
-function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number): [ string, number ] {
+function sliceAndTrimEndOf(str: string, startPtr: number, endPtr: number): [string, number] {
 	let value = str.slice(startPtr, endPtr)
 
 	let commentIdx = value.indexOf('#')
@@ -42,26 +42,20 @@ function sliceAndTrimEndOf (str: string, startPtr: number, endPtr: number): [ st
 		value = value.slice(0, commentIdx)
 	}
 
-	return [ value.trimEnd(), commentIdx ]
+	return [value.trimEnd(), commentIdx]
 }
 
-export function extractValue (
-	str: string, ptr: number,
-	end: string | undefined,
-	depth: number,
-	integersAsBigInt: IntegersAsBigInt,
-	temporal: boolean,
-): [ TomlValueTemporal, number ] {
+export function extractValue(str: string, ptr: number, end: string | undefined, depth: number, integersAsBigInt: IntegersAsBigInt, temporal: boolean): [TomlValueTemporal, number] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
 	let c = str[ptr]
 	if (c === '[' || c === '{') {
-		let [ value, endPtr ] = c === '['
+		let [value, endPtr] = c === '['
 			? parseArray(str, ptr, depth, integersAsBigInt, temporal)
 			: parseInlineTable(str, ptr, depth, integersAsBigInt, temporal)
 
@@ -76,13 +70,11 @@ export function extractValue (
 			}
 		}
 
-		return [ value, endPtr ]
+		return [value, endPtr]
 	}
 
-	let endPtr
 	if (c === '"' || c === "'") {
-		endPtr = getStringEnd(str, ptr)
-		let parsed = parseString(str, ptr, endPtr)
+		let [parsed, endPtr] = parseString(str, ptr)
 		if (end) {
 			endPtr = skipVoid(str, endPtr)
 
@@ -93,24 +85,24 @@ export function extractValue (
 				})
 			}
 
-			endPtr += (+(str[endPtr] === ','))
+			if (str[endPtr] === ',') endPtr++
 		}
 
-		return [ parsed, endPtr ]
+		return [parsed, endPtr]
 	}
 
-	endPtr = skipUntil(str, ptr, ',', end)
-	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')))
+	let endPtr = skipUntil(str, ptr, ',', end)
+	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (str[endPtr - 1] === ',' ? 1 : 0))
 	if (!slice[0]) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {
 			toml: str,
-			ptr: ptr
+			ptr: ptr,
 		})
 	}
 
 	if (end && slice[1] > -1) {
 		endPtr = skipVoid(str, ptr + slice[1])
-		endPtr += +(str[endPtr] === ',')
+		if (str[endPtr] === ',') endPtr++
 	}
 
 	return [

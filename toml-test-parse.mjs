@@ -31,7 +31,7 @@
 
 import { TomlDate, parse } from './dist/index.js'
 
-function tagObject (obj) {
+function tagObject(obj) {
 	if (typeof obj === 'string') {
 		return { type: 'string', value: obj }
 	}
@@ -69,9 +69,9 @@ function tagObject (obj) {
 
 let toml = ''
 process.stdin.setEncoding('utf8')
-process.stdin.on('data', (t) => toml += t)
+process.stdin.on('data', (t) => (toml += t))
 process.stdin.on('end', () => {
 	const parsed = parse(toml, { integersAsBigInt: true })
 	const tagged = tagObject(parsed)
-	console.log(JSON.stringify(tagged, null ,2))
+	console.log(JSON.stringify(tagged, null, 2))
 })
