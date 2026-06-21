@@ -206,28 +206,19 @@ export function parseValue(value: string, toml: string, ptr: number, integersAsB
 	let isInt = INT_REGEX.test(value)
 	if (isInt || FLOAT_REGEX.test(value)) {
 		if (LEADING_ZERO.test(value)) {
-			throw new TomlError('leading zeroes are not allowed', {
-				toml: toml,
-				ptr: ptr,
-			})
+			throw new TomlError('leading zeroes are not allowed', { toml, ptr })
 		}
 
 		value = value.replace(/_/g, '')
 		let numeric: number | bigint = +value
 
 		if (isNaN(numeric)) {
-			throw new TomlError('invalid number', {
-				toml: toml,
-				ptr: ptr,
-			})
+			throw new TomlError('invalid number', { toml, ptr })
 		}
 
 		if (isInt) {
 			if ((isInt = !Number.isSafeInteger(numeric)) && !integersAsBigInt) {
-				throw new TomlError('integer value cannot be represented losslessly', {
-					toml: toml,
-					ptr: ptr,
-				})
+				throw new TomlError('integer value cannot be represented losslessly', { toml, ptr })
 			}
 
 			if (isInt || integersAsBigInt === true) numeric = BigInt(value)

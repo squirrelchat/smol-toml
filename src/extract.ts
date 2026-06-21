@@ -49,7 +49,7 @@ export function extractValue(str: string, ptr: number, end: string | undefined, 
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {
 			toml: str,
-			ptr: ptr,
+			ptr,
 		})
 	}
 
@@ -96,7 +96,7 @@ export function extractValue(str: string, ptr: number, end: string | undefined, 
 	if (!slice[0]) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {
 			toml: str,
-			ptr: ptr,
+			ptr,
 		})
 	}
 

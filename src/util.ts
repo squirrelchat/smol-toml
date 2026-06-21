@@ -68,7 +68,7 @@ export function skipComment(str: string, ptr: number) {
 		if ((c < '\x20' && c !== '\t') || c === '\x7f') {
 			throw new TomlError('control characters are not allowed in comments', {
 				toml: str,
-				ptr: ptr,
+				ptr,
 			})
 		}
 	}
@@ -110,6 +110,6 @@ export function skipUntil(str: string, ptr: number, sep: string, end?: string, b
 
 	throw new TomlError('cannot find end of structure', {
 		toml: str,
-		ptr: ptr,
+		ptr,
 	})
 }

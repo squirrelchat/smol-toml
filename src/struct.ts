@@ -41,7 +41,7 @@ export function parseKey(str: string, ptr: number, end = '='): [string[], number
 	if (endPtr < 0) {
 		throw new TomlError('incomplete key-value: cannot find end of key', {
 			toml: str,
-			ptr: ptr,
+			ptr,
 		})
 	}
 
@@ -55,7 +55,7 @@ export function parseKey(str: string, ptr: number, end = '='): [string[], number
 				if (c === str[ptr + 1] && c === str[ptr + 2]) {
 					throw new TomlError('multiline strings are not allowed in keys', {
 						toml: str,
-						ptr: ptr,
+						ptr,
 					})
 				}
 
@@ -83,7 +83,7 @@ export function parseKey(str: string, ptr: number, end = '='): [string[], number
 					if (endPtr < 0) {
 						throw new TomlError('incomplete key-value: cannot find end of key', {
 							toml: str,
-							ptr: ptr,
+							ptr,
 						})
 					}
 				}
@@ -96,7 +96,7 @@ export function parseKey(str: string, ptr: number, end = '='): [string[], number
 				if (!KEY_PART_RE.test(part)) {
 					throw new TomlError('only letter, numbers, dashes and underscores are allowed in keys', {
 						toml: str,
-						ptr: ptr,
+						ptr,
 					})
 				}
 
@@ -135,7 +135,7 @@ export function parseInlineTable(str: string, ptr: number, depth: number, intege
 				if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
 					throw new TomlError('trying to redefine an already defined value', {
 						toml: str,
-						ptr: ptr,
+						ptr,
 					})
 				}
 
@@ -147,7 +147,7 @@ export function parseInlineTable(str: string, ptr: number, depth: number, intege
 			if (hasOwn) {
 				throw new TomlError('trying to redefine an already defined value', {
 					toml: str,
-					ptr: ptr,
+					ptr,
 				})
 			}
 
@@ -162,7 +162,7 @@ export function parseInlineTable(str: string, ptr: number, depth: number, intege
 	if (!c) {
 		throw new TomlError('unfinished table encountered', {
 			toml: str,
-			ptr: ptr,
+			ptr,
 		})
 	}
 
@@ -191,7 +191,7 @@ export function parseArray(str: string, ptr: number, depth: number, integersAsBi
 	if (!c) {
 		throw new TomlError('unfinished array encountered', {
 			toml: str,
-			ptr: ptr,
+			ptr,
 		})
 	}
 
