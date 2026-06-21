@@ -7,7 +7,7 @@ export PATH := join(justfile_directory(), "node_modules", ".bin") + ":" + env('P
 
 build:
 	tsc
-	esbuild dist/index.js --bundle --platform=node --target=node18 --format=cjs --outfile=dist/index.cjs
+	rolldown src/index.ts -p node -f cjs -o dist/index.cjs -s --sourcemap-exclude-sources --strict --exports named --no-comments.legal --banner "`head -n27 src/index.ts`"
 	node test/package/package-test.mjs
 
 publish: build

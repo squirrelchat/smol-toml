@@ -12,7 +12,7 @@
 		"stripInternal": true,
 		"rootDir": "./src",
 		"outDir": "./dist",
-		"types": ["node"]
+		"types": ["node"],
 	},
-	"include": ["src"]
+	"include": ["src"],
 }
