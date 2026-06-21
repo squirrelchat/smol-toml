@@ -90,14 +90,14 @@ export function extractValue (
 				})
 			}
 
-			endPtr += (+(str[endPtr] === ','))
+			if (str[endPtr] === ',') endPtr++
 		}
 
 		return [ parsed, endPtr ]
 	}
 
 	let endPtr = skipUntil(str, ptr, ',', end)
-	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (+(str[endPtr - 1] === ',')))
+	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (str[endPtr - 1] === ',' ? 1 : 0))
 	if (!slice[0]) {
 		throw new TomlError('incomplete key-value declaration: no value specified', {
 			toml: str,
@@ -107,7 +107,7 @@ export function extractValue (
 
 	if (end && slice[1] > -1) {
 		endPtr = skipVoid(str, ptr + slice[1])
-		endPtr += +(str[endPtr] === ',')
+		if (str[endPtr] === ',') endPtr++
 	}
 
 	return [

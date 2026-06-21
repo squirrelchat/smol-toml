@@ -30,7 +30,8 @@
 	},
 	"scripts": {
 		"test": "vitest",
-		"update-gha": "pin-github-action .github/workflows"
+		"update-gha": "pin-github-action .github/workflows",
+		"prepare": "mise x -- just build"
 	},
 	"devDependencies": {
 		"@mitata/counters": "^0.0.8",
@@ -54,7 +55,7 @@
 	"files": [
 		"README.md",
 		"LICENSE",
-		"dist",
-		"src"
+		"src",
+		"dist"
 	]
 }

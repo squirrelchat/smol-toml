@@ -22,8 +22,7 @@ has been battle-tested and is actively used in production systems.
 smol-toml passes most of the tests from the [`toml-test` suite](https://github.com/toml-lang/toml-test); use the
 `run-toml-test.bash` script to run the tests. Due to the nature of JavaScript and the limits of the language,
 it doesn't pass certain tests, namely:
-- Invalid UTF-8 strings are not rejected
-- Certain invalid UTF-8 codepoints are not rejected
+- Invalid UTF-8 strings (and comments) are not rejected
 - Certain invalid dates are not rejected
   - For instance, `2023-02-30` would be accepted and parsed as `2023-03-02`. While additional checks could be performed
 	to reject these, they've not been added for performance reasons.

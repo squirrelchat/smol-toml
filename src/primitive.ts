@@ -102,21 +102,27 @@ export function parseString (str: string, ptr: number): [string, number] {
 			})
 		}
 
-		// In decode state, the string may either start an escape sequence, or terminate
+		// The string might terminate while we're parsing through a newline escape.
+		// It must have encountered a newline; otherwise, it'll simply fail in another branch.
+		else if ((!state || state === 3) && c === first && (!isMultiline || (str[i + 1] === first && str[i + 2] === first))) {
+			if (isMultiline) {
+				// If the string ends with 4-5 quotes, then the first 1-2 are part of the string
+				if (str[i + 3] === first) i++
+				if (str[i + 3] === first) i++
+			}
+
+			return [
+				// If we're in a newline escape still, then there's nothing to add.
+				// Also try to avoid concat if there's nothing to add to parsed, or nothing has been added to parsed.
+				state ? parsed : parsed + str.slice(sliceStart, i),
+				i + (isMultiline ? 3 : 1)
+			]
+		}
+
 		else if (!state) {
 			if (!isLiteral && c === '\\') {
 				parsed += str.slice(sliceStart, sliceStart = i)
 				state = 1
-			}
-
-			else if (c === first && (!isMultiline || (str[i + 1] === first && str[i + 2] === first))) {
-				if (isMultiline) {
-					// If the string ends with 4-5 quotes, then the first 1-2 are part of the string
-					if (str[i + 3] === first) i++
-					if (str[i + 3] === first) i++
-				}
-
-				return [parsed + str.slice(sliceStart, i), i + (isMultiline ? 3 : 1)]
 			}
 		}
 
@@ -159,9 +165,12 @@ export function parseString (str: string, ptr: number): [string, number] {
 				else if (c === '"') parsed += '"'
 				else if (c === '\\') parsed += '\\'
 				else throw new TomlError('unrecognized escape sequence', { toml: str, ptr: i })
+				sliceStart = i + 1
 				state = 0
 			}
-		} else if (c !== ' ' && c !== '\t') {
+		}
+
+		else if (c !== ' ' && c !== '\t') {
 			if (state === 2) {
 				throw new TomlError('invalid escape: only line-ending whitespace may be escaped', {
 					toml: str,
@@ -169,7 +178,9 @@ export function parseString (str: string, ptr: number): [string, number] {
 				})
 			}
 
-			state = 0
+			// State cannot be zero, or we'd have branched earlier already.
+			// If it's a backslash, immediately transition to the escape state so it can be processed.
+			state = !isLiteral && c === '\\' ? 1 : 0
 			sliceStart = i
 		}
 	}

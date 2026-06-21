@@ -22,3 +22,6 @@ bench-parse: build
 
 bench-stringify: build
 	node --expose-gc bench/stringify.bench.ts
+
+toml-test: build
+	mise exec go@latest go:github.com/toml-lang/toml-test/v2/cmd/toml-test@latest -- bash run-toml-test.bash
