@@ -33,6 +33,15 @@ type Offset = string | null
 
 let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[T ]?(?:(\d{2}):\d{2}(?::\d{2}(?:\.\d+)?)?)?(Z|[-+]\d{2}:\d{2})?$/i
 
+function isValidCalendarDay (ymd: string) {
+	let year = +ymd.slice(0, 4)
+	let month = +ymd.slice(5, 7)
+	let day = +ymd.slice(8, 10)
+	let leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+	let max = month === 2 ? (leap ? 29 : 28) : month === 4 || month === 6 || month === 9 || month === 11 ? 30 : 31
+	return month >= 1 && month <= 12 && day >= 1 && day <= max
+}
+
 export class TomlDate extends Date {
 	#hasDate = false
 	#hasTime = false
@@ -54,8 +63,8 @@ export class TomlDate extends Date {
 				hasTime = !!match[2]
 				// Make sure to use T instead of a space. Breaks in case of extreme values otherwise.
 				hasTime && date[10] === ' ' && (date = date.replace(' ', 'T'))
-				// Do not allow rollover hours.
-				if (match[2] && +match[2] > 23) {
+				// Do not allow rollover hours or invalid calendar days.
+				if ((match[2] && +match[2] > 23) || (match[1] && !isValidCalendarDay(match[1]))) {
 					date = ''
 				} else {
 					offset = match[3] || null

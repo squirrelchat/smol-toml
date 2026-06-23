@@ -36,6 +36,25 @@ it('does properly handle date offsets', () => {
 	expect(new TomlDate('1979-05-27T07:32:00-08:00')).not.toEqual(new Date('1979-05-27T07:32:00-07:00'))
 })
 
+it('rejects out-of-range calendar dates', () => {
+	expect(new TomlDate('2100-02-29').isValid()).toBe(false) // Feb 29 in a non-leap year
+	expect(new TomlDate('1988-02-30').isValid()).toBe(false)
+	expect(new TomlDate('2021-04-31').isValid()).toBe(false) // April has 30 days
+	expect(new TomlDate('2021-06-31').isValid()).toBe(false)
+	expect(new TomlDate('2021-09-31').isValid()).toBe(false)
+	expect(new TomlDate('2021-11-31').isValid()).toBe(false)
+})
+
+it('accepts in-range calendar dates including leap days', () => {
+	expect(new TomlDate('2000-02-29').isValid()).toBe(true) // leap year (divisible by 400)
+	expect(new TomlDate('2024-02-29').isValid()).toBe(true)
+	expect(new TomlDate('2021-02-28').isValid()).toBe(true)
+	expect(new TomlDate('2021-04-30').isValid()).toBe(true)
+	expect(new TomlDate('2021-12-31').isValid()).toBe(true)
+	// an offset datetime whose UTC day differs from the local day must stay valid
+	expect(new TomlDate('2021-01-01T00:00:00+10:00').isValid()).toBe(true)
+})
+
 it('handles extreme datetimes', () => {
 	expect(new TomlDate('0001-01-01 00:00:00Z').toISOString()).toBe('0001-01-01T00:00:00.000Z')
 	expect(new TomlDate('0001-01-01 00:00:00').toISOString()).toBe('0001-01-01T00:00:00.000')
