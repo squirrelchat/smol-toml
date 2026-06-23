@@ -69,40 +69,34 @@ function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFlo
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}
 
-	if (type === 'number') {
-		if (isNaN(val)) return 'nan'
-		if (val === Infinity) return 'inf'
-		if (val === -Infinity) return '-inf'
-		if (Number.isInteger(val) && (numberAsFloat || !Number.isSafeInteger(val))) return val.toFixed(1)
-		return val.toString()
-	}
+	switch (type) {
+		// @ts-expect-error fallthrough case
+		case "number":
+			if (isNaN(val)) return 'nan'
+			if (val === Infinity) return 'inf'
+			if (val === -Infinity) return '-inf'
+			if (Number.isInteger(val) && (numberAsFloat || !Number.isSafeInteger(val))) return val.toFixed(1)
+		case "bigint":
+		case "boolean":
+			return val.toString()
 
-	if (type === 'bigint' || type === 'boolean') {
-		return val.toString()
-	}
+		case "string":
+			return formatString(val)
 
-	if (type === 'string') {
-		return formatString(val)
-	}
+		case "date":
+			if (isNaN(val.getTime())) {
+				throw new TypeError('cannot serialize invalid date')
+			}
+			return val.toISOString()
 
-	if (type === 'date') {
-		if (isNaN(val.getTime())) {
-			throw new TypeError('cannot serialize invalid date')
-		}
+		case "object":
+			return stringifyInlineTable(val, depth, numberAsFloat)
 
-		return val.toISOString()
-	}
+		case "array":
+			return stringifyArray(val, depth, numberAsFloat)
 
-	if (type === 'object') {
-		return stringifyInlineTable(val, depth, numberAsFloat)
-	}
-
-	if (type === 'array') {
-		return stringifyArray(val, depth, numberAsFloat)
-	}
-
-	if (type === 'temporal') {
-		return stringifyTemporal(val)
+		case "temporal":
+			return stringifyTemporal(val)
 	}
 }
 
