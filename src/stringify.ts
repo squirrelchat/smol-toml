@@ -41,7 +41,7 @@ function extendedTypeOf(obj: any) {
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
 		if (obj instanceof Date) return 'date'
-		if (T && (obj instanceof T.Instant
+		if (T && obj.since && (obj instanceof T.Instant
 		 || obj instanceof T.PlainDate
 		 || obj instanceof T.PlainDateTime
 		 || obj instanceof T.PlainTime
