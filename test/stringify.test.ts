@@ -122,13 +122,13 @@ date5 = 1979-05-27T15:32:00.000Z
 describe.skipIf(!globalThis.Temporal)("Temporal", () => {
 	it('stringifies Temporal values properly', () => {
 		const expected = `
-	zonedDateTime = 1979-05-27T07:32:00-08:00
-	offsetDateTime = 1979-05-27T07:32:00-08:00
-	localDateTime = 1979-05-27T07:32:00
-	localDate = 1979-05-27
-	localTime = 07:32:00
-	instant = 1979-05-27T15:32:00Z
-	`.trimStart()
+zonedDateTime = 1979-05-27T07:32:00-08:00
+offsetDateTime = 1979-05-27T07:32:00-08:00
+localDateTime = 1979-05-27T07:32:00
+localDate = 1979-05-27
+localTime = 07:32:00
+instant = 1979-05-27T15:32:00Z
+`.trimStart()
 
 		const obj = {
 			zonedDateTime: Temporal.ZonedDateTime.from({
