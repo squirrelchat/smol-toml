@@ -38,7 +38,6 @@
 		"@types/node": "^26.0.0",
 		"mitata": "^1.0.34",
 		"pin-github-action": "^3.4.0",
-		"temporal-polyfill": "^0.3.2",
 		"temporal-spec": "^0.3.1",
 		"rolldown": "^1.1.2",
 		"typescript": "7.0.1-rc",

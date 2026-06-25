@@ -26,8 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import 'temporal-polyfill/global'
-import { expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { stringify } from '../src/stringify.js'
 import { TomlDate } from '../src/date.js'
 
@@ -120,30 +119,32 @@ date5 = 1979-05-27T15:32:00.000Z
 	expect(stringify(obj)).toBe(expected)
 })
 
-it('stringifies Temporal values properly', () => {
-	const expected = `
-zonedDateTime = 1979-05-27T07:32:00-08:00
-offsetDateTime = 1979-05-27T07:32:00-08:00
-localDateTime = 1979-05-27T07:32:00
-localDate = 1979-05-27
-localTime = 07:32:00
-instant = 1979-05-27T15:32:00Z
-`.trimStart()
+describe.skipIf(!globalThis.Temporal)("Temporal", () => {
+	it('stringifies Temporal values properly', () => {
+		const expected = `
+	zonedDateTime = 1979-05-27T07:32:00-08:00
+	offsetDateTime = 1979-05-27T07:32:00-08:00
+	localDateTime = 1979-05-27T07:32:00
+	localDate = 1979-05-27
+	localTime = 07:32:00
+	instant = 1979-05-27T15:32:00Z
+	`.trimStart()
 
-	const obj = {
-		zonedDateTime: Temporal.ZonedDateTime.from({
-			year: 1979, month: 5, day: 27,
-			hour: 7, minute: 32, second: 0,
-			timeZone: "America/Yakutat",
-		}),
-		offsetDateTime: Temporal.ZonedDateTime.from("1979-05-27T07:32:00[-08:00]"),
-		localDateTime: Temporal.PlainDateTime.from("1979-05-27T07:32:00"),
-		localDate: Temporal.PlainDate.from("1979-05-27"),
-		localTime: Temporal.PlainTime.from("07:32:00"),
-		instant: Temporal.Instant.from("1979-05-27T07:32:00-08:00"),
-	}
+		const obj = {
+			zonedDateTime: Temporal.ZonedDateTime.from({
+				year: 1979, month: 5, day: 27,
+				hour: 7, minute: 32, second: 0,
+				timeZone: "America/Yakutat",
+			}),
+			offsetDateTime: Temporal.ZonedDateTime.from("1979-05-27T07:32:00[-08:00]"),
+			localDateTime: Temporal.PlainDateTime.from("1979-05-27T07:32:00"),
+			localDate: Temporal.PlainDate.from("1979-05-27"),
+			localTime: Temporal.PlainTime.from("07:32:00"),
+			instant: Temporal.Instant.from("1979-05-27T07:32:00-08:00"),
+		}
 
-	expect(stringify(obj)).toBe(expected)
+		expect(stringify(obj)).toBe(expected)
+	})
 })
 
 it('stringifies arrays', () => {
