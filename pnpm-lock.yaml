@@ -228,6 +228,9 @@ importers:
       rolldown:
         specifier: ^1.1.2
         version: 1.1.2
+      temporal-spec:
+        specifier: ^0.3.1
+        version: 0.3.1
       typescript:
         specifier: 7.0.1-rc
         version: 7.0.1-rc
@@ -1156,6 +1159,9 @@ packages:
   std-env@4.1.0:
     resolution: {integrity: sha512-Rq7ybcX2RuC55r9oaPVEW7/xu3tj8u4GeBYHBWCychFtzMIr86A7e3PPEBPT37sHStKX3+TiX/Fr/ACmJLVlLQ==}
 
+  temporal-spec@0.3.1:
+    resolution: {integrity: sha512-B4TUhezh9knfSIMwt7RVggApDRJZo73uZdj8AacL2mZ8RP5KtLianh2MXxL06GN9ESYiIsiuoLQhgVfwe55Yhw==}
+
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
 
@@ -1983,6 +1989,8 @@ snapshots:
   stackback@0.0.2: {}
 
   std-env@4.1.0: {}
+
+  temporal-spec@0.3.1: {}
 
   tinybench@2.9.0: {}
 
