@@ -54,8 +54,9 @@ export class TomlDate extends Date {
 				hasTime = !!match[2]
 				// Make sure to use T instead of a space. Breaks in case of extreme values otherwise.
 				hasTime && date[10] === ' ' && (date = date.replace(' ', 'T'))
-				// Do not allow rollover hours.
-				if (match[2] && +match[2] > 23) {
+				// Do not allow rollover hours, and reject a UTC/offset on a bare local time or
+				// date (an offset is only valid on a full offset-date-time).
+				if ((match[2] && +match[2] > 23) || (match[3] && (!match[1] || !match[2]))) {
 					date = ''
 				} else {
 					offset = match[3] || null
