@@ -28,6 +28,12 @@
 
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
+// A lone surrogate (a high surrogate not followed by a low one, or a low
+// surrogate not preceded by a high one) is not a valid Unicode scalar value and
+// cannot be represented in a TOML document: JSON.stringify emits it as a \uXXXX
+// escape, which the parser then rejects as an invalid unicode escape.
+let LONE_SURROGATE = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/
+
 type ExtendedType = ReturnType<typeof extendedTypeOf>
 function extendedTypeOf(obj: any) {
 	let type = typeof obj
@@ -48,6 +54,10 @@ function isArrayOfTables(obj: any[]) {
 }
 
 function formatString(s: string) {
+	if (LONE_SURROGATE.test(s)) {
+		throw new TypeError('cannot serialize a string containing lone surrogates')
+	}
+
 	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
 }
 
