@@ -186,6 +186,24 @@ texture = "smooth"
 	expect(() => parse(doc)).toThrow(TomlError)
 })
 
+it('parses multiline arrays', () => {
+	const doc = `
+integers2 = [
+  1, 2, 3
+]
+
+integers3 = [
+  1,
+  2, # this is ok
+]
+`.trim()
+
+	expect(parse(doc)).toStrictEqual({
+		integers2: [1, 2, 3],
+		integers3: [1, 2]
+	})
+})
+
 it('parses arrays of tables', () => {
 	const doc = `
 [[products]]
