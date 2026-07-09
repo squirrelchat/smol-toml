@@ -42,7 +42,7 @@ function sliceAndTrimEndOf(str: string, startPtr: number, endPtr: number): [stri
 		value = value.slice(0, commentIdx)
 	}
 
-	return [value.replace(/[ \t]+$/, ""), commentIdx]
+	return [value.replace(/[ \t\r\n]+$/, ""), commentIdx]
 }
 
 export function extractValue(str: string, ptr: number, end: string | undefined, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlValue, number] {
