@@ -45,6 +45,7 @@ function sliceAndTrimEndOf(str: string, startPtr: number, endPtr: number): [stri
 	return [value.trimEnd(), commentIdx]
 }
 
+/** @internal */
 export function extractValue(str: string, ptr: number, end: string | undefined, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlValue, number] {
 	if (depth === 0) {
 		throw new TomlError('document contains excessively nested structures. aborting.', {

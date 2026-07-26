@@ -5,8 +5,23 @@ set guards
 
 export PATH := join(justfile_directory(), "node_modules", ".bin") + ":" + env('PATH')
 
+_clean_dts:
+	#!/usr/bin/env node
+	import { readdir, readFile, unlink } from 'node:fs/promises'
+	for (const file of await readdir('dist')) {
+		if (!file.endsWith('.d.ts')) continue
+		const dts = await readFile(`dist/${file}`, 'utf8')
+		if (dts.split('\n')[27] === 'export {};') {
+			await Promise.all([
+				unlink(`dist/${file}`),
+				unlink(`dist/${file}.map`),
+			])
+		}
+	}
+
 build:
 	tsc
+	just _clean_dts
 	rolldown src/index.ts -p node -f cjs -o dist/index.cjs -s --sourcemap-exclude-sources --strict --exports named --no-comments.legal --banner "`head -n27 src/index.ts`"
 	node test/package/package-test.mjs
 

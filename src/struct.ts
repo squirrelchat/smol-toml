@@ -33,6 +33,7 @@ import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
 
+/** @internal */
 export function parseKey(str: string, ptr: number, end = '='): [string[], number] {
 	let dot = ptr - 1
 	let parsed = []
@@ -109,6 +110,7 @@ export function parseKey(str: string, ptr: number, end = '='): [string[], number
 	return [parsed, skipVoid(str, endPtr + 1, true, true)]
 }
 
+/** @internal */
 export function parseInlineTable(str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlTable, number] {
 	let res: TomlTable = {}
 	let seen = new Set()
@@ -169,6 +171,7 @@ export function parseInlineTable(str: string, ptr: number, depth: number, intege
 	return [res, ptr]
 }
 
+/** @internal */
 export function parseArray(str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlValue[], number] {
 	let res: TomlValue[] = []
 	let c

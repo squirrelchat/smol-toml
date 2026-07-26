@@ -34,6 +34,7 @@ let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
 let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/
 let LEADING_ZERO = /^[+-]?0[0-9_]/
 
+/** @internal */
 export function parseString(str: string, ptr: number): [string, number] {
 	let c = str[ptr++]!
 	let first = c
@@ -190,6 +191,7 @@ export function parseString(str: string, ptr: number): [string, number] {
 
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
+/** @internal */
 export function parseValue(value: string, toml: string, ptr: number, integersAsBigInt: IntegersAsBigInt): boolean | number | bigint | TomlDate {
 	// Constant values
 	if (value === 'true') return true

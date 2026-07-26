@@ -36,12 +36,14 @@ export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
+/** @internal */
 export function indexOfNewline(str: string, start = 0, end = str.length) {
 	let idx = str.indexOf('\n', start)
 	if (str[idx - 1] === '\r') idx--
 	return idx <= end ? idx : -1
 }
 
+/** @internal */
 export function skipComment(str: string, ptr: number) {
 	for (let i = ptr; i < str.length; i++) {
 		let c = str[i]!
@@ -62,6 +64,7 @@ export function skipComment(str: string, ptr: number) {
 	return str.length
 }
 
+/** @internal */
 export function skipVoid(str: string, ptr: number, banNewLines?: boolean, banComments?: boolean): number {
 	let c
 	while (1) {
@@ -77,6 +80,7 @@ export function skipVoid(str: string, ptr: number, banNewLines?: boolean, banCom
 	return ptr
 }
 
+/** @internal */
 export function skipUntil(str: string, ptr: number, sep: string, end?: string, banNewLines: boolean = false) {
 	if (!end) {
 		ptr = indexOfNewline(str, ptr)
@@ -87,6 +91,7 @@ export function skipUntil(str: string, ptr: number, sep: string, end?: string, b
 		let c = str[i]
 		if (c === '#') {
 			i = indexOfNewline(str, i)
+			if (i < 0) break
 		} else if (c === sep) {
 			return i + 1
 		} else if (c === end || (banNewLines && (c === '\n' || (c === '\r' && str[i + 1] === '\n')))) {
