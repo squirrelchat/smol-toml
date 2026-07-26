@@ -1,12 +1,12 @@
 # smol-toml
 [![TOML 1.1.0](https://img.shields.io/badge/TOML-1.1.0-9c4221?style=flat-square)](https://toml.io/en/v1.1.0)
 [![License](https://img.shields.io/github/license/squirrelchat/smol-toml.svg?style=flat-square)](https://github.com/squirrelchat/smol-toml/blob/mistress/LICENSE)
-[![npm](https://img.shields.io/npm/v/smol-toml?style=flat-square)](https://npm.im/smol-toml)
+[![npm](https://img.shields.io/npm/v/smol-toml?style=flat-square)](https://npmx.dev/smol-toml)
 [![Build](https://img.shields.io/github/actions/workflow/status/squirrelchat/smol-toml/build.yaml?style=flat-square&logo=github)](https://github.com/squirrelchat/smol-toml/actions/workflows/build.yaml)
 
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-support%20me-EA4AAA?style=flat-square)](https://github.com/sponsors/cyyynthia)
-[![Weekly downloads](https://img.shields.io/npm/dw/smol-toml?style=flat-square)](https://npm.im/smol-toml)
-[![Monthly downloads](https://img.shields.io/npm/dm/smol-toml?style=flat-square)](https://npm.im/smol-toml)
+[![Weekly downloads](https://img.shields.io/npm/dw/smol-toml?style=flat-square)](https://npmx.dev/smol-toml)
+[![Monthly downloads](https://img.shields.io/npm/dm/smol-toml?style=flat-square)](https://npmx.dev/smol-toml)
 
 A small, fast, and correct TOML parser and serializer. smol-toml is fully(ish) spec-compliant with TOML v1.1.0.
 
@@ -54,7 +54,7 @@ console.log(toml)
 
 Alternatively, if you prefer something similar to the JSON global, you can import the library as follows
 ```js
-import TOML from 'smol-toml'
+import * as TOML from 'smol-toml'
 
 TOML.stringify({ ... })
 ```
