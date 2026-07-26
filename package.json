@@ -1,6 +1,6 @@
 {
 	"name": "smol-toml",
-	"version": "1.7.0",
+	"version": "1.7.1",
 	"description": "A small, fast, and correct TOML parser/serializer",
 	"keywords": [
 		"parser",
@@ -35,18 +35,18 @@
 		"@mitata/counters": "^0.0.8",
 		"@tsconfig/node-lts": "^24.0.0",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^26.0.0",
+		"@types/node": "^26.1.1",
 		"mitata": "^1.0.34",
-		"pin-github-action": "^3.4.0",
-		"rolldown": "^1.1.2",
-		"typescript": "7.0.1-rc",
+		"pin-github-action": "^3.5.1",
+		"rolldown": "^1.2.0",
+		"typescript": "^7.0.2",
 		"vite": "^7.3.5",
-		"vitest": "^4.1.9"
+		"vitest": "^4.1.10"
 	},
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
-			"version": "11.8.0",
+			"version": "11.17.0",
 			"onFail": "error"
 		},
 		"runtime": {
