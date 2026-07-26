@@ -26,7 +26,7 @@ build:
 	node test/package/package-test.mjs
 
 publish: build
-	pnpm publish --provenance --access public --no-git-checks
+	pnpm stage publish --no-git-checks
 
 bench: build
 	node --expose-gc bench/parse.bench.ts
