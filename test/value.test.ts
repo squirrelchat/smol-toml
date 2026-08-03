@@ -207,6 +207,10 @@ it('parses times', () => {
 it('rejects invalid dates', () => {
 	expect(() => parseValue('07:3:00', '', 0, false)).toThrow(TomlError)
 	expect(() => parseValue('27-05-1979', '', 0, false)).toThrow(TomlError)
+	// An offset is only valid on a full offset-date-time, not a bare local time or date.
+	expect(() => parseValue('07:32:00Z', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('07:32:00-07:00', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('1979-05-27Z', '', 0, false)).toThrow(TomlError)
 })
 
 it('handles extreme datetimes', () => {
