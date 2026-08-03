@@ -433,4 +433,16 @@ meow = "nya"
 			},
 		})
 	})
+
+	// https://github.com/toml-lang/toml-test/blob/main/tests/invalid/control/linetab-number-01.toml
+	it('rejects incorrect whitespace', () => {
+		expect(() => parse('linetab-number-01 = 1\v')).toThrow(TomlError)
+		expect(() => parse('linetab-number-01 = 1\v\n')).toThrow(TomlError)
+		expect(() => parse('linetab-number-02 = 1.5\v')).toThrow(TomlError)
+		expect(() => parse('linetab-number-02 = 1.5\v\n')).toThrow(TomlError)
+		expect(() => parse('linetab-number-03 = 0xff\v')).toThrow(TomlError)
+		expect(() => parse('linetab-number-03 = 0xff\v\n')).toThrow(TomlError)
+		expect(() => parse('linetab-number-04 = +inf\v')).toThrow(TomlError)
+		expect(() => parse('linetab-number-04 = +inf\v\n')).toThrow(TomlError)
+	})
 })

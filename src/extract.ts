@@ -42,7 +42,7 @@ function sliceAndTrimEndOf(str: string, startPtr: number, endPtr: number): [stri
 		value = value.slice(0, commentIdx)
 	}
 
-	return [value.trimEnd(), commentIdx]
+	return [value.replace(/[ \t\r\n]+$/, ""), commentIdx]
 }
 
 /** @internal */
