@@ -26,19 +26,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { ParseContext } from './parse.ts'
 import { type IntegersAsBigInt, parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
 import { skipVoid, skipUntil, skipComment, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
-function sliceAndTrimEndOf(str: string, startPtr: number, endPtr: number): [string, number] {
-	let value = str.slice(startPtr, endPtr)
+function sliceAndTrimEndOf(str: string, start: number, end: number): [string, number] {
+	let value = str.slice(start, end)
 
 	let commentIdx = value.indexOf('#')
 	if (commentIdx > -1) {
 		// The call to skipComment allows to "validate" the comment
 		// (absence of control characters)
-		skipComment(str, commentIdx)
+		skipComment({ s: str, p: commentIdx, d: 0 })
 		value = value.slice(0, commentIdx)
 	}
 
@@ -46,68 +47,69 @@ function sliceAndTrimEndOf(str: string, startPtr: number, endPtr: number): [stri
 }
 
 /** @internal */
-export function extractValue(str: string, ptr: number, end: string | undefined, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlValue, number] {
-	if (depth === 0) {
-		throw new TomlError('document contains excessively nested structures. aborting.', {
-			toml: str,
-			ptr: ptr,
-		})
-	}
+export function extractValue(ctx: ParseContext, end: number | undefined, integersAsBigInt: IntegersAsBigInt): TomlValue {
+	let c = ctx.s.charCodeAt(ctx.p)
+	if (c === 0x5b /* [ */ || c === 0x7b /* { */) {
+		if (!ctx.d--) {
+			throw new TomlError('document contains excessively nested structures. aborting.', {
+				toml: ctx.s,
+				ptr: ctx.p,
+			})
+		}
 
-	let c = str[ptr]
-	if (c === '[' || c === '{') {
-		let [value, endPtr] = c === '['
-			? parseArray(str, ptr, depth, integersAsBigInt)
-			: parseInlineTable(str, ptr, depth, integersAsBigInt)
+		let value = c === 0x5b /* [ */
+			? parseArray(ctx, integersAsBigInt)
+			: parseInlineTable(ctx, integersAsBigInt)
 
+		ctx.d++
 		if (end) {
-			endPtr = skipVoid(str, endPtr)
-			if (str[endPtr] === ',') endPtr++
-			else if (str[endPtr] !== end) {
+			skipVoid(ctx)
+			if ((c = ctx.s.charCodeAt(ctx.p)) === 0x2c /* , */) ctx.p++
+			else if (c !== end) {
 				throw new TomlError('expected comma or end of structure', {
-					toml: str,
-					ptr: endPtr,
+					toml: ctx.s,
+					ptr: ctx.p,
 				})
 			}
 		}
 
-		return [value, endPtr]
+		return value
 	}
 
-	if (c === '"' || c === "'") {
-		let [parsed, endPtr] = parseString(str, ptr)
+	if (c === 0x22 /* " */ || c === 0x27 /* ' */) {
+		let parsed = parseString(ctx)
 		if (end) {
-			endPtr = skipVoid(str, endPtr)
+			skipVoid(ctx)
 
-			if (str[endPtr] && str[endPtr] !== ',' && str[endPtr] !== end && str[endPtr] !== '\n' && str[endPtr] !== '\r') {
+			if (ctx.p < ctx.s.length && (c = ctx.s.charCodeAt(ctx.p)) !== 0x2c /* , */ && c !== end && c !== 0xa /* \n */ && 0xd /* \r */) {
 				throw new TomlError('unexpected character encountered', {
-					toml: str,
-					ptr: endPtr,
+					toml: ctx.s,
+					ptr: ctx.p,
 				})
 			}
 
-			if (str[endPtr] === ',') endPtr++
+			if (c === 0x2c /* , */) ctx.p++
 		}
 
-		return [parsed, endPtr]
+		return parsed
 	}
 
-	let endPtr = skipUntil(str, ptr, ',', end)
-	let slice = sliceAndTrimEndOf(str, ptr, endPtr - (str[endPtr - 1] === ',' ? 1 : 0))
-	if (!slice[0]) {
-		throw new TomlError('incomplete key-value declaration: no value specified', {
-			toml: str,
+	let ptr = ctx.p
+	skipUntil(ctx, 0x2c /* , */, end)
+
+	let [rawValue, commentIdx] = sliceAndTrimEndOf(ctx.s, ptr, ctx.p - (ctx.s[ctx.p - 1] === ',' ? 1 : 0))
+	if (!rawValue) {
+		throw new TomlError('incomplete declaration: value expected', {
+			toml: ctx.s,
 			ptr: ptr,
 		})
 	}
 
-	if (end && slice[1] > -1) {
-		endPtr = skipVoid(str, ptr + slice[1])
-		if (str[endPtr] === ',') endPtr++
+	if (end && commentIdx > -1) {
+		ctx.p = ptr + commentIdx
+		skipVoid(ctx)
+		if (ctx.s.charCodeAt(ctx.p) === 0x2c /* , */) ctx.p++
 	}
 
-	return [
-		parseValue(slice[0], str, ptr, integersAsBigInt),
-		endPtr,
-	]
+	return parseValue(rawValue, integersAsBigInt, { toml: ctx.s, ptr })
 }

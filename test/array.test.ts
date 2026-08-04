@@ -31,63 +31,96 @@ import { parseArray } from '../src/struct.js'
 import { TomlError } from '../src/error.js'
 
 it('parses arrays', () => {
-	expect(parseArray('[ 1, 2, 3 ]', 0, 10, false)).toStrictEqual([[1, 2, 3], 11])
-	expect(parseArray('[1,2,3]', 0, 10, false)).toStrictEqual([[1, 2, 3], 7])
-	expect(parseArray('[ "red", "yellow", "green" ]', 0, 10, false)[0]).toStrictEqual(['red', 'yellow', 'green'])
-	expect(parseArray('[ "all", \'strings\', """are the same""", \'\'\'type\'\'\' ]', 0, 10, false)[0]).toStrictEqual(['all', 'strings', 'are the same', 'type'])
+	{
+		const ctx = { s: '[ 1, 2, 3 ]', p: 0, d: 10 }
+		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3])
+		expect(ctx.p).toBe(11)
+	}
+
+	{
+		const ctx = { s: '[1,2,3]', p: 0, d: 10 }
+		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3])
+		expect(ctx.p).toBe(7)
+	}
+
+	expect(parseArray({ s: '[ "red", "yellow", "green" ]', p: 0, d: 10 }, false)).toStrictEqual(['red', 'yellow', 'green'])
+	expect(parseArray({ s: '[ "all", \'strings\', """are the same""", \'\'\'type\'\'\' ]', p: 0, d: 10 }, false)).toStrictEqual(['all', 'strings', 'are the same', 'type'])
 })
 
 it('parses arrays of mixed types', () => {
-	expect(parseArray('[ 0.1, 0.2, 0.5, 1, 2, 5 ]', 0, 10, false)[0]).toStrictEqual([0.1, 0.2, 0.5, 1, 2, 5])
-	expect(parseArray('[ 10, "red", false ]', 0, 10, false)[0]).toStrictEqual([10, 'red', false])
+	expect(parseArray({ s: '[ 0.1, 0.2, 0.5, 1, 2, 5 ]', p: 0, d: 10 }, false)).toStrictEqual([0.1, 0.2, 0.5, 1, 2, 5])
+	expect(parseArray({ s: '[ 10, "red", false ]', p: 0, d: 10 }, false)).toStrictEqual([10, 'red', false])
 })
 
 it('parses nested arrays', () => {
-	expect(parseArray('[ [ 1, 2 ], [3, 4, 5] ]', 0, 10, false)[0]).toStrictEqual([
+	expect(parseArray({ s: '[ [ 1, 2 ], [3, 4, 5] ]', p: 0, d: 10 }, false)).toStrictEqual([
 		[1, 2],
 		[3, 4, 5],
 	])
-	expect(parseArray('[ [ 1, 2 ], ["a", "b", "c"] ]', 0, 10, false)[0]).toStrictEqual([
+	expect(parseArray({ s: '[ [ 1, 2 ], ["a", "b", "c"] ]', p: 0, d: 10 }, false)).toStrictEqual([
 		[1, 2],
 		['a', 'b', 'c'],
 	])
 })
 
 it('parses inline table values', () => {
-	expect(parseArray('[ { a = "uwu", b = 1, c = false } ]', 0, 10, false)[0]).toStrictEqual([{ a: 'uwu', b: 1, c: false }])
+	expect(parseArray({ s: '[ { a = "uwu", b = 1, c = false } ]', p: 0, d: 10 }, false)).toStrictEqual([{ a: 'uwu', b: 1, c: false }])
 })
 
 it('handles multiline arrays', () => {
-	expect(parseArray('[\n  1, 2, 3\n]', 0, 10, false)[0]).toStrictEqual([1, 2, 3])
-	expect(parseArray('[\n  1,\n  2\n]', 0, 10, false)[0]).toStrictEqual([1, 2])
+	expect(parseArray({ s: '[\n  1, 2, 3\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 3])
+	expect(parseArray({ s: '[\n  1,\n  2\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
 
-	expect(parseArray('[\r\n  1, 2, 3\r\n]', 0, 10, false)[0]).toStrictEqual([1, 2, 3])
-	expect(parseArray('[\r\n  1,\r\n  2\r\n]', 0, 10, false)[0]).toStrictEqual([1, 2])
+	expect(parseArray({ s: '[\r\n  1, 2, 3\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 3])
+	expect(parseArray({ s: '[\r\n  1,\r\n  2\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
 })
 
 it('tolerates trailing commas', () => {
-	expect(parseArray('[ 1, 2, 3, ]', 0, 10, false)[0]).toStrictEqual([1, 2, 3])
-	expect(parseArray('[\n  1,\n  2,\n]', 0, 10, false)[0]).toStrictEqual([1, 2])
+	expect(parseArray({ s: '[ 1, 2, 3, ]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 3])
+	expect(parseArray({ s: '[\n  1,\n  2,\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
 
-	expect(parseArray('[\r\n  1,\r\n  2,\r\n]', 0, 10, false)[0]).toStrictEqual([1, 2])
+	expect(parseArray({ s: '[\r\n  1,\r\n  2,\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
 })
 
 it('is not bothered by comments', () => {
-	expect(parseArray('[\n  1,\n  2, # uwu\n  # hehe 3,\n  4,\n  # owo\n]', 0, 10, false)[0]).toStrictEqual([1, 2, 4])
-	expect(parseArray('[\r\n  1,\r\n  2, # uwu\r\n  # hehe 3,\r\n  4,\r\n  # owo\r\n]', 0, 10, false)[0]).toStrictEqual([1, 2, 4])
+	expect(parseArray({ s: '[\n  1,\n  2, # uwu\n  # hehe 3,\n  4,\n  # owo\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 4])
+	expect(parseArray({ s: '[\r\n  1,\r\n  2, # uwu\r\n  # hehe 3,\r\n  4,\r\n  # owo\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 4])
 
-	expect(parseArray('[ 1,# 9, 9,\n2#,9\n,#9\n3#]\n,4]', 0, 10, false)).toStrictEqual([[1, 2, 3, 4], 28])
-	expect(parseArray('[ 1,# 9, 9,\n2#,9\n]', 0, 10, false)).toStrictEqual([[1, 2], 18])
-	expect(parseArray('[[[[#["#"],\n["#"]]]]#]\n]', 0, 10, false)).toStrictEqual([[[[[['#']]]]], 24])
+	{
+		const ctx = { s: '[ 1,# 9, 9,\n2#,9\n,#9\n3#]\n,4]', p: 0, d: 10 }
+		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3, 4])
+		expect(ctx.p).toBe(28)
+	}
+
+	{
+		const ctx = { s: '[ 1,# 9, 9,\n2#,9\n]', p: 0, d: 10 }
+		expect(parseArray(ctx, false)).toStrictEqual([1, 2])
+		expect(ctx.p).toBe(18)
+	}
+
+	{
+		const ctx = { s: '[[[[#["#"],\n["#"]]]]#]\n]', p: 0, d: 10 }
+		expect(parseArray(ctx, false)).toStrictEqual([[[[['#']]]]])
+		expect(ctx.p).toBe(24)
+	}
 })
 
 it('rejects invalid arrays', () => {
-	expect(() => parseArray('[ 1,, 2]', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseArray('[ 1, 2, 3 ', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseArray('[ 1, "2" a, 3 ]', 0, 10, false)).toThrow(TomlError)
+	expect(() => parseArray({ s: '[ 1,, 2]', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseArray({ s: '[ 1, 2, 3 ', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseArray({ s: '[ 1, "2" a, 3 ]', p: 0, d: 10 }, false)).toThrow(TomlError)
 })
 
 it('consumes only an array and aborts', () => {
-	expect(parseArray('[ 1, 2, 3 ]\nnext-value = 10', 0, 10, false)).toStrictEqual([[1, 2, 3], 11])
-	expect(parseArray('[ { a = "uwu", b = 1, c = false, d = [ 1 ] } ]\nnext-value = 10', 0, 10, false)).toStrictEqual([[{ a: 'uwu', b: 1, c: false, d: [1] }], 46])
+	{
+		const ctx = { s: '[ 1, 2, 3 ]\nnext-value = 10', p: 0, d: 10 }
+		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3])
+		expect(ctx.p).toBe(11)
+	}
+
+	{
+		const ctx = { s: '[ { a = "uwu", b = 1, c = false, d = [ 1 ] } ]\nnext-value = 10', p: 0, d: 10 }
+		expect(parseArray(ctx, false)).toStrictEqual([{ a: 'uwu', b: 1, c: false, d: [1] }])
+		expect(ctx.p).toBe(46)
+	}
 })

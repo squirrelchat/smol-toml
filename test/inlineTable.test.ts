@@ -31,70 +31,140 @@ import { parseInlineTable } from '../src/struct.js'
 import { TomlError } from '../src/error.js'
 
 it('parses inline tables', () => {
-	expect(parseInlineTable('{ first = "Tom", last = "Preston-Werner" }', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 42])
-	expect(parseInlineTable('{ x = 1, y = 2 }', 0, 10, false)).toStrictEqual([{ x: 1, y: 2 }, 16])
-	expect(parseInlineTable('{ type.name = "pug", type.value = 1, "hehe.owo" = "uwu" }', 0, 10, false)).toStrictEqual([{ type: { name: 'pug', value: 1 }, 'hehe.owo': 'uwu' }, 57])
-	expect(parseInlineTable('{}', 0, 10, false)).toStrictEqual([{}, 2])
+	{
+		const ctx = { s: '{ first = "Tom", last = "Preston-Werner" }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(42)
+	}
+	{
+		const ctx = { s: '{ x = 1, y = 2 }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ x: 1, y: 2 })
+		expect(ctx.p).toBe(16)
+	}
+	{
+		const ctx = { s: '{ type.name = "pug", type.value = 1, "hehe.owo" = "uwu" }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ type: { name: 'pug', value: 1 }, 'hehe.owo': 'uwu' })
+		expect(ctx.p).toBe(57)
+	}
+	{
+		const ctx = { s: '{}', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({})
+		expect(ctx.p).toBe(2)
+	}
 })
 
 it('parse inline tables with non traditional spaces', () => {
-	expect(parseInlineTable('{ first = "Tom" ,last = "Preston-Werner" }', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 42])
-	expect(parseInlineTable('{ first = "Tom" , last = "Preston-Werner" }', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 43])
-	expect(parseInlineTable('{first="Tom",last="Preston-Werner"}', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 35])
-	expect(parseInlineTable('{	first="Tom"    ,	last="Preston-Werner"}', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 41])
+	{
+		const ctx = { s: '{ first = "Tom" ,last = "Preston-Werner" }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(42)
+	}
+	{
+		const ctx = { s: '{ first = "Tom" , last = "Preston-Werner" }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(43)
+	}
+	{
+		const ctx = { s: '{first="Tom",last="Preston-Werner"}', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(35)
+	}
+	{
+		const ctx = { s: '{	first="Tom"    ,	last="Preston-Werner"}', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(41)
+	}
 })
 
 it('parses multiline tables', () => {
-	expect(parseInlineTable('{ first = "Tom", last = "Preston-Werner"\n}', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 42])
-	expect(parseInlineTable('{\n  first = "Tom",\n  last = "Preston-Werner"\n}', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 46])
-	expect(() => parseInlineTable('{ first = "Tom", last = \n "Preston-Werner" }', 0, 10, false)).toThrow(TomlError)
-	expect(parseInlineTable('{ first = "Tom" \n, last = "Preston-Werner" }', 0, 10, false)).toStrictEqual([{ first: 'Tom', last: 'Preston-Werner' }, 44])
-	expect(() => parseInlineTable('{ first = "Tom",  last  \n = "Preston-Werner" }', 0, 10, false)).toThrow(TomlError)
+	{
+		const ctx = { s: '{ first = "Tom", last = "Preston-Werner"\n}', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(42)
+	}
+	{
+		const ctx = { s: '{\n  first = "Tom",\n  last = "Preston-Werner"\n}', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(46)
+	}
+	{
+		// No longer an error in TOML 1.1.0
+		const ctx = { s: '{ first = "Tom" \n, last = "Preston-Werner" }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(ctx.p).toBe(44)
+	}
 
-	expect(parseInlineTable('{ test = """Multiline\nstrings\nare\nvalid""" }', 0, 10, false)).toStrictEqual([{ test: 'Multiline\nstrings\nare\nvalid' }, 44])
+	expect(() => parseInlineTable({ s: '{ first = "Tom", last = \n "Preston-Werner" }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = "Tom",  last  \n = "Preston-Werner" }', p: 0, d: 10 }, false)).toThrow(TomlError)
+
+	{
+		const ctx = { s: '{ test = """Multiline\nstrings\nare\nvalid""" }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ test: 'Multiline\nstrings\nare\nvalid' })
+		expect(ctx.p).toBe(44)
+	}
 })
 
 it('parses nested structures', () => {
-	expect(parseInlineTable('{ uwu = { owo = true, cute = true, mean = false } }', 0, 10, false)).toStrictEqual([{ uwu: { owo: true, cute: true, mean: false } }, 51])
-	expect(parseInlineTable('{ uwu = [ "meow", "nya", "hehe", ] }', 0, 10, false)).toStrictEqual([{ uwu: ['meow', 'nya', 'hehe'] }, 36])
+	{
+		const ctx = { s: '{ uwu = { owo = true, cute = true, mean = false } }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ uwu: { owo: true, cute: true, mean: false } })
+		expect(ctx.p).toBe(51)
+	}
+	{
+		const ctx = { s: '{ uwu = [ "meow", "nya", "hehe", ] }', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ uwu: ['meow', 'nya', 'hehe'] })
+		expect(ctx.p).toBe(36)
+	}
 })
 
 it('parses multiline nested structures', () => {
-	expect(parseInlineTable('{\n\ta = {\n\t\tb = 1,\n\t\tc = [\n\t\t\t0,\n\t\t\t1,\n\t\t],\n\t\t},\n\td = "wow"\n}', 0, 10, false)).toStrictEqual([{ a: { b: 1, c: [0, 1] }, d: 'wow' }, 60])
+	{
+		const ctx = { s: '{\n\ta = {\n\t\tb = 1,\n\t\tc = [\n\t\t\t0,\n\t\t\t1,\n\t\t],\n\t\t},\n\td = "wow"\n}', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ a: { b: 1, c: [0, 1] }, d: 'wow' })
+		expect(ctx.p).toBe(60)
+	}
 })
 
 it('rejects duplicate keys', () => {
-	expect(() => parseInlineTable('{ uwu = false, uwu = true }', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{ uwu.hehe = "owo", uwu = false }', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{ uwu = "owo", uwu.hehe = false }', 0, 10, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ uwu = false, uwu = true }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ uwu.hehe = "owo", uwu = false }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ uwu = "owo", uwu.hehe = false }', p: 0, d: 10 }, false)).toThrow(TomlError)
 })
 
 it('rejects tables that are not finished', () => {
-	expect(() => parseInlineTable('{ first = "Tom", last = "Preston-Werner"\n', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{', 0, 10, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = "Tom", last = "Preston-Werner"\n', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{', p: 0, d: 10 }, false)).toThrow(TomlError)
 })
 
 it('rejects invalid tables', () => {
-	expect(() => parseInlineTable('{ first = "Tom",, last = "Preston-Werner" }', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{ first = "Tom" last = "Preston-Werner" }', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{ first = "Tom" \n last = "Preston-Werner" }', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{ first = {} last = "Preston-Werner" }', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{ first = [] last = "Preston-Werner" }', 0, 10, false)).toThrow(TomlError)
-	expect(() => parseInlineTable('{ first = "Tom", # }', 0, 10, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = "Tom",, last = "Preston-Werner" }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = "Tom" last = "Preston-Werner" }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = "Tom" \n last = "Preston-Werner" }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = {} last = "Preston-Werner" }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = [] last = "Preston-Werner" }', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ first = "Tom", # }', p: 0, d: 10 }, false)).toThrow(TomlError)
 })
 
 it('handles JS quirks', () => {
-	expect(parseInlineTable('{ __proto__ = 3 }', 0, 10, false)[0]).toStrictEqual(JSON.parse('{"__proto__":3}'))
-	expect(parseInlineTable('{ __proto__ = { uwu = "owo" } }', 0, 10, false)[0]).toStrictEqual(JSON.parse('{"__proto__":{"uwu":"owo"}}'))
-	expect(parseInlineTable('{ prototype = false }', 0, 10, false)[0]).toStrictEqual(JSON.parse('{"prototype":false}'))
-	expect(parseInlineTable('{ hasOwnProperty = false }', 0, 10, false)[0]).toStrictEqual(JSON.parse('{"hasOwnProperty":false}'))
+	expect(parseInlineTable({ s: '{ __proto__ = 3 }', p: 0, d: 10 }, false)).toStrictEqual(JSON.parse('{"__proto__":3}'))
+	expect(parseInlineTable({ s: '{ __proto__ = { uwu = "owo" } }', p: 0, d: 10 }, false)).toStrictEqual(JSON.parse('{"__proto__":{"uwu":"owo"}}'))
+	expect(parseInlineTable({ s: '{ prototype = false }', p: 0, d: 10 }, false)).toStrictEqual(JSON.parse('{"prototype":false}'))
+	expect(parseInlineTable({ s: '{ hasOwnProperty = false }', p: 0, d: 10 }, false)).toStrictEqual(JSON.parse('{"hasOwnProperty":false}'))
 })
 
 it('consumes only a table and stops', () => {
-	expect(parseInlineTable('{ uwu = 1 }\nnext-value = 10', 0, 10, false)).toStrictEqual([{ uwu: 1 }, 11])
-	expect(parseInlineTable('{ a = [ "uwu" ], b = 1, c = false, d = { hehe = 1 } }\nnext-value = 10', 0, 10, false)).toStrictEqual([{ a: ['uwu'], b: 1, c: false, d: { hehe: 1 } }, 53])
+	{
+		const ctx = { s: '{ uwu = 1 }\nnext-value = 10', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ uwu: 1 })
+		expect(ctx.p).toBe(11)
+	}
+	{
+		const ctx = { s: '{ a = [ "uwu" ], b = 1, c = false, d = { hehe = 1 } }\nnext-value = 10', p: 0, d: 10 }
+		expect(parseInlineTable(ctx, false)).toStrictEqual({ a: ['uwu'], b: 1, c: false, d: { hehe: 1 } })
+		expect(ctx.p).toBe(53)
+	}
 })
 
 it('respects inner immutability', () => {
-	expect(() => parseInlineTable('{ type = { name = "pug", value = 1 }, type.owo = "uwu" }', 0, 10, false)).toThrow(TomlError)
+	expect(() => parseInlineTable({ s: '{ type = { name = "pug", value = 1 }, type.owo = "uwu" }', p: 0, d: 10 }, false)).toThrow(TomlError)
 })

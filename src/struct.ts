@@ -26,6 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { ParseContext } from './parse.ts'
 import { type IntegersAsBigInt, parseString } from './primitive.js'
 import { extractValue } from './extract.js'
 import { indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
@@ -34,57 +35,58 @@ import { TomlError } from './error.js'
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
 
 /** @internal */
-export function parseKey(str: string, ptr: number, end = '='): [string[], number] {
-	let dot = ptr - 1
+export function parseKey(ctx: ParseContext, end = '='): string[] {
+	let start = ctx.p
+	let dot = start - 1
 	let parsed = []
 
-	let endPtr = str.indexOf(end, ptr)
+	let endPtr = ctx.s.indexOf(end, start)
 	if (endPtr < 0) {
 		throw new TomlError('incomplete key-value: cannot find end of key', {
-			toml: str,
-			ptr: ptr,
+			toml: ctx.s,
+			ptr: start,
 		})
 	}
 
 	do {
-		let c = str[(ptr = ++dot)]
+		let c = ctx.s.charCodeAt(ctx.p = ++dot)
 
 		// If it's whitespace, ignore
-		if (c !== ' ' && c !== '\t') {
+		if (c !== 0x20 && c !== 0x9 /* \t */) {
 			// If it's a string
-			if (c === '"' || c === "'") {
-				if (c === str[ptr + 1] && c === str[ptr + 2]) {
+			if (c === 0x22 /* " */ || c === 0x27 /* ' */) {
+				if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2)) {
 					throw new TomlError('multiline strings are not allowed in keys', {
-						toml: str,
-						ptr: ptr,
+						toml: ctx.s,
+						ptr: ctx.p,
 					})
 				}
 
-				let [part, eos] = parseString(str, ptr)
-				dot = str.indexOf('.', eos)
+				let part = parseString(ctx)
+				dot = ctx.s.indexOf('.', ctx.p)
 
-				let strEnd = str.slice(eos, dot < 0 || dot > endPtr ? endPtr : dot)
+				let strEnd = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot)
 				let newLine = indexOfNewline(strEnd)
 				if (newLine > -1) {
 					throw new TomlError('newlines are not allowed in keys', {
-						toml: str,
-						ptr: ptr + dot + newLine,
+						toml: ctx.s,
+						ptr: newLine,
 					})
 				}
 
 				if (strEnd.trimStart()) {
 					throw new TomlError('found extra tokens after the string part', {
-						toml: str,
-						ptr: eos,
+						toml: ctx.s,
+						ptr: ctx.p,
 					})
 				}
 
-				if (endPtr < eos) {
-					endPtr = str.indexOf(end, eos)
+				if (endPtr < ctx.p) {
+					endPtr = ctx.s.indexOf(end, ctx.p)
 					if (endPtr < 0) {
 						throw new TomlError('incomplete key-value: cannot find end of key', {
-							toml: str,
-							ptr: ptr,
+							toml: ctx.s,
+							ptr: start,
 						})
 					}
 				}
@@ -92,12 +94,12 @@ export function parseKey(str: string, ptr: number, end = '='): [string[], number
 				parsed.push(part)
 			} else {
 				// Normal raw key part consumption and validation
-				dot = str.indexOf('.', ptr)
-				let part = str.slice(ptr, dot < 0 || dot > endPtr ? endPtr : dot)
+				dot = ctx.s.indexOf('.', ctx.p)
+				let part = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot)
 				if (!KEY_PART_RE.test(part)) {
 					throw new TomlError('only letter, numbers, dashes and underscores are allowed in keys', {
-						toml: str,
-						ptr: ptr,
+						toml: ctx.s,
+						ptr: ctx.p,
 					})
 				}
 
@@ -107,37 +109,41 @@ export function parseKey(str: string, ptr: number, end = '='): [string[], number
 		// Until there's no more dot
 	} while (dot + 1 && dot < endPtr)
 
-	return [parsed, skipVoid(str, endPtr + 1, true, true)]
+	ctx.p = endPtr + 1
+	skipVoid(ctx, true, true)
+	return parsed
 }
 
 /** @internal */
-export function parseInlineTable(str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlTable, number] {
+export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt): TomlTable {
 	let res: TomlTable = {}
 	let seen = new Set()
-	let c: string
+	let c: number
 
-	ptr++
-	while ((c = str[ptr++]!) !== '}' && c) {
-		if (c === ',') {
+	ctx.p++
+	while ((c = ctx.s.charCodeAt(ctx.p++)) !== 0x7d /* } */ && !isNaN(c)) {
+		if (c === 0x2c /* , */) {
 			throw new TomlError('expected value, found comma', {
-				toml: str,
-				ptr: ptr - 1,
+				toml: ctx.s,
+				ptr: ctx.p - 1,
 			})
-		} else if (c === '#') ptr = skipComment(str, ptr)
-		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
+		} else if (c === 0x23 /* # */) {
+			skipComment(ctx)
+		} else if (c !== 0x20 && c !== 0x9 /* \t */ && c !== 0xa /* \n */ && c !== 0xd /* \r */) {
 			let k: string
 			let t: any = res
 			let hasOwn = false
+			let p = ctx.p--
 
-			let [key, keyEndPtr] = parseKey(str, ptr - 1)
+			let key = parseKey(ctx)
 			for (let i = 0; i < key.length; i++) {
 				if (i) t = hasOwn! ? t[k!] : (t[k!] = {})
 
 				k = key[i]!
 				if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
 					throw new TomlError('trying to redefine an already defined value', {
-						toml: str,
-						ptr: ptr,
+						toml: ctx.s,
+						ptr: p,
 					})
 				}
 
@@ -148,55 +154,52 @@ export function parseInlineTable(str: string, ptr: number, depth: number, intege
 
 			if (hasOwn) {
 				throw new TomlError('trying to redefine an already defined value', {
-					toml: str,
-					ptr: ptr,
+					toml: ctx.s,
+					ptr: ctx.p,
 				})
 			}
 
-			let [value, valueEndPtr] = extractValue(str, keyEndPtr, '}', depth - 1, integersAsBigInt)
-			seen.add(value)
-
-			t[k!] = value
-			ptr = valueEndPtr
+			let value = extractValue(ctx, 0x7d /* } */, integersAsBigInt)
+			seen.add(t[k!] = value)
 		}
 	}
 
-	if (!c) {
+	if (isNaN(c)) {
 		throw new TomlError('unfinished table encountered', {
-			toml: str,
-			ptr: ptr,
+			toml: ctx.s,
+			ptr: ctx.p,
 		})
 	}
 
-	return [res, ptr]
+	return res
 }
 
 /** @internal */
-export function parseArray(str: string, ptr: number, depth: number, integersAsBigInt: IntegersAsBigInt): [TomlValue[], number] {
+export function parseArray(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt): TomlValue[] {
 	let res: TomlValue[] = []
 	let c
 
-	ptr++
-	while ((c = str[ptr++]) !== ']' && c) {
-		if (c === ',') {
+	ctx.p++
+	while ((c = ctx.s.charCodeAt(ctx.p++)) !== 0x5d /* ] */ && !isNaN(c)) {
+		if (c === 0x2c /* , */) {
 			throw new TomlError('expected value, found comma', {
-				toml: str,
-				ptr: ptr - 1,
+				toml: ctx.s,
+				ptr: ctx.p,
 			})
-		} else if (c === '#') ptr = skipComment(str, ptr)
-		else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
-			let e = extractValue(str, ptr - 1, ']', depth - 1, integersAsBigInt)
-			res.push(e[0])
-			ptr = e[1]
+		} else if (c === 0x23 /* # */) {
+			skipComment(ctx)
+		} else if (c !== 0x20 && c !== 0x9 /* \t */ && c !== 0xa /* \n */ && c !== 0xd /* \r */) {
+			ctx.p--
+			res.push(extractValue(ctx, 0x5d /* ] */, integersAsBigInt))
 		}
 	}
 
-	if (!c) {
+	if (isNaN(c)) {
 		throw new TomlError('unfinished array encountered', {
-			toml: str,
-			ptr: ptr,
+			toml: ctx.s,
+			ptr: ctx.p,
 		})
 	}
 
-	return [res, ptr]
+	return res
 }

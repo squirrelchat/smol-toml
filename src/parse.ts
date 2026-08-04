@@ -38,6 +38,16 @@ type MetaState = { t: Type; d: boolean; i: number; c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
 type PeekResult = [string, TomlTable, MetaRecord] | null
 
+/** @internal */
+export type ParseContext = {
+	/** The document string. */
+	s: string
+	/** The current position in the string. */
+	p: number
+	/** Available recursion depth. */
+	d: number
+}
+
 function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
 	let t: any = table
 	let m = meta
@@ -122,62 +132,64 @@ export interface ParseOptions {
 export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable
 export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt
 export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
+	let ctx = { s: toml, p: 0, d: maxDepth }
 	let res = {}
 	let meta = {}
 
+	let tmp
 	let tbl = res
 	let m = meta
 
-	for (let ptr = skipVoid(toml, 0); ptr < toml.length;) {
-		if (toml[ptr] === '[') {
-			let isTableArray = toml[++ptr] === '['
-			let k = parseKey(toml, (ptr += +isTableArray), ']')
+	skipVoid(ctx)
+	while (ctx.p < toml.length) {
+		if (toml.charCodeAt(ctx.p) === 0x5b /* [ */) {
+			let isTableArray = toml.charCodeAt(++ctx.p) === 0x5b /* [ */
+			tmp = ctx.p += +isTableArray
 
+			let k = parseKey(ctx, ']')
 			if (isTableArray) {
-				if (toml[k[1] - 1] !== ']') {
+				if (toml.charCodeAt(ctx.p - 1) !== 0x5d /* ] */) {
 					throw new TomlError('expected end of table declaration', {
 						toml: toml,
-						ptr: k[1] - 1,
+						ptr: ctx.p - 1,
 					})
 				}
 
-				k[1]++
+				ctx.p++
 			}
 
-			let p = peekTable(k[0], res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
+			let p = peekTable(k, res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
 			if (!p) {
 				throw new TomlError('trying to redefine an already defined table or value', {
 					toml: toml,
-					ptr: ptr,
+					ptr: tmp,
 				})
 			}
 
 			m = p[2]
 			tbl = p[1]
-			ptr = k[1]
 		} else {
-			let k = parseKey(toml, ptr)
-			let p = peekTable(k[0], tbl, m, Type.DOTTED)
+			tmp = ctx.p
+			let k = parseKey(ctx)
+			let p = peekTable(k, tbl, m, Type.DOTTED)
 			if (!p) {
 				throw new TomlError('trying to redefine an already defined table or value', {
 					toml: toml,
-					ptr: ptr,
+					ptr: tmp,
 				})
 			}
 
-			let v = extractValue(toml, k[1], void 0, maxDepth, integersAsBigInt)
-			p[1][p[0]] = v[0]
-			ptr = v[1]
+			p[1][p[0]] = extractValue(ctx, void 0, integersAsBigInt)
 		}
 
-		ptr = skipVoid(toml, ptr, true)
-		if (toml[ptr] && toml[ptr] !== '\n' && toml[ptr] !== '\r') {
+		skipVoid(ctx, true)
+		if (ctx.p < toml.length && (tmp = toml.charCodeAt(ctx.p)) !== 0xa /* \n */ && tmp !== 0xd /* \r */) {
 			throw new TomlError('each key-value declaration must be followed by an end-of-line', {
 				toml: toml,
-				ptr: ptr,
+				ptr: ctx.p,
 			})
 		}
-		ptr = skipVoid(toml, ptr)
+		skipVoid(ctx)
 	}
 
 	return res

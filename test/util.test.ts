@@ -37,27 +37,88 @@ it('gives the index of next line', () => {
 })
 
 it('skips whitespace', () => {
-	expect(skipVoid('    uwu', 0)).toBe(4)
-	expect(skipVoid('    uwu', 2)).toBe(4)
-	expect(skipVoid('\t uwu', 0)).toBe(2)
-	expect(skipVoid('uwu', 0)).toBe(0)
-	expect(skipVoid('\r\nuwu', 0)).toBe(2)
+	{
+		const ctx = { s: '    uwu', p: 0, d: 10 }
+		skipVoid(ctx)
+		expect(ctx.p).toBe(4)
+	}
+
+	{
+		const ctx = { s: '    uwu', p: 2, d: 10 }
+		skipVoid(ctx)
+		expect(ctx.p).toBe(4)
+	}
+
+	{
+		const ctx = { s: '\t uwu', p: 0, d: 10 }
+		skipVoid(ctx)
+		expect(ctx.p).toBe(2)
+	}
+
+	{
+		const ctx = { s: 'uwu', p: 0, d: 10 }
+		skipVoid(ctx)
+		expect(ctx.p).toBe(0)
+	}
+
+	{
+		const ctx = { s: '\r\nuwu', p: 0, d: 10 }
+		skipVoid(ctx)
+		expect(ctx.p).toBe(2)
+	}
 })
 
 it('skips whitespace but not newlines', () => {
-	expect(skipVoid('    uwu', 0, true)).toBe(4)
-	expect(skipVoid('\r\nuwu', 0, true)).toBe(0)
+	{
+		const ctx = { s: '    uwu', p: 0, d: 10 }
+		skipVoid(ctx, true)
+		expect(ctx.p).toBe(4)
+	}
+
+	{
+		const ctx = { s: '\r\nuwu', p: 0, d: 10 }
+		skipVoid(ctx, true)
+		expect(ctx.p).toBe(0)
+	}
 })
 
 it('skips comments', () => {
-	expect(skipVoid('    # this is a comment\n   uwu', 0)).toBe(27)
-	expect(skipVoid('    # this is a comment\n   uwu', 0, true)).toBe(23)
+	{
+		const ctx = { s: '    # this is a comment\n   uwu', p: 0, d: 10 }
+		skipVoid(ctx)
+		expect(ctx.p).toBe(27)
+	}
+
+	{
+		const ctx = { s: '    # this is a comment\n   uwu', p: 0, d: 10 }
+		skipVoid(ctx, true)
+		expect(ctx.p).toBe(23)
+	}
 })
 
 it('skips until the next valuable token', () => {
-	expect(skipUntil('[ 3, 4, ]', 1, ',', ']')).toBe(4)
-	expect(skipUntil('[ 3, 4, ]', 4, ',', ']')).toBe(7)
-	expect(skipUntil('[ 3, 4, ]', 7, ',', ']')).toBe(8)
+	{
+		const ctx = { s: '[ 3, 4, ]', p: 1, d: 10 }
+		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
+		expect(ctx.p).toBe(4)
+	}
 
-	expect(skipUntil('[ [ 1, 2 ], [ 3, 4 ] ]', 6, ',', ']')).toBe(9)
+	{
+		const ctx = { s: '[ 3, 4, ]', p: 4, d: 10 }
+		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
+		expect(ctx.p).toBe(7)
+	}
+
+	{
+		const ctx = { s: '[ 3, 4, ]', p: 7, d: 10 }
+		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
+		expect(ctx.p).toBe(8)
+	}
+
+
+	{
+		const ctx = { s: '[ [ 1, 2 ], [ 3, 4 ] ]', p: 6, d: 10 }
+		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
+		expect(ctx.p).toBe(9)
+	}
 })

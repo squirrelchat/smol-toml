@@ -27,8 +27,14 @@
  */
 
 import { it, expect } from 'vitest'
-import { parseString } from '../src/primitive.js'
+import { parseString as _parseString } from '../src/primitive.js'
 import { TomlError } from '../src/error.js'
+
+function parseString(str: string, ptr: number) {
+	const ctx = { s: str, p: ptr, d: 10 }
+	const res = _parseString(ctx)
+	return [res, ctx.p]
+}
 
 it('parses a string', () => {
 	expect(parseString('"this is a string"', 0)).toStrictEqual(['this is a string', 18])

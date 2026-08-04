@@ -31,60 +31,92 @@ import { parseKey } from '../src/struct.js'
 import { TomlError } from '../src/error.js'
 
 it('parses simple keys', () => {
-	expect(parseKey('key =', 0)).toStrictEqual([['key'], 5])
-	expect(parseKey('bare_key =', 0)).toStrictEqual([['bare_key'], 10])
-	expect(parseKey('bare-key =', 0)).toStrictEqual([['bare-key'], 10])
-	expect(parseKey('1234 =', 0)).toStrictEqual([['1234'], 6])
+	{
+		const ctx = { s: 'key =', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['key'])
+		expect(ctx.p).toBe(5)
+	}
+	{
+		const ctx = { s: 'bare_key =', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['bare_key'])
+		expect(ctx.p).toBe(10)
+	}
+	{
+		const ctx = { s: 'bare-key =', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['bare-key'])
+		expect(ctx.p).toBe(10)
+	}
+	{
+		const ctx = { s: '1234 =', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['1234'])
+		expect(ctx.p).toBe(6)
+	}
 
-	expect(parseKey('key=', 0)).toStrictEqual([['key'], 4])
-	expect(parseKey('bare_key=', 0)).toStrictEqual([['bare_key'], 9])
-	expect(parseKey('bare-key=', 0)).toStrictEqual([['bare-key'], 9])
-	expect(parseKey('1234=', 0)).toStrictEqual([['1234'], 5])
+	{
+		const ctx = { s: 'key=', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['key'])
+		expect(ctx.p).toBe(4)
+	}
+	{
+		const ctx = { s: 'bare_key=', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['bare_key'])
+		expect(ctx.p).toBe(9)
+	}
+	{
+		const ctx = { s: 'bare-key=', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['bare-key'])
+		expect(ctx.p).toBe(9)
+	}
+	{
+		const ctx = { s: '1234=', p: 0, d: 10 }
+		expect(parseKey(ctx)).toStrictEqual(['1234'])
+		expect(ctx.p).toBe(5)
+	}
 })
 
 it('parses quoted keys', () => {
-	expect(parseKey('"127.0.0.1" =', 0)[0]).toStrictEqual(['127.0.0.1'])
-	expect(parseKey('"character encoding" =', 0)[0]).toStrictEqual(['character encoding'])
-	expect(parseKey('"ʎǝʞ" =', 0)[0]).toStrictEqual(['ʎǝʞ'])
-	expect(parseKey("'key2' =", 0)[0]).toStrictEqual(['key2'])
-	expect(parseKey('\'quoted "value"\' =', 0)[0]).toStrictEqual(['quoted "value"'])
+	expect(parseKey({ s: '"127.0.0.1" =', p: 0, d: 10 })).toStrictEqual(['127.0.0.1'])
+	expect(parseKey({ s: '"character encoding" =', p: 0, d: 10 })).toStrictEqual(['character encoding'])
+	expect(parseKey({ s: '"ʎǝʞ" =', p: 0, d: 10 })).toStrictEqual(['ʎǝʞ'])
+	expect(parseKey({ s: "'key2' =", p: 0, d: 10 })).toStrictEqual(['key2'])
+	expect(parseKey({ s: '\'quoted "value"\' =', p: 0, d: 10 })).toStrictEqual(['quoted "value"'])
 })
 
 it('parses empty keys', () => {
-	expect(() => parseKey(' =', 0)).toThrow(TomlError)
-	expect(parseKey('"" =', 0)[0]).toStrictEqual([''])
-	expect(parseKey("'' =", 0)[0]).toStrictEqual([''])
+	expect(() => parseKey({ s: ' =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(parseKey({ s: '"" =', p: 0, d: 10 })).toStrictEqual([''])
+	expect(parseKey({ s: "'' =", p: 0, d: 10 })).toStrictEqual([''])
 })
 
 it('parses dotted keys', () => {
-	expect(parseKey('physical.color =', 0)[0]).toStrictEqual(['physical', 'color'])
-	expect(parseKey('physical.shape =', 0)[0]).toStrictEqual(['physical', 'shape'])
-	expect(parseKey('site."google.com" =', 0)[0]).toStrictEqual(['site', 'google.com'])
+	expect(parseKey({ s: 'physical.color =', p: 0, d: 10 })).toStrictEqual(['physical', 'color'])
+	expect(parseKey({ s: 'physical.shape =', p: 0, d: 10 })).toStrictEqual(['physical', 'shape'])
+	expect(parseKey({ s: 'site."google.com" =', p: 0, d: 10 })).toStrictEqual(['site', 'google.com'])
 })
 
 it('ignores whitespace', () => {
-	expect(parseKey('fruit.name =', 0)[0]).toStrictEqual(['fruit', 'name'])
-	expect(parseKey('fruit. color =', 0)[0]).toStrictEqual(['fruit', 'color'])
-	expect(parseKey('fruit . flavor =', 0)[0]).toStrictEqual(['fruit', 'flavor'])
-	expect(parseKey('fruit . "flavor" =', 0)[0]).toStrictEqual(['fruit', 'flavor'])
-	expect(parseKey('"fruit" . flavor =', 0)[0]).toStrictEqual(['fruit', 'flavor'])
-	expect(parseKey('"fruit"\t.\tflavor =', 0)[0]).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey({ s: 'fruit.name =', p: 0, d: 10 })).toStrictEqual(['fruit', 'name'])
+	expect(parseKey({ s: 'fruit. color =', p: 0, d: 10 })).toStrictEqual(['fruit', 'color'])
+	expect(parseKey({ s: 'fruit . flavor =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey({ s: 'fruit . "flavor" =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey({ s: '"fruit" . flavor =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey({ s: '"fruit"\t.\tflavor =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
 })
 
 it('rejects invalid keys', () => {
-	expect(() => parseKey('"uwu"\n =', 0)).toThrow(TomlError)
-	expect(() => parseKey('uwu. =', 0)).toThrow(TomlError)
-	expect(() => parseKey('éwé =', 0)).toThrow(TomlError)
-	expect(() => parseKey('uwu..owo =', 0)).toThrow(TomlError)
-	expect(() => parseKey('uwu.\nowo =', 0)).toThrow(TomlError)
-	expect(() => parseKey('uwu\n.owo =', 0)).toThrow(TomlError)
-	expect(() => parseKey('"uwu"\n.owo =', 0)).toThrow(TomlError)
-	expect(() => parseKey('uwu\n =', 0)).toThrow(TomlError)
-	expect(() => parseKey('"uwu =', 0)).toThrow(TomlError)
+	expect(() => parseKey({ s: '"uwu"\n =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: 'uwu. =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: 'éwé =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: 'uwu..owo =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: 'uwu.\nowo =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: 'uwu\n.owo =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: '"uwu"\n.owo =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: 'uwu\n =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey({ s: '"uwu =', p: 0, d: 10 })).toThrow(TomlError)
 
-	expect(() => parseKey('uwu."owo"hehe =', 0)).toThrow(TomlError)
+	expect(() => parseKey({ s: 'uwu."owo"hehe =', p: 0, d: 10 })).toThrow(TomlError)
 
-	expect(() => parseKey('uwu hehe =', 0)).toThrow(TomlError)
+	expect(() => parseKey({ s: 'uwu hehe =', p: 0, d: 10 })).toThrow(TomlError)
 
-	expect(() => parseKey('"""long\nkey""" = 1', 0)).toThrow(TomlError)
+	expect(() => parseKey({ s: '"""long\nkey""" = 1', p: 0, d: 10 })).toThrow(TomlError)
 })

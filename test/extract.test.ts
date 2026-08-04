@@ -30,17 +30,61 @@ import { it, expect } from 'vitest'
 import { extractValue } from '../src/extract.js'
 
 it('extracts value of correct type', () => {
-	expect(extractValue('[ 1, 2 ]', 2, ']', 10, false)).toStrictEqual([1, 4])
-	expect(extractValue('[ "uwu", 2 ]', 2, ']', 10, false)).toStrictEqual(['uwu', 8])
-	expect(extractValue('[ {}, 2 ]', 2, ']', 10, false)).toStrictEqual([{}, 5])
-	expect(extractValue('[ 2 ]', 2, ']', 10, false)).toStrictEqual([2, 4])
-	expect(extractValue('2\n', 0, undefined, 10, false)).toStrictEqual([2, 1])
+	{
+		const ctx = { s: '[ 1, 2 ]', p: 2, d: 10 }
+		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual(1)
+		expect(ctx.p).toBe(4)
+	}
+	{
+		const ctx = { s: '[ "uwu", 2 ]', p: 2, d: 10 }
+		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual('uwu')
+		expect(ctx.p).toBe(8)
+	}
+	{
+		const ctx = { s: '[ {}, 2 ]', p: 2, d: 10 }
+		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual({})
+		expect(ctx.p).toBe(5)
+	}
+	{
+		const ctx = { s: '[ 2 ]', p: 2, d: 10 }
+		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual(2)
+		expect(ctx.p).toBe(4)
+	}
+	{
+		const ctx = { s: '2\n', p: 0, d: 10 }
+		expect(extractValue(ctx, undefined, false)).toStrictEqual(2)
+		expect(ctx.p).toBe(1)
+	}
 
-	expect(extractValue('"""uwu"""\n', 0, undefined, 10, false)).toStrictEqual(['uwu', 9])
-	expect(extractValue('"""this is a "multiline string""""\n', 0, undefined, 10, false)).toStrictEqual(['this is a "multiline string"', 34])
-	expect(extractValue('"""this is a "multiline string"""""\n', 0, undefined, 10, false)).toStrictEqual(['this is a "multiline string""', 35])
-	expect(extractValue('"uwu""\n', 0, undefined, 10, false)).toStrictEqual(['uwu', 5])
+	{
+		const ctx = { s: '"""uwu"""\n', p: 0, d: 10 }
+		expect(extractValue(ctx, undefined, false)).toStrictEqual('uwu')
+		expect(ctx.p).toBe(9)
+	}
+	{
+		const ctx = { s: '"""this is a "multiline string""""\n', p: 0, d: 10 }
+		expect(extractValue(ctx, undefined, false)).toStrictEqual('this is a "multiline string"')
+		expect(ctx.p).toBe(34)
+	}
+	{
+		const ctx = { s: '"""this is a "multiline string"""""\n', p: 0, d: 10 }
+		expect(extractValue(ctx, undefined, false)).toStrictEqual('this is a "multiline string""')
+		expect(ctx.p).toBe(35)
+	}
+	{
+		const ctx = { s: '"uwu""\n', p: 0, d: 10 }
+		expect(extractValue(ctx, undefined, false)).toStrictEqual('uwu')
+		expect(ctx.p).toBe(5)
+	}
 
-	expect(extractValue('"\\\\"\n', 0, undefined, 10, false)).toStrictEqual(['\\', 4])
-	expect(extractValue("'uwu\\'", 0, undefined, 10, false)).toStrictEqual(['uwu\\', 6])
+	{
+		const ctx = { s: '"\\\\"\n', p: 0, d: 10 }
+		expect(extractValue(ctx, undefined, false)).toStrictEqual('\\')
+		expect(ctx.p).toBe(4)
+	}
+	{
+		const ctx = { s: "'uwu\\'", p: 0, d: 10 }
+		expect(extractValue(ctx, undefined, false)).toStrictEqual('uwu\\')
+		expect(ctx.p).toBe(6)
+	}
 })

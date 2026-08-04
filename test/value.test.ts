@@ -32,191 +32,191 @@ import { TomlError } from '../src/error.js'
 import { TomlDate } from '../src/date.js'
 
 it('parses integers', () => {
-	expect(parseValue('+99', '', 0, false)).toBe(99)
-	expect(parseValue('42', '', 0, false)).toBe(42)
-	expect(parseValue('0', '', 0, false)).toBe(0)
-	expect(parseValue('-17', '', 0, false)).toBe(-17)
+	expect(parseValue('+99', false, { toml: '', ptr: 0 })).toBe(99)
+	expect(parseValue('42', false, { toml: '', ptr: 0 })).toBe(42)
+	expect(parseValue('0', false, { toml: '', ptr: 0 })).toBe(0)
+	expect(parseValue('-17', false, { toml: '', ptr: 0 })).toBe(-17)
 })
 
 it('parses integers with underscores', () => {
-	expect(parseValue('1_000', '', 0, false)).toBe(1000)
-	expect(parseValue('5_349_221', '', 0, false)).toBe(5349221)
-	expect(parseValue('53_49_221', '', 0, false)).toBe(5349221)
-	expect(parseValue('1_2_3_4_5', '', 0, false)).toBe(12345)
+	expect(parseValue('1_000', false, { toml: '', ptr: 0 })).toBe(1000)
+	expect(parseValue('5_349_221', false, { toml: '', ptr: 0 })).toBe(5349221)
+	expect(parseValue('53_49_221', false, { toml: '', ptr: 0 })).toBe(5349221)
+	expect(parseValue('1_2_3_4_5', false, { toml: '', ptr: 0 })).toBe(12345)
 })
 
 it('parses hex integers', () => {
-	expect(parseValue('0xDEADBEEF', '', 0, false)).toBe(0xdeadbeef)
-	expect(parseValue('0xdeadbeef', '', 0, false)).toBe(0xdeadbeef)
-	expect(parseValue('0xdead_beef', '', 0, false)).toBe(0xdeadbeef)
+	expect(parseValue('0xDEADBEEF', false, { toml: '', ptr: 0 })).toBe(0xdeadbeef)
+	expect(parseValue('0xdeadbeef', false, { toml: '', ptr: 0 })).toBe(0xdeadbeef)
+	expect(parseValue('0xdead_beef', false, { toml: '', ptr: 0 })).toBe(0xdeadbeef)
 })
 
 it('parses octal integers', () => {
-	expect(parseValue('0o01234567', '', 0, false)).toBe(0o01234567)
-	expect(parseValue('0o0123_4567', '', 0, false)).toBe(0o01234567)
+	expect(parseValue('0o01234567', false, { toml: '', ptr: 0 })).toBe(0o01234567)
+	expect(parseValue('0o0123_4567', false, { toml: '', ptr: 0 })).toBe(0o01234567)
 })
 
 it('parses binary integers', () => {
-	expect(parseValue('0b11010110', '', 0, false)).toBe(0b11010110)
-	expect(parseValue('0b1101_0110', '', 0, false)).toBe(0b11010110)
+	expect(parseValue('0b11010110', false, { toml: '', ptr: 0 })).toBe(0b11010110)
+	expect(parseValue('0b1101_0110', false, { toml: '', ptr: 0 })).toBe(0b11010110)
 })
 
 it('rejects integers too large on number_or_error', () => {
-	expect(() => parseValue('9007199254740992', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('9007199254740992', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('supports integers larger than the max safe integer number when bigints are enabled', () => {
-	expect(parseValue('9007199254740992', '', 0, 'asNeeded')).toBe(9007199254740992n)
-	expect(parseValue('9007199254740992', '', 0, true)).toBe(9007199254740992n)
+	expect(parseValue('9007199254740992', 'asNeeded', { toml: '', ptr: 0 })).toBe(9007199254740992n)
+	expect(parseValue('9007199254740992', true, { toml: '', ptr: 0 })).toBe(9007199254740992n)
 })
 
 it('supports integers larger than the Number max value when bigints are enabled', () => {
 	const nineRepeat = '9'.repeat(310)
-	expect(parseValue(nineRepeat, '', 0, 'asNeeded')).toBe(BigInt(nineRepeat))
-	expect(parseValue(nineRepeat, '', 0, true)).toBe(BigInt(nineRepeat))
+	expect(parseValue(nineRepeat, 'asNeeded', { toml: '', ptr: 0 })).toBe(BigInt(nineRepeat))
+	expect(parseValue(nineRepeat, true, { toml: '', ptr: 0 })).toBe(BigInt(nineRepeat))
 })
 
 it('supports floats larger than the max safe integer number', () => {
-	expect(parseValue('9007199254740992.0', '', 0, false)).toBe(9007199254740992.0)
-	expect(parseValue('9007199254740992.0', '', 0, 'asNeeded')).toBe(9007199254740992.0)
-	expect(parseValue('9007199254740992.0', '', 0, true)).toBe(9007199254740992.0)
+	expect(parseValue('9007199254740992.0', false, { toml: '', ptr: 0 })).toBe(9007199254740992.0)
+	expect(parseValue('9007199254740992.0', 'asNeeded', { toml: '', ptr: 0 })).toBe(9007199254740992.0)
+	expect(parseValue('9007199254740992.0', true, { toml: '', ptr: 0 })).toBe(9007199254740992.0)
 })
 
 it('only uses bigint for large values when bigints are enabled as needed', () => {
-	expect(parseValue('10', '', 0, 'asNeeded')).toBe(10)
+	expect(parseValue('10', 'asNeeded', { toml: '', ptr: 0 })).toBe(10)
 })
 
 it('interprets TOML-floats larger than the Number max value as Infinity', () => {
 	let nineRepeatFloat = '9'.repeat(310) + '.0'
-	expect(parseValue(nineRepeatFloat, '', 0, false)).toBe(Infinity)
-	expect(parseValue(nineRepeatFloat, '', 0, 'asNeeded')).toBe(Infinity)
-	expect(parseValue(nineRepeatFloat, '', 0, true)).toBe(Infinity)
+	expect(parseValue(nineRepeatFloat, false, { toml: '', ptr: 0 })).toBe(Infinity)
+	expect(parseValue(nineRepeatFloat, 'asNeeded', { toml: '', ptr: 0 })).toBe(Infinity)
+	expect(parseValue(nineRepeatFloat, true, { toml: '', ptr: 0 })).toBe(Infinity)
 	nineRepeatFloat = '-' + nineRepeatFloat
-	expect(parseValue(nineRepeatFloat, '', 0, false)).toBe(-Infinity)
-	expect(parseValue(nineRepeatFloat, '', 0, 'asNeeded')).toBe(-Infinity)
-	expect(parseValue(nineRepeatFloat, '', 0, true)).toBe(-Infinity)
+	expect(parseValue(nineRepeatFloat, false, { toml: '', ptr: 0 })).toBe(-Infinity)
+	expect(parseValue(nineRepeatFloat, 'asNeeded', { toml: '', ptr: 0 })).toBe(-Infinity)
+	expect(parseValue(nineRepeatFloat, true, { toml: '', ptr: 0 })).toBe(-Infinity)
 })
 
 it('rejects leading zeroes', () => {
-	expect(() => parseValue('0123', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('01.10', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('0_1.10', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('0123', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('01.10', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('0_1.10', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('rejects invalid numbers', () => {
-	expect(() => parseValue('Infinity', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('NaN', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('+0x01', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('-0x01', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('Infinity', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('NaN', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('+0x01', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('-0x01', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('rejects invalid underscores', () => {
-	expect(() => parseValue('_10', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('10_', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('1__0', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('_10', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('10_', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('1__0', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 
-	expect(() => parseValue('+_10', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('0x_10', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('+_10', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('0x_10', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('parses floats', () => {
-	expect(parseValue('+1.0', '', 0, false)).toBe(1)
-	expect(parseValue('3.1415', '', 0, false)).toBe(3.1415)
-	expect(parseValue('-0.01', '', 0, false)).toBe(-0.01)
+	expect(parseValue('+1.0', false, { toml: '', ptr: 0 })).toBe(1)
+	expect(parseValue('3.1415', false, { toml: '', ptr: 0 })).toBe(3.1415)
+	expect(parseValue('-0.01', false, { toml: '', ptr: 0 })).toBe(-0.01)
 
-	expect(parseValue('5e+22', '', 0, false)).toBe(5e22)
-	expect(parseValue('1e06', '', 0, false)).toBe(1e6)
-	expect(parseValue('-2E-2', '', 0, false)).toBe(-2e-2)
+	expect(parseValue('5e+22', false, { toml: '', ptr: 0 })).toBe(5e22)
+	expect(parseValue('1e06', false, { toml: '', ptr: 0 })).toBe(1e6)
+	expect(parseValue('-2E-2', false, { toml: '', ptr: 0 })).toBe(-2e-2)
 
-	expect(parseValue('6.626e-34', '', 0, false)).toBe(6.626e-34)
+	expect(parseValue('6.626e-34', false, { toml: '', ptr: 0 })).toBe(6.626e-34)
 })
 
 it('rejects invalid floats', () => {
-	expect(() => parseValue('.7', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('7.', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('3.e+20', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('.7', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('7.', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('3.e+20', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('parses floats with underscores', () => {
-	expect(parseValue('224_617.445_991_228', '', 0, false)).toBe(224617.445991228)
+	expect(parseValue('224_617.445_991_228', false, { toml: '', ptr: 0 })).toBe(224617.445991228)
 })
 
 it('handles signed zero floating-point TOML values', () => {
-	expect(parseValue('+0.0', '', 0, false)).toBe(+0)
-	expect(parseValue('-0.0', '', 0, false)).toBe(-0)
+	expect(parseValue('+0.0', false, { toml: '', ptr: 0 })).toBe(+0)
+	expect(parseValue('-0.0', false, { toml: '', ptr: 0 })).toBe(-0)
 })
 
 it('handles signed zero integer TOML values', () => {
-	expect(parseValue('+0', '', 0, false)).toBe(parseValue('-0', '', 0, false))
-	expect(parseValue('+0', '', 0, true)).toBe(parseValue('-0', '', 0, true))
+	expect(parseValue('+0', false, { toml: '', ptr: 0 })).toBe(parseValue('-0', false, { toml: '', ptr: 0 }))
+	expect(parseValue('+0', true, { toml: '', ptr: 0 })).toBe(parseValue('-0', true, { toml: '', ptr: 0 }))
 })
 
 it('parses infinity', () => {
-	expect(parseValue('inf', '', 0, false)).toBe(Infinity)
-	expect(parseValue('+inf', '', 0, false)).toBe(Infinity)
-	expect(parseValue('-inf', '', 0, false)).toBe(-Infinity)
+	expect(parseValue('inf', false, { toml: '', ptr: 0 })).toBe(Infinity)
+	expect(parseValue('+inf', false, { toml: '', ptr: 0 })).toBe(Infinity)
+	expect(parseValue('-inf', false, { toml: '', ptr: 0 })).toBe(-Infinity)
 
-	expect(() => parseValue('Inf', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('Infinity', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('Inf', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('Infinity', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('parses not a number', () => {
-	expect(parseValue('nan', '', 0, false)).toBe(NaN)
-	expect(parseValue('+nan', '', 0, false)).toBe(NaN)
-	expect(parseValue('-nan', '', 0, false)).toBe(NaN)
+	expect(parseValue('nan', false, { toml: '', ptr: 0 })).toBe(NaN)
+	expect(parseValue('+nan', false, { toml: '', ptr: 0 })).toBe(NaN)
+	expect(parseValue('-nan', false, { toml: '', ptr: 0 })).toBe(NaN)
 
-	expect(() => parseValue('NaN', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('NaN', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('parses booleans', () => {
-	expect(parseValue('true', '', 0, false)).toBe(true)
-	expect(parseValue('false', '', 0, false)).toBe(false)
+	expect(parseValue('true', false, { toml: '', ptr: 0 })).toBe(true)
+	expect(parseValue('false', false, { toml: '', ptr: 0 })).toBe(false)
 
-	expect(() => parseValue('True', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('True', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('parses datetimes', () => {
-	expect(parseValue('1979-05-27T07:32:00', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00'))
-	expect(parseValue('1979-05-27T00:32:00.999999', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999'))
-	expect(parseValue('1979-05-27T07:32:00Z', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
-	expect(parseValue('1979-05-27T00:32:00-07:00', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
-	expect(parseValue('1979-05-27T00:32:00.999999-07:00', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999-07:00'))
-	expect(parseValue('1979-05-27T07:32', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00'))
-	expect(parseValue('1979-05-27T07:32Z', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
-	expect(parseValue('1979-05-27T00:32-07:00', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
+	expect(parseValue('1979-05-27T07:32:00', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T07:32:00'))
+	expect(parseValue('1979-05-27T00:32:00.999999', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999'))
+	expect(parseValue('1979-05-27T07:32:00Z', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27T00:32:00-07:00', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
+	expect(parseValue('1979-05-27T00:32:00.999999-07:00', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T00:32:00.999999-07:00'))
+	expect(parseValue('1979-05-27T07:32', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T07:32:00'))
+	expect(parseValue('1979-05-27T07:32Z', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27T00:32-07:00', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T00:32:00-07:00'))
 })
 
 it('parses datetimes with a space instead of T', () => {
-	expect(parseValue('1979-05-27 07:32:00Z', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27 07:32:00Z', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
 })
 
 it('parses datetimes with lowercase T', () => {
-	expect(parseValue('1979-05-27t07:32:00Z', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
+	expect(parseValue('1979-05-27t07:32:00Z', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27T07:32:00Z'))
 })
 
 it('parses dates', () => {
-	expect(parseValue('1979-05-27', '', 0, false)).toStrictEqual(new TomlDate('1979-05-27'))
+	expect(parseValue('1979-05-27', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('1979-05-27'))
 })
 
 it('parses times', () => {
-	expect(parseValue('07:32:00', '', 0, false)).toStrictEqual(new TomlDate('07:32:00'))
-	expect(parseValue('00:32:00.999999', '', 0, false)).toStrictEqual(new TomlDate('00:32:00.999999'))
-	expect(parseValue('07:32', '', 0, false)).toStrictEqual(new TomlDate('07:32:00'))
+	expect(parseValue('07:32:00', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('07:32:00'))
+	expect(parseValue('00:32:00.999999', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('00:32:00.999999'))
+	expect(parseValue('07:32', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('07:32:00'))
 })
 
 it('rejects invalid dates', () => {
-	expect(() => parseValue('07:3:00', '', 0, false)).toThrow(TomlError)
-	expect(() => parseValue('27-05-1979', '', 0, false)).toThrow(TomlError)
+	expect(() => parseValue('07:3:00', false, { toml: '', ptr: 0 })).toThrow(TomlError)
+	expect(() => parseValue('27-05-1979', false, { toml: '', ptr: 0 })).toThrow(TomlError)
 })
 
 it('handles extreme datetimes', () => {
-	expect(parseValue('0001-01-01 00:00:00Z', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00Z'))
-	expect(parseValue('0001-01-01 00:00:00', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
-	expect(parseValue('0001-01-01 00:00Z', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
-	expect(parseValue('0001-01-01 00:00', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
-	expect(parseValue('0001-01-01', '', 0, false)).toStrictEqual(new TomlDate('0001-01-01'))
+	expect(parseValue('0001-01-01 00:00:00Z', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('0001-01-01 00:00:00Z'))
+	expect(parseValue('0001-01-01 00:00:00', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
+	expect(parseValue('0001-01-01 00:00Z', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
+	expect(parseValue('0001-01-01 00:00', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('0001-01-01 00:00:00'))
+	expect(parseValue('0001-01-01', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('0001-01-01'))
 
-	expect(parseValue('9999-12-31 23:59:59Z', '', 0, false)).toStrictEqual(new TomlDate('9999-12-31 23:59:59Z'))
-	expect(parseValue('9999-12-31 23:59:59', '', 0, false)).toStrictEqual(new TomlDate('9999-12-31 23:59:59'))
-	expect(parseValue('9999-12-31', '', 0, false)).toStrictEqual(new TomlDate('9999-12-31'))
+	expect(parseValue('9999-12-31 23:59:59Z', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('9999-12-31 23:59:59Z'))
+	expect(parseValue('9999-12-31 23:59:59', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('9999-12-31 23:59:59'))
+	expect(parseValue('9999-12-31', false, { toml: '', ptr: 0 })).toStrictEqual(new TomlDate('9999-12-31'))
 })
