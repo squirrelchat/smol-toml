@@ -99,6 +99,15 @@ nan = nan
 	expect(stringify(obj, { numbersAsFloat: true })).toBe(expected)
 })
 
+it('stringifies negative zero as a float, preserving the sign', () => {
+	const expected = `
+a = -0.0
+`.trimStart()
+
+	expect(stringify({ a: -0 })).toBe(expected)
+	expect(stringify({ a: -0 }, { numbersAsFloat: true })).toBe(expected)
+})
+
 it('stringifies dates properly', () => {
 	const expected = `
 date1 = 1979-05-27T07:32:00.000-08:00

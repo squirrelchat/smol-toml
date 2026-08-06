@@ -60,6 +60,7 @@ function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFlo
 		if (isNaN(val)) return 'nan'
 		if (val === Infinity) return 'inf'
 		if (val === -Infinity) return '-inf'
+		if (Object.is(val, -0)) return '-0.0'
 		if (Number.isInteger(val) && (numberAsFloat || !Number.isSafeInteger(val))) return val.toFixed(1)
 		return val.toString()
 	}
