@@ -27,10 +27,10 @@
  */
 
 import { it, expect } from 'vitest'
-import type { IntegersAsBigInt } from '../src/util.js'
-import { parseValue as _parseValue } from '../src/primitive.js'
-import { TomlError } from '../src/error.js'
-import { TomlDate } from '../src/date.js'
+import type { IntegersAsBigInt } from '../src/util.ts'
+import { parseValue as _parseValue } from '../src/primitive.ts'
+import { TomlError } from '../src/error.ts'
+import { TomlDate } from '../src/date.ts'
 
 function parseValue(str: string, iab: IntegersAsBigInt) {
 	return _parseValue({ s: str, p: 0, d: 0 }, iab, undefined)

@@ -27,8 +27,8 @@
  */
 
 import { it, expect } from 'vitest'
-import { extractValue } from '../src/extract.js'
-import { TomlError } from '../src/error.js'
+import { extractValue } from '../src/extract.ts'
+import { TomlError } from '../src/error.ts'
 
 it('parses booleans', () => {
 	expect(extractValue({ s: 'true', p: 0, d: 0 }, undefined, false)).toBe(true)

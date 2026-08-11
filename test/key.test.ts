@@ -27,8 +27,8 @@
  */
 
 import { it, expect } from 'vitest'
-import { parseKey } from '../src/struct.js'
-import { TomlError } from '../src/error.js'
+import { parseKey } from '../src/struct.ts'
+import { TomlError } from '../src/error.ts'
 
 it('parses simple keys', () => {
 	{

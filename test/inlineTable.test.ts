@@ -27,8 +27,8 @@
  */
 
 import { it, expect } from 'vitest'
-import { parseInlineTable } from '../src/struct.js'
-import { TomlError } from '../src/error.js'
+import { parseInlineTable } from '../src/struct.ts'
+import { TomlError } from '../src/error.ts'
 
 it('parses inline tables', () => {
 	{

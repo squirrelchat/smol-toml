@@ -27,7 +27,7 @@
  */
 
 import { it, describe, expect } from 'vitest'
-import { TomlError } from '../src/error.js'
+import { TomlError } from '../src/error.ts'
 
 it('correctly converts pointer to line/column', () => {
 	const err1 = new TomlError('unexpected woof!!', {

@@ -119,6 +119,32 @@ date5 = 1979-05-27T15:32:00.000Z
 	expect(stringify(obj)).toBe(expected)
 })
 
+it.skipIf(!globalThis.Temporal)('stringifies Temporal values properly', () => {
+		const expected = `
+zonedDateTime = 1979-05-27T07:32:00+09:00
+offsetDateTime = 1979-05-27T07:32:00+09:00
+localDateTime = 1979-05-27T07:32:00
+localDate = 1979-05-27
+localTime = 07:32:00
+instant = 1979-05-26T22:32:00Z
+`.trimStart()
+
+	const obj = {
+		zonedDateTime: Temporal.ZonedDateTime.from({
+			year: 1979, month: 5, day: 27,
+			hour: 7, minute: 32, second: 0,
+			timeZone: "Asia/Tokyo",
+		}),
+		offsetDateTime: Temporal.ZonedDateTime.from("1979-05-27T07:32:00[+09:00]"),
+		localDateTime: Temporal.PlainDateTime.from("1979-05-27T07:32:00"),
+		localDate: Temporal.PlainDate.from("1979-05-27"),
+		localTime: Temporal.PlainTime.from("07:32:00"),
+		instant: Temporal.Instant.from("1979-05-27T07:32:00+09:00"),
+	}
+
+	expect(stringify(obj)).toBe(expected)
+})
+
 it('stringifies arrays', () => {
 	const expected = `
 a = [ 10, 20, "30", false ]

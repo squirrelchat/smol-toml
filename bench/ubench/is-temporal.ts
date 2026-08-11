@@ -26,22 +26,63 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { expect, it } from 'vitest'
-import { TomlDate } from '../src/date.ts'
+import { bench, do_not_optimize, run, summary } from 'mitata'
 
-it('does properly handle date offsets', () => {
-	expect(new TomlDate('1979-05-27T07:32:00-08:00')).toEqual(new Date('1979-05-27T07:32:00-08:00'))
-	expect(new TomlDate('1979-05-27T07:32:00-08:00')).toEqual(new TomlDate('1979-05-27T08:32:00-07:00'))
-	expect(new TomlDate('1979-05-27T07:32:00-08:00')).toEqual(new Date('1979-05-27T08:32:00-07:00'))
-	expect(new TomlDate('1979-05-27T07:32:00-08:00')).not.toEqual(new Date('1979-05-27T07:32:00-07:00'))
-})
+summary(() => {
+	bench('instanceof without gate', function* () {
+		yield {
+			[0]() {
+				return 'test value' + Math.random()
+			},
+			bench(val: any) {
+				return do_not_optimize(
+					val instanceof Temporal.Instant ||
+						val instanceof Temporal.PlainDate ||
+						val instanceof Temporal.PlainDateTime ||
+						val instanceof Temporal.PlainTime ||
+						val instanceof Temporal.ZonedDateTime,
+				);
+			},
+		};
+	});
 
-it('handles extreme datetimes', () => {
-	expect(new TomlDate('0001-01-01 00:00:00Z').toISOString()).toBe('0001-01-01T00:00:00.000Z')
-	expect(new TomlDate('0001-01-01 00:00:00').toISOString()).toBe('0001-01-01T00:00:00.000')
-	expect(new TomlDate('0001-01-01').toISOString()).toBe('0001-01-01')
+	bench('instanceof with gate (truthy)', function* () {
+		yield {
+			[0]() {
+				return 'test value' + Math.random()
+			},
+			bench(val: any) {
+				return do_not_optimize(
+					val.since && (
+						val instanceof Temporal.Instant ||
+						val instanceof Temporal.PlainDate ||
+						val instanceof Temporal.PlainDateTime ||
+						val instanceof Temporal.PlainTime ||
+						val instanceof Temporal.ZonedDateTime
+					),
+				);
+			},
+		};
+	});
 
-	expect(new TomlDate('9999-12-31 23:59:59Z').toISOString()).toBe('9999-12-31T23:59:59.000Z')
-	expect(new TomlDate('9999-12-31 23:59:59').toISOString()).toBe('9999-12-31T23:59:59.000')
-	expect(new TomlDate('9999-12-31').toISOString()).toBe('9999-12-31')
-})
+	bench('instanceof with gate (typeof is function)', function* () {
+		yield {
+			[0]() {
+				return 'test value' + Math.random()
+			},
+			bench(val: any) {
+				return do_not_optimize(
+					typeof val.since === 'function' && (
+						val instanceof Temporal.Instant ||
+						val instanceof Temporal.PlainDate ||
+						val instanceof Temporal.PlainDateTime ||
+						val instanceof Temporal.PlainTime ||
+						val instanceof Temporal.ZonedDateTime
+					),
+				);
+			},
+		};
+	});
+});
+
+await run();

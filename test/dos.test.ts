@@ -1,7 +1,7 @@
 import { it, expect } from 'vitest'
-import { parse } from '../src/parse.js'
-import { stringify } from '../src/stringify.js'
-import { TomlError } from '../src/error.js'
+import { parse } from '../src/parse.ts'
+import { stringify } from '../src/stringify.ts'
+import { TomlError } from '../src/error.ts'
 
 const EVIL_STRING = 'e=' + '{e='.repeat(9999) + '{}' + '}'.repeat(9999)
 const EVIL_OBJECT = JSON.parse('{"e":' + '{"e":'.repeat(9999) + '{}}' + '}'.repeat(9999))

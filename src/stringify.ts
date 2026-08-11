@@ -26,6 +26,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { AnyTemporalDateTime } from './util.ts'
+
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
 type ExtendedType = ReturnType<typeof extendedTypeOf>
@@ -34,6 +36,18 @@ function extendedTypeOf(obj: any) {
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
 		if (obj instanceof Date) return 'date'
+		if (
+			globalThis.Temporal &&
+			// check for the 'since' property as an early bailout that avoids running all 5 instanceof checks
+			typeof obj?.since === 'function' &&
+			(obj instanceof Temporal.Instant ||
+				obj instanceof Temporal.PlainDate ||
+				obj instanceof Temporal.PlainDateTime ||
+				obj instanceof Temporal.PlainTime ||
+				obj instanceof Temporal.ZonedDateTime)
+		) {
+			return 'temporal'
+		}
 	}
 
 	return type
@@ -51,41 +65,44 @@ function formatString(s: string) {
 	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
 }
 
+function stringifyTemporal(temporal: AnyTemporalDateTime) {
+	return temporal.toString({
+		calendarName: 'never',
+		timeZoneName: 'never',
+	})
+}
+
 function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFloat: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}
 
-	if (type === 'number') {
-		if (isNaN(val)) return 'nan'
-		if (val === Infinity) return 'inf'
-		if (val === -Infinity) return '-inf'
-		if (Number.isInteger(val) && (numberAsFloat || !Number.isSafeInteger(val))) return val.toFixed(1)
-		return val.toString()
-	}
+	switch (type) {
+		// @ts-expect-error -- intentional fallthrough case
+		case 'number':
+			if (isNaN(val)) return 'nan'
+			if (val === Infinity) return 'inf'
+			if (val === -Infinity) return '-inf'
+			if (Number.isInteger(val) && (numberAsFloat || !Number.isSafeInteger(val))) return val.toFixed(1)
+		case 'bigint':
+		case 'boolean':
+			return val.toString()
 
-	if (type === 'bigint' || type === 'boolean') {
-		return val.toString()
-	}
+		case 'string':
+			return formatString(val)
 
-	if (type === 'string') {
-		return formatString(val)
-	}
+		case 'date':
+			if (isNaN(val.getTime())) throw new TypeError('cannot serialize invalid date')
+			return val.toISOString()
 
-	if (type === 'date') {
-		if (isNaN(val.getTime())) {
-			throw new TypeError('cannot serialize invalid date')
-		}
+		case 'object':
+			return stringifyInlineTable(val, depth, numberAsFloat)
 
-		return val.toISOString()
-	}
+		case 'array':
+			return stringifyArray(val, depth, numberAsFloat)
 
-	if (type === 'object') {
-		return stringifyInlineTable(val, depth, numberAsFloat)
-	}
-
-	if (type === 'array') {
-		return stringifyArray(val, depth, numberAsFloat)
+		case 'temporal':
+			return stringifyTemporal(val)
 	}
 }
 

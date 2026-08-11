@@ -37,6 +37,7 @@
 	"devDependencies": {
 		"@mitata/counters": "^0.0.8",
 		"@tsconfig/node-lts": "^24.0.0",
+		"@tsconfig/node-ts": "^23.6.4",
 		"@tsconfig/strictest": "^2.0.8",
 		"@types/node": "^26.2.0",
 		"mitata": "^1.0.34",

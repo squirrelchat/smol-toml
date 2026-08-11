@@ -1,0 +1,30 @@
+{
+	"extends": [
+		"@tsconfig/node-lts",
+		"@tsconfig/node-ts",
+		"@tsconfig/strictest"
+	],
+	"compilerOptions": {
+		"composite": true,
+		"lib": [
+			// Copied from @tsconfig/node-lts
+			"es2024",
+			"ESNext.Array",
+			"ESNext.Collection",
+			"ESNext.Iterator",
+			"ESNext.Promise",
+			// -- Custom lib
+			"ESNext.Temporal"
+		],
+		"isolatedModules": false, // TODO: remove
+		"verbatimModuleSyntax": false, // TODO: remove
+		"preserveConstEnums": false, // TODO: remove
+		"erasableSyntaxOnly": false, // TODO: remove
+		"declaration": true,
+		"stripInternal": true,
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"types": ["node"],
+	},
+	"include": ["src"],
+}

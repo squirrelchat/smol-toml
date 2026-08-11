@@ -26,9 +26,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { ParseContext } from './parse.ts'
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
-import { ParseContext } from './parse.ts'
 import { skipComment, skipUntil, type IntegersAsBigInt } from './util.ts'
 
 // let CTRL_REGEX = /[\x00-\x08\x0f-\x1f\x7f]/

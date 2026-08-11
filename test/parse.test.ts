@@ -27,8 +27,8 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { parse } from '../src/parse.js'
-import { TomlError } from '../src/error.js'
+import { parse } from '../src/parse.ts'
+import { TomlError } from '../src/error.ts'
 
 it('parses a simple key-value', () => {
 	expect(parse('key = "value"')).toStrictEqual({ key: 'value' })

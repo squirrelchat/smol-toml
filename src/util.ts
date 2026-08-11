@@ -40,6 +40,14 @@ export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
 /** @internal */
+export type AnyTemporalDateTime =
+	| Temporal.Instant
+	| Temporal.PlainDate
+	| Temporal.PlainDateTime
+	| Temporal.PlainTime
+	| Temporal.ZonedDateTime
+
+/** @internal */
 export function indexOfNewline(str: string, start = 0) {
 	let idx = str.indexOf('\n', start)
 	if (str.charCodeAt(idx - 1) === 0xd /* \r */) idx--

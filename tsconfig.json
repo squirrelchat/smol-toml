@@ -1,16 +1,6 @@
 {
-	"extends": ["@tsconfig/strictest/tsconfig.json", "@tsconfig/node-lts/tsconfig.json"],
-	"compilerOptions": {
-		"isolatedModules": false, // TODO: remove
-		"preserveConstEnums": false, // TODO: remove
-		// "erasableSyntaxOnly": true, TODO: enable
-		"allowImportingTsExtensions": true,
-		"rewriteRelativeImportExtensions": true,
-		"declaration": true,
-		"stripInternal": true,
-		"rootDir": "./src",
-		"outDir": "./dist",
-		"types": ["node"],
-	},
-	"include": ["src"],
+	"references": [
+		{ "path": "./tsconfig.lib.json" },
+		{ "path": "./tsconfig.test.json" },
+	],
 }

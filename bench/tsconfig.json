@@ -1,0 +1,13 @@
+{
+	"extends": [
+		"@tsconfig/node-lts",
+		"@tsconfig/node-ts",
+		"@tsconfig/strictest"
+	],
+	"compilerOptions": {
+		"lib": ["ESNext"],
+		"noEmit": true,
+		"rootDir": ".",
+		"types": ["node"],
+	},
+}

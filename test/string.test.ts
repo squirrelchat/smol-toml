@@ -27,8 +27,8 @@
  */
 
 import { it, expect } from 'vitest'
-import { parseString as _parseString } from '../src/primitive.js'
-import { TomlError } from '../src/error.js'
+import { parseString as _parseString } from '../src/primitive.ts'
+import { TomlError } from '../src/error.ts'
 
 function parseString(str: string, ptr: number) {
 	const ctx = { s: str, p: ptr, d: 10 }

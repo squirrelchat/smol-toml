@@ -27,7 +27,7 @@
  */
 
 import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid, skipUntil } from '../src/util.js'
+import { indexOfNewline, skipVoid, skipUntil } from '../src/util.ts'
 
 it('gives the index of next line', () => {
 	expect(indexOfNewline('test\n')).toBe(4)

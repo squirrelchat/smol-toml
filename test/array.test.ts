@@ -27,8 +27,8 @@
  */
 
 import { it, expect } from 'vitest'
-import { parseArray } from '../src/struct.js'
-import { TomlError } from '../src/error.js'
+import { parseArray } from '../src/struct.ts'
+import { TomlError } from '../src/error.ts'
 
 it('parses arrays', () => {
 	{

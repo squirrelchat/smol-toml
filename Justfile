@@ -19,7 +19,7 @@ _clean_dts:
 	}
 
 build:
-	tsc
+	tsc --build tsconfig.lib.json
 	just _clean_dts
 	rolldown src/index.ts -p node -f cjs -o dist/index.cjs --strict --exports named --no-comments.legal --banner "`head -n27 src/index.ts`"
 	node test/package/package-test.mjs

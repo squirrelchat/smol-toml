@@ -65,7 +65,7 @@ export class TomlError extends Error {
 	column: number
 	codeblock: string
 
-	constructor(message: string, /** @internal */ public options: TomlErrorOptions) {
+	constructor(message: string, options: TomlErrorOptions) {
 		const [line, column] = getLineColFromPtr(options.toml, options.ptr)
 		const codeblock = makeCodeBlock(options.toml, line, column)
 

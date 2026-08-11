@@ -213,6 +213,9 @@ importers:
       '@tsconfig/node-lts':
         specifier: ^24.0.0
         version: 24.0.0
+      '@tsconfig/node-ts':
+        specifier: ^23.6.4
+        version: 23.6.4
       '@tsconfig/strictest':
         specifier: ^2.0.8
         version: 2.0.8
@@ -718,6 +721,9 @@ packages:
 
   '@tsconfig/node-lts@24.0.0':
     resolution: {integrity: sha512-8mSTqWwCd6aQpvxSrpQlMoA9RiUZSs7bYhL5qsLXIIaN9HQaINeoydrRu/Y7/fws4bvfuyhs0BRnW9/NI8tySg==}
+
+  '@tsconfig/node-ts@23.6.4':
+    resolution: {integrity: sha512-37BMJvNQZ+vTgd1xG2TGBkJ6ENeT4eO4Wh2CHrnn0IwH7ybLFCzh4Uc//kc7UIvqiRac4uGdIc1meKOjMSlKzw==}
 
   '@tsconfig/strictest@2.0.8':
     resolution: {integrity: sha512-XnQ7vNz5HRN0r88GYf1J9JJjqtZPiHt2woGJOo2dYqyHGGcd6OLGqSlBB6p1j9mpzja6Oe5BoPqWmeDx6X9rLw==}
@@ -1552,6 +1558,8 @@ snapshots:
   '@standard-schema/spec@1.1.0': {}
 
   '@tsconfig/node-lts@24.0.0': {}
+
+  '@tsconfig/node-ts@23.6.4': {}
 
   '@tsconfig/strictest@2.0.8': {}
 
