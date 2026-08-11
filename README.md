@@ -66,7 +66,7 @@ A few notes on the `stringify` function:
 - By default, floats will be serialized as integers if they don't have a decimal part. See [Integers](#integers)
   - `stringify(parse('a = 1.0')) === 'a = 1'`
 - JS `Date` will be serialized as Offset Date Time
-  - Use the [`TomlDate` object](#dates) for representing other types.
+  - Use the [Temporal API] for representing other types (or alternatively the legacy [`TomlDate` object](#dates)).
 
 ### Integers
 When parsing, both integers and floats are read as plain JavaScript numbers, which essentially are floats. This means
@@ -101,8 +101,22 @@ const toml = stringify(obj, { numbersAsFloat: true })
 ```
 
 ### Dates
-`smol-toml` uses an extended `Date` object to represent all types of TOML Dates. In the future, `smol-toml` will use
-objects from the Temporal proposal, but for now we're stuck with the legacy Date object.
+`smol-toml` uses an extended `Date` object to represent all types of TOML Dates. In the future, `smol-toml` will emit
+objects from the Temporal API, but for now it only supports `Date` when parsing. When stringifying, `smol-toml` does
+support objects from the [Temporal API] and will output the appropriate TOML type.
+
+> [!IMPORTANT]
+> If you create a `ZonedDateTime` with a timezone, it will be turned into an offset date-time; losing its precise timezone.
+>
+> For instance, if you create one with the timezone `Europe/Paris`, it'll be turned into an offset date-time `+02:00`
+> or `+01:00`, depending on the offset observed at the instant referred to by the date-time.
+>
+> ```js
+> Temporal.ZonedDateTime.from({ year: 2001, month: 9, day: 21, hour: 10, minute: 17, second: 0, timeZone: 'Europe/Paris' }).toString({ timeZoneName: 'never' })
+> // 2001-09-21T10:17:00+02:00
+> Temporal.ZonedDateTime.from({ year: 2012, month: 3, day: 19, hour: 8, minute: 0, second: 0, timeZone: 'Europe/Paris' }).toString({ timeZoneName: 'never' })
+> // 2012-03-19T08:00:00+01:00
+> ```
 
 ```js
 import { TomlDate } from 'smol-toml'
@@ -400,3 +414,5 @@ summary
 ```
 
 </details>
+
+[Temporal API]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Temporal
