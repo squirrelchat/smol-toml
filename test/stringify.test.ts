@@ -391,3 +391,15 @@ it('rejects functions and symbols', () => {
 it('rejects invalid dates', () => {
 	expect(() => stringify({ a: new Date('Invalid Date') })).toThrow(TypeError)
 })
+
+it('rejects strings containing lone surrogates', () => {
+	// JSON.stringify emits a lone surrogate as a \uXXXX escape, which is not a
+	// valid Unicode scalar value and which the parser rejects, so stringifying
+	// one would otherwise produce a document that cannot be parsed back.
+	expect(() => stringify({ a: '\ud800' })).toThrow(TypeError)
+	expect(() => stringify({ a: 'a\udfffb' })).toThrow(TypeError)
+	expect(() => stringify({ '\ud834': 'a' })).toThrow(TypeError)
+
+	// A valid surrogate pair is a scalar value and must still be serialized.
+	expect(() => stringify({ a: '𝄞' })).not.toThrow()
+})
