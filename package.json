@@ -1,6 +1,6 @@
 {
 	"name": "smol-toml",
-	"version": "1.7.1",
+	"version": "1.7.2",
 	"description": "A small, fast, and correct TOML parser/serializer",
 	"keywords": [
 		"parser",
