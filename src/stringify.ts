@@ -35,7 +35,7 @@ function extendedTypeOf(obj: any) {
 	let type = typeof obj
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
-		if (obj instanceof Date) return 'date'
+		if (typeof obj?.getUTCDate === 'function' && obj instanceof Date) return 'date'
 		if (
 			globalThis.Temporal &&
 			// check for the 'since' property as an early bailout that avoids running all 5 instanceof checks

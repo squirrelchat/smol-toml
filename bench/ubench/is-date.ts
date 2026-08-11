@@ -36,11 +36,7 @@ summary(() => {
 			},
 			bench(val: any) {
 				return do_not_optimize(
-					val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime,
+					val instanceof Date,
 				)
 			},
 		}
@@ -53,13 +49,7 @@ summary(() => {
 			},
 			bench(val: any) {
 				return do_not_optimize(
-					val.since && (
-						val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime
-					),
+					val.getUTCDate && val instanceof Date,
 				)
 			},
 		}
@@ -72,13 +62,7 @@ summary(() => {
 			},
 			bench(val: any) {
 				return do_not_optimize(
-					typeof val.since === 'function' && (
-						val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime
-					),
+					typeof val.getUTCDate === 'function' && val instanceof Date,
 				)
 			},
 		}
@@ -91,13 +75,7 @@ summary(() => {
 			},
 			bench(val: any) {
 				return do_not_optimize(
-					'since' in val && (
-						val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime
-					),
+					'getUTCDate' in val && val instanceof Date,
 				)
 			},
 		}
