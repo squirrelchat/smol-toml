@@ -95,10 +95,7 @@ export function skipUntil(ctx: ParseContext, sep: number, end?: number | undefin
 		let c = ctx.s.charCodeAt(ctx.p)
 		if (c === 0x23 /* # */) {
 			skipComment(ctx)
-		} else if (c === sep) {
-			ctx.p++
-			return
-		} if (c === end) {
+		} else if (c === end || c === sep) {
 			return
 		}
 	}

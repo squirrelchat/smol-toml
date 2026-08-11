@@ -28,22 +28,30 @@
 
 import { it, expect } from 'vitest'
 import { extractValue } from '../src/extract.js'
+import { TomlError } from '../src/error.js'
+
+it('parses booleans', () => {
+	expect(extractValue({ s: 'true', p: 0, d: 0 }, undefined, false)).toBe(true)
+	expect(extractValue({ s: 'false', p: 0, d: 0 }, undefined, false)).toBe(false)
+
+	expect(() => extractValue({ s: 'True', p: 0, d: 0 }, undefined, false)).toThrow(TomlError)
+})
 
 it('extracts value of correct type', () => {
 	{
 		const ctx = { s: '[ 1, 2 ]', p: 2, d: 10 }
 		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual(1)
-		expect(ctx.p).toBe(4)
+		expect(ctx.p).toBe(3)
 	}
 	{
 		const ctx = { s: '[ "uwu", 2 ]', p: 2, d: 10 }
 		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual('uwu')
-		expect(ctx.p).toBe(8)
+		expect(ctx.p).toBe(7)
 	}
 	{
 		const ctx = { s: '[ {}, 2 ]', p: 2, d: 10 }
 		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual({})
-		expect(ctx.p).toBe(5)
+		expect(ctx.p).toBe(4)
 	}
 	{
 		const ctx = { s: '[ 2 ]', p: 2, d: 10 }

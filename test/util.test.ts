@@ -100,13 +100,13 @@ it('skips until the next valuable token', () => {
 	{
 		const ctx = { s: '[ 3, 4, ]', p: 1, d: 10 }
 		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
-		expect(ctx.p).toBe(4)
+		expect(ctx.p).toBe(3)
 	}
 
 	{
 		const ctx = { s: '[ 3, 4, ]', p: 4, d: 10 }
 		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
-		expect(ctx.p).toBe(7)
+		expect(ctx.p).toBe(6)
 	}
 
 	{
@@ -114,7 +114,6 @@ it('skips until the next valuable token', () => {
 		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
 		expect(ctx.p).toBe(8)
 	}
-
 
 	{
 		const ctx = { s: '[ [ 1, 2 ], [ 3, 4 ] ]', p: 6, d: 10 }

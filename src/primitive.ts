@@ -29,6 +29,7 @@
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 import { ParseContext } from './parse.ts'
+import { skipComment, skipUntil } from './util.ts'
 
 // let CTRL_REGEX = /[\x00-\x08\x0f-\x1f\x7f]/
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
@@ -37,8 +38,8 @@ let LEADING_ZERO = /^[+-]?0[0-9_]/
 
 /** @internal */
 export function parseString(ctx: ParseContext): string {
-	let c = ctx.s.charCodeAt(ctx.p++)
 	let start = ctx.p
+	let c = ctx.s.charCodeAt(ctx.p++)
 	let first = c
 	let isLiteral = c === 0x27 /* ' */
 	let isMultiline = c === ctx.s.charCodeAt(ctx.p) && c === ctx.s.charCodeAt(ctx.p + 1)
@@ -191,11 +192,30 @@ export function parseString(ctx: ParseContext): string {
 
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
+function sliceAndTrimEndOf(ctx: ParseContext, start: number, end: number): string {
+	let value = ctx.s.slice(start, end)
+
+	let commentIdx = value.indexOf('#')
+	if (commentIdx > 0) {
+		// The call to skipComment allows to "validate" the comment
+		// (absence of control characters)
+		skipComment({ s: value, p: commentIdx, d: 0 })
+		value = value.slice(0, commentIdx)
+	}
+
+	return value.trimEnd()
+}
+
 /** @internal */
-export function parseValue(value: string, integersAsBigInt: IntegersAsBigInt, err: { toml: string, ptr: number }): boolean | number | bigint | TomlDate {
-	// Constant values
-	if (value === 'true') return true
-	if (value === 'false') return false
+export function parseValue(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, end: number | undefined): boolean | number | bigint | TomlDate {
+	let ptr = ctx.p
+	let err = { toml: ctx.s, ptr }
+
+	skipUntil(ctx, 0x2c /* , */, end)
+
+	let value = sliceAndTrimEndOf(ctx, ptr, ctx.p)
+	if (!value) throw new TomlError('incomplete declaration: value expected', err)
+
 	if (value === '-inf') return -Infinity
 	if (value === 'inf' || value === '+inf') return Infinity
 	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN

@@ -39,18 +39,18 @@
 		"@mitata/counters": "^0.0.8",
 		"@tsconfig/node-lts": "^24.0.0",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^26.1.1",
+		"@types/node": "^26.2.0",
 		"mitata": "^1.0.34",
 		"pin-github-action": "^3.5.1",
-		"rolldown": "^1.2.0",
+		"rolldown": "^1.2.3",
 		"typescript": "^7.0.2",
-		"vite": "^7.3.5",
+		"vite": "^7.3.6",
 		"vitest": "^4.1.10"
 	},
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
-			"version": "11.17.0",
+			"version": "11.21.0",
 			"onFail": "error"
 		},
 		"runtime": {

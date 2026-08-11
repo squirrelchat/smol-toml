@@ -29,7 +29,7 @@
 import type { ParseContext } from './parse.ts'
 import { type IntegersAsBigInt, parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { indexOfNewline, skipComment, skipVoid, type TomlTable, type TomlValue } from './util.js'
+import { indexOfNewline, skipVoid, type TomlTable, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
@@ -121,57 +121,59 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 	let c: number
 
 	ctx.p++
-	while ((c = ctx.s.charCodeAt(ctx.p++)) !== 0x7d /* } */ && !isNaN(c)) {
-		if (c === 0x2c /* , */) {
-			throw new TomlError('expected value, found comma', {
-				toml: ctx.s,
-				ptr: ctx.p - 1,
-			})
-		} else if (c === 0x23 /* # */) {
-			skipComment(ctx)
-		} else if (c !== 0x20 && c !== 0x9 /* \t */ && c !== 0xa /* \n */ && c !== 0xd /* \r */) {
-			let k: string
-			let t: any = res
-			let hasOwn = false
-			let p = ctx.p--
+	while (ctx.p < ctx.s.length) {
+		skipVoid(ctx)
+		if ((c = ctx.s.charCodeAt(ctx.p)) === 0x7d /* } */) {
+			ctx.p++
+			return res
+		}
 
-			let key = parseKey(ctx)
-			for (let i = 0; i < key.length; i++) {
-				if (i) t = hasOwn! ? t[k!] : (t[k!] = {})
+		let k: string
+		let t: any = res
+		let hasOwn = false
+		let p = ctx.p
 
-				k = key[i]!
-				if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
-					throw new TomlError('trying to redefine an already defined value', {
-						toml: ctx.s,
-						ptr: p,
-					})
-				}
+		let key = parseKey(ctx)
+		for (let i = 0; i < key.length; i++) {
+			if (i) t = hasOwn! ? t[k!] : (t[k!] = {})
 
-				if (!hasOwn && k === '__proto__') {
-					Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
-				}
-			}
-
-			if (hasOwn) {
+			k = key[i]!
+			if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
 				throw new TomlError('trying to redefine an already defined value', {
 					toml: ctx.s,
-					ptr: ctx.p,
+					ptr: p,
 				})
 			}
 
-			let value = extractValue(ctx, 0x7d /* } */, integersAsBigInt)
-			seen.add(t[k!] = value)
+			if (!hasOwn && k === '__proto__') {
+				Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
+			}
+		}
+
+		if (hasOwn) {
+			throw new TomlError('trying to redefine an already defined value', {
+				toml: ctx.s,
+				ptr: ctx.p,
+			})
+		}
+
+		let value = extractValue(ctx, 0x7d /* } */, integersAsBigInt)
+		seen.add(t[k!] = value)
+
+		skipVoid(ctx)
+		if ((c = ctx.s.charCodeAt(ctx.p++)) === 0x7d /* } */) {
+			return res
+		}
+
+		if (c !== 0x2c /* , */) {
+			throw new TomlError('expected comma or end of structure', { toml: ctx.s, ptr: ctx.p - 1 })
 		}
 	}
 
-	if (isNaN(c)) {
-		throw new TomlError('unfinished table encountered', {
-			toml: ctx.s,
-			ptr: ctx.p,
-		})
-	}
-
-	return res
+	throw new TomlError('unfinished table encountered', {
+		toml: ctx.s,
+		ptr: ctx.p,
+	})
 }
 
 /** @internal */
@@ -180,26 +182,27 @@ export function parseArray(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt
 	let c
 
 	ctx.p++
-	while ((c = ctx.s.charCodeAt(ctx.p++)) !== 0x5d /* ] */ && !isNaN(c)) {
-		if (c === 0x2c /* , */) {
-			throw new TomlError('expected value, found comma', {
-				toml: ctx.s,
-				ptr: ctx.p,
-			})
-		} else if (c === 0x23 /* # */) {
-			skipComment(ctx)
-		} else if (c !== 0x20 && c !== 0x9 /* \t */ && c !== 0xa /* \n */ && c !== 0xd /* \r */) {
-			ctx.p--
-			res.push(extractValue(ctx, 0x5d /* ] */, integersAsBigInt))
+	while (ctx.p < ctx.s.length) {
+		skipVoid(ctx)
+		if ((c = ctx.s.charCodeAt(ctx.p)) === 0x5d /* ] */) {
+			ctx.p++
+			return res
+		}
+
+		res.push(extractValue(ctx, 0x5d /* ] */, integersAsBigInt))
+
+		skipVoid(ctx)
+		if ((c = ctx.s.charCodeAt(ctx.p++)) === 0x5d /* ] */) {
+			return res
+		}
+
+		if (c !== 0x2c /* , */) {
+			throw new TomlError('expected comma or end of structure', { toml: ctx.s, ptr: ctx.p - 1 })
 		}
 	}
 
-	if (isNaN(c)) {
-		throw new TomlError('unfinished array encountered', {
-			toml: ctx.s,
-			ptr: ctx.p,
-		})
-	}
-
-	return res
+	throw new TomlError('unfinished array encountered', {
+		toml: ctx.s,
+		ptr: ctx.p,
+	})
 }
