@@ -6,9 +6,7 @@
 		// "erasableSyntaxOnly": true, TODO: enable
 		"allowImportingTsExtensions": true,
 		"rewriteRelativeImportExtensions": true,
-		"sourceMap": true,
 		"declaration": true,
-		"declarationMap": true,
 		"stripInternal": true,
 		"rootDir": "./src",
 		"outDir": "./dist",

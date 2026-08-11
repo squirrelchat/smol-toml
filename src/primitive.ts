@@ -29,7 +29,7 @@
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 import { ParseContext } from './parse.ts'
-import { skipComment, skipUntil } from './util.ts'
+import { skipComment, skipUntil, type IntegersAsBigInt } from './util.ts'
 
 // let CTRL_REGEX = /[\x00-\x08\x0f-\x1f\x7f]/
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
@@ -189,8 +189,6 @@ export function parseString(ctx: ParseContext): string {
 
 	throw new TomlError('unfinished string', { toml: ctx.s, ptr: start })
 }
-
-export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
 function sliceAndTrimEndOf(ctx: ParseContext, start: number, end: number): string {
 	let value = ctx.s.slice(start, end)

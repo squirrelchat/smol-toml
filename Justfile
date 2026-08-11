@@ -14,7 +14,6 @@ _clean_dts:
 		if (dts.split('\n')[27] === 'export {};') {
 			await Promise.all([
 				unlink(`dist/${file}`),
-				unlink(`dist/${file}.map`),
 			])
 		}
 	}
@@ -22,7 +21,7 @@ _clean_dts:
 build:
 	tsc
 	just _clean_dts
-	rolldown src/index.ts -p node -f cjs -o dist/index.cjs -s --sourcemap-exclude-sources --strict --exports named --no-comments.legal --banner "`head -n27 src/index.ts`"
+	rolldown src/index.ts -p node -f cjs -o dist/index.cjs --strict --exports named --no-comments.legal --banner "`head -n27 src/index.ts`"
 	node test/package/package-test.mjs
 
 publish: build

@@ -15,7 +15,6 @@
 	"files": [
 		"README.md",
 		"LICENSE",
-		"src",
 		"dist"
 	],
 	"type": "module",

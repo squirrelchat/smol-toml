@@ -26,10 +26,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { IntegersAsBigInt } from './primitive.js'
 import { parseKey } from './struct.js'
 import { extractValue } from './extract.js'
-import { skipVoid, type TomlTable, type TomlTableWithoutBigInt } from './util.js'
+import { skipVoid, type IntegersAsBigInt, type TomlTable, type TomlTableWithoutBigInt } from './util.js'
 import { TomlError } from './error.js'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }

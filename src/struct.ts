@@ -27,9 +27,9 @@
  */
 
 import type { ParseContext } from './parse.ts'
-import { type IntegersAsBigInt, parseString } from './primitive.js'
+import { parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { indexOfNewline, skipVoid, type TomlTable, type TomlValue } from './util.js'
+import { indexOfNewline, skipVoid, type IntegersAsBigInt, type TomlTable, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/

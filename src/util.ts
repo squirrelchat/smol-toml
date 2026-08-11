@@ -30,6 +30,8 @@ import type { ParseContext } from './parse.js'
 import type { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
+export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
+
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate
 export type TomlTable = { [key: string]: TomlValue }
 export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable

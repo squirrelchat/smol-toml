@@ -27,7 +27,8 @@
  */
 
 import { it, expect } from 'vitest'
-import { parseValue as _parseValue, type IntegersAsBigInt } from '../src/primitive.js'
+import type { IntegersAsBigInt } from '../src/util.js'
+import { parseValue as _parseValue } from '../src/primitive.js'
 import { TomlError } from '../src/error.js'
 import { TomlDate } from '../src/date.js'
 

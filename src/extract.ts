@@ -27,9 +27,9 @@
  */
 
 import type { ParseContext } from './parse.ts'
-import { type IntegersAsBigInt, parseString, parseValue } from './primitive.js'
+import type { IntegersAsBigInt, TomlValue } from './util.js'
+import { parseString, parseValue } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import type { TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
 /** @internal */
