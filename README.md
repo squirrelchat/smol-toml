@@ -154,15 +154,15 @@ While `fast-toml` is included as it's a challenging candidate, it takes a lot of
 but at the expense of correctness (it has significant defects and does not pass the TOML test suite). `smol-toml` is
 almost as fast, without sacrificing correctness. 😎
 
-| **Parse**      | smol-toml@1.7.0    | @iarna/toml@3.0.0 | @ltd/j-toml@1.38.0 | fast-toml@0.5.4 | @std/toml@1.0.11 | toml@4.1.1     | js-toml@1.1.2  | @decimalturn/toml-patch@2.0.0 |
-|----------------|--------------------|-------------------|--------------------|-----------------|------------------|----------------|----------------|-------------------------------|
-| Spec example   | **4.90 µs/iter**   | 12.36 µs/iter     | 33.17 µs/iter      | *4.80 µs/iter*  | 22.94 µs/iter    | 29.86 µs/iter  | 23.67 µs/iter  | 17.81 µs/iter                 |
-| ~5MB test file | **116.74 ms/iter** | *DNF*             | 198.57 ms/iter     | *93.51 ms/iter* | 429.91 ms/iter   | 415.92 ms/iter | 361.89 ms/iter | 176.94 ms/iter                |
+| **Parse**      | smol-toml@1.7.2    | @iarna/toml@3.0.0 | @ltd/j-toml@1.38.0 | fast-toml@0.5.4   | @std/toml@1.0.11 | toml@5.0.0     | js-toml@2.0.1  | @decimalturn/toml-patch@3.0.2 |
+|----------------|--------------------|-------------------|--------------------|-------------------|------------------|----------------|----------------|-------------------------------|
+| Spec example   | **4.16 µs/iter**   | 12.13 µs/iter     | 30.44 µs/iter      | 5.01 µs/iter      | 22.34 µs/iter    | 32.28 µs/iter  | 24.71 µs/iter  | 17.07 µs/iter                 |
+| ~5MB test file | *113.76 ms/iter*   | *DNF*             | 189.89 ms/iter     | **92.24 ms/iter** | 419.95 ms/iter   | 549.86 ms/iter | 336.03 ms/iter | 186.32 ms/iter                |
 
-| **Stringify**  | smol-toml@1.7.0    | @iarna/toml@3.0.0 | @ltd/j-toml@1.38.0 | fast-toml@0.5.4 | @std/toml@1.0.11 | toml@4.1.1     | js-toml@1.1.2  | @decimalturn/toml-patch@2.0.0 |
+| **Stringify**  | smol-toml@1.7.2    | @iarna/toml@3.0.0 | @ltd/j-toml@1.38.0 | fast-toml@0.5.4 | @std/toml@1.0.11 | toml@5.0.0     | js-toml@2.0.1  | @decimalturn/toml-patch@3.0.2 |
 |----------------|--------------------|-------------------|--------------------|-----------------|------------------|----------------|----------------|-------------------------------|
-| Spec example   | **2.24 µs/iter**   | 8.68 µs/iter      | 89.89 µs/iter      | N/A             | 3.86 µs/iter     | N/A            | 3.53 µs/iter   | N/A[^toml-patch-note]         |
-| ~5MB test file | **42.34 ms/iter**  | 132.74 ms/iter    | 921.98 ms/iter     | N/A             | 68.37 ms/iter    | N/A            | 106.14 ms/iter | N/A[^toml-patch-note]         |
+| Spec example   | **2.29 µs/iter**   | 8.58 µs/iter      | 89.59 µs/iter      | N/A             | 3.96 µs/iter     | N/A            | 3.69 µs/iter   | N/A[^toml-patch-note]         |
+| ~5MB test file | **45.33 ms/iter**  | 130.01 ms/iter    | 928.19 ms/iter     | N/A             | 68.58 ms/iter    | N/A            | 110.26 ms/iter | N/A[^toml-patch-note]         |
 
 [^toml-patch-note]: Stringify performance is not included here, as the library is not meant to be fast, but rather
 capable of doing precise non-destructive edits that preserve the entire document's shape and format. Putting it here
@@ -173,79 +173,79 @@ wouldn't be fair.
 
 ```
 node --expose-gc bench/parse.bench.ts
-clk: ~5.47 GHz
+clk: ~5.52 GHz
 cpu: AMD Ryzen 9 9950X3D 16-Core Processor
-runtime: node 26.3.1 (x64-linux)
+runtime: node 26.5.0 (x64-linux)
 
 benchmark                   avg (min … max) p75 / p99    (min … top 1%)
 ------------------------------------------- -------------------------------
 • spec document
 ------------------------------------------- -------------------------------
-smol-toml                      4.90 µs/iter   4.85 µs  █
-                       (4.72 µs … 96.03 µs)   6.13 µs  █▅
-                    (  2.09 kb … 325.14 kb)  12.96 kb ▁██▄▃▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-                   4.01 ipc ( 99.63% cache)   21.59 branch misses
-         27.50k cycles 110.19k instructions   4.09k c-refs   15.27 c-misses
+smol-toml                      4.16 µs/iter   4.14 µs   █
+                       (3.99 µs … 91.94 µs)   4.95 µs  ▂█▃
+                    (  1.41 kb … 417.70 kb)   9.63 kb ▁███▅▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁
+                   4.01 ipc ( 99.54% cache)   19.70 branch misses
+         23.81k cycles  95.44k instructions   3.05k c-refs   14.12 c-misses
 
-@iarna/toml                   12.36 µs/iter  12.19 µs  █
-                     (11.86 µs … 131.24 µs)  16.53 µs  █
-                    (176.00  b … 360.27 kb)  24.00 kb ▅█▅▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-                   3.97 ipc ( 99.71% cache)   60.52 branch misses
-         68.38k cycles 271.17k instructions  12.01k c-refs   35.06 c-misses
+@iarna/toml                   12.13 µs/iter  12.04 µs  █
+                     (11.59 µs … 133.43 µs)  15.94 µs  █▄
+                    (  0.00  b … 677.01 kb)  24.08 kb ▃██▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+                   3.97 ipc ( 99.63% cache)   75.32 branch misses
+         68.16k cycles 270.90k instructions  10.39k c-refs   38.82 c-misses
 
-@ltd/j-toml                   33.17 µs/iter  32.50 µs     ▇█
-                       (31.03 µs … 1.10 ms)  36.36 µs    ███▆
-                    ( 40.00  b … 537.94 kb)  27.61 kb ▁▃▇████▆▂▁▁▂▂▁▁▁▁▁▁▁▁
-                   3.15 ipc ( 99.50% cache)  305.47 branch misses
-        183.96k cycles 579.46k instructions  32.33k c-refs  160.93 c-misses
+@ltd/j-toml                   30.44 µs/iter  29.57 µs  █
+                       (28.19 µs … 1.18 ms)  44.30 µs  █▅
+                    (432.00  b … 692.05 kb)  27.57 kb ▂██▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+                   3.42 ipc ( 99.37% cache)  284.51 branch misses
+        169.50k cycles 579.61k instructions  25.59k c-refs  162.02 c-misses
 
-fast-toml                      4.80 µs/iter   4.77 µs   █
-                       (4.61 µs … 96.44 µs)   5.58 µs   █▃
-                    (256.00  b … 329.85 kb)  12.55 kb ▁▆██▅▄▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁
-                   4.61 ipc ( 99.61% cache)   18.02 branch misses
-         26.90k cycles 123.90k instructions   3.73k c-refs   14.45 c-misses
+fast-toml                      5.01 µs/iter   4.98 µs   ▄█
+                       (4.75 µs … 90.47 µs)   5.84 µs   ██▃
+                    (336.00  b … 302.06 kb)  12.56 kb ▁▅███▆▅▃▂▂▁▁▁▁▁▁▁▁▁▁▁
+                   4.40 ipc ( 99.53% cache)   25.73 branch misses
+         28.21k cycles 124.23k instructions   3.76k c-refs   17.82 c-misses
 
-deno's @std/toml              22.94 µs/iter  22.84 µs     █
-                     (21.43 µs … 183.90 µs)  27.22 µs     ██
-                    (800.00  b … 619.62 kb)  64.88 kb ▁▄▄▆██▅▂▁▁▁▁▁▁▁▁▁▁▁▁▁
-                   3.73 ipc ( 99.67% cache)  106.77 branch misses
-        126.43k cycles 472.03k instructions  23.79k c-refs   79.52 c-misses
+deno's @std/toml              22.34 µs/iter  22.15 µs  █▅
+                     (20.78 µs … 155.43 µs)  36.68 µs  ██
+                    (  1.52 kb … 547.05 kb)  64.73 kb ▂██▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+                   3.80 ipc ( 99.53% cache)  111.24 branch misses
+        124.05k cycles 471.06k instructions  21.13k c-refs  100.20 c-misses
 
-node-toml                     29.86 µs/iter  29.51 µs  █
-                     (28.17 µs … 200.95 µs)  42.50 µs  █▇
-                    (976.00  b … 785.96 kb) 104.23 kb ▄██▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-                   4.01 ipc ( 99.36% cache)  146.79 branch misses
-        163.80k cycles 657.50k instructions  27.26k c-refs  174.37 c-misses
+node-toml                     32.28 µs/iter  31.78 µs  █
+                     (30.33 µs … 221.49 µs)  53.65 µs  █
+                    (  2.00 kb … 968.27 kb) 109.52 kb ▆█▄▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+                   3.89 ipc ( 99.18% cache)  193.02 branch misses
+        178.72k cycles 695.61k instructions  29.40k c-refs  240.75 c-misses
 
-js-toml                       23.67 µs/iter  23.31 µs  █▃
-                     (22.10 µs … 196.26 µs)  34.04 µs  ██
-                    (  2.55 kb … 678.23 kb)  96.06 kb ▃██▄▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-                   4.14 ipc ( 98.56% cache)  141.38 branch misses
-        129.53k cycles 536.67k instructions  18.52k c-refs  266.18 c-misses
+js-toml                       24.71 µs/iter  23.17 µs  ▅█
+                     (21.20 µs … 731.20 µs)  39.47 µs  ██
+                    (744.00  b … 861.36 kb)  92.95 kb ▂██▅▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+                   3.79 ipc ( 98.12% cache)  205.75 branch misses
+        134.81k cycles 510.43k instructions  19.00k c-refs  357.65 c-misses
 
-@decimalturn/toml-patch       17.81 µs/iter  17.68 µs  █▇
-                     (16.82 µs … 159.63 µs)  23.01 µs  ██▅
-                    (264.00  b … 651.59 kb)  56.03 kb ▃███▄▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁
-                   3.60 ipc ( 99.55% cache)   73.51 branch misses
-         98.49k cycles 354.88k instructions  20.21k c-refs   90.93 c-misses
+@decimalturn/toml-patch       17.07 µs/iter  16.85 µs  █▆
+                     (15.93 µs … 224.97 µs)  23.30 µs  ██
+                    (632.00  b … 635.14 kb)  55.51 kb ▂██▇▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁
+                   3.56 ipc ( 99.37% cache)   73.96 branch misses
+         95.58k cycles 339.88k instructions  18.52k c-refs  116.43 c-misses
 
 summary
-  fast-toml
-   1.02x faster than smol-toml
-   2.57x faster than @iarna/toml
-   3.71x faster than @decimalturn/toml-patch
-   4.77x faster than deno's @std/toml
-   4.93x faster than js-toml
-   6.22x faster than node-toml
-   6.9x faster than @ltd/j-toml                                                                                   (nice)
+  smol-toml
+   1.2x faster than fast-toml
+   2.92x faster than @iarna/toml
+   4.1x faster than @decimalturn/toml-patch
+   5.37x faster than deno's @std/toml
+   5.94x faster than js-toml
+   7.31x faster than @ltd/j-toml
+   7.76x faster than node-toml
 
 • 5MB document
 ------------------------------------------- -------------------------------
-smol-toml                    116.74 ms/iter 118.39 ms █      █
-                    (110.52 ms … 127.54 ms) 123.91 ms █ ▅ ▅  █ ▅ ▅▅  ▅    ▅
-                    ( 32.98 mb …  49.20 mb)  42.93 mb █▁█▁█▁▁█▁█▁██▁▁█▁▁▁▁█
-                   2.48 ipc ( 98.45% cache)   3.17M branch misses
-        629.10M cycles   1.56G instructions 101.49M c-refs   1.58M c-misses
+smol-toml                    113.76 ms/iter 115.67 ms      █     █   █
+                    (106.25 ms … 121.53 ms) 118.63 ms ▅    █   ▅ █ ▅ █ ▅  ▅
+                    ( 37.31 mb …  49.50 mb)  43.97 mb █▁▁▁▁█▁▁▁█▁█▁█▁█▁█▁▁█
+                   2.47 ipc ( 98.58% cache)   3.12M branch misses
+        606.38M cycles   1.50G instructions  78.32M c-refs   1.11M c-misses
 
 @iarna/toml                  error: Unexpected character in datetime, expected period (.), minus (-), plus (+) or Z at row 5, col 45, pos 569:
 4: NfF6LuAerfn5mDPI7Cp 2qsrB4vGmJTyb5jNubOIBYYWrWlAsrw PX93S57gjb5GEhR8qOU5blDQmwfVJTA YvmJ9cE3cUZU NAJQgAbIdpZLhc4lOs4ZhMEWehhZqXCsVD1YP1vN2GEoM2WX''', 1986-05-27T18:36:13Z, -5460, "2ZAV3fYlb23hf7r7QoftVlicWE2iuwp", 4790.2253 ]
@@ -255,150 +255,148 @@ smol-toml                    116.74 ms/iter 118.39 ms █      █
 
 
 
-@ltd/j-toml                  198.57 ms/iter 196.77 ms    █
-                    (181.11 ms … 291.66 ms) 209.47 ms   ██
-                    (  8.55 mb …  55.95 mb)  35.95 mb ████▁▁▁▁▁█▁█▁▁▁█▁▁▁▁█
-                   2.32 ipc ( 97.82% cache)   3.98M branch misses
-          1.08G cycles   2.50G instructions 166.94M c-refs   3.63M c-misses
+@ltd/j-toml                  189.89 ms/iter 197.10 ms    ██        █
+                    (172.17 ms … 237.08 ms) 210.60 ms ▅ ▅██ ▅  ▅   █      ▅
+                    ( 19.71 mb …  56.03 mb)  36.30 mb █▁███▁█▁▁█▁▁▁█▁▁▁▁▁▁█
+                   2.41 ipc ( 97.92% cache)   3.88M branch misses
+          1.03G cycles   2.49G instructions 143.96M c-refs   3.00M c-misses
 
-fast-toml                     93.51 ms/iter  95.06 ms         █
-                      (89.98 ms … 96.83 ms)  95.74 ms ▅   ▅ ▅ █▅     ▅▅ ▅▅▅
-                    ( 13.30 mb …  34.88 mb)  24.04 mb █▁▁▁█▁█▁██▁▁▁▁▁██▁███
-                   2.83 ipc ( 98.14% cache)   2.36M branch misses
-        507.32M cycles   1.44G instructions  66.44M c-refs   1.23M c-misses
+fast-toml                     92.24 ms/iter  95.41 ms █      █
+                      (88.83 ms … 96.21 ms)  96.00 ms █ ▅  ▅▅█▅         ▅▅▅
+                    ( 13.32 mb …  34.90 mb)  24.06 mb █▁█▁▁████▁▁▁▁▁▁▁▁▁███
+                   2.90 ipc ( 98.44% cache)   2.44M branch misses
+        495.57M cycles   1.44G instructions  56.61M c-refs 881.60k c-misses
 
-deno's @std/toml             429.91 ms/iter 436.58 ms                     █
-                    (419.32 ms … 441.05 ms) 437.63 ms ▅ ▅▅▅  ▅ ▅     ▅ ▅ ▅█
-                    (180.32 mb … 204.05 mb) 191.51 mb █▁███▁▁█▁█▁▁▁▁▁█▁█▁██
-                   3.15 ipc ( 97.05% cache)   6.63M branch misses
-          2.36G cycles   7.45G instructions 255.14M c-refs   7.54M c-misses
+deno's @std/toml             419.95 ms/iter 428.09 ms        █
+                    (408.44 ms … 434.51 ms) 431.58 ms █      █
+                    (182.20 mb … 203.81 mb) 188.26 mb ██▁▁▁█▁█▁▁▁▁▁▁█▁▁██▁█
+                   3.28 ipc ( 97.22% cache)   6.72M branch misses
+          2.27G cycles   7.46G instructions 215.21M c-refs   5.98M c-misses
 
-node-toml                    415.92 ms/iter 413.57 ms ██
-                    (404.84 ms … 448.96 ms) 438.33 ms ██                  █
-                    ( 45.80 mb …  78.18 mb)  50.13 mb ████▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁█
-                   4.26 ipc ( 97.29% cache)   6.53M branch misses
-          2.25G cycles   9.59G instructions 194.56M c-refs   5.27M c-misses
+node-toml                    549.86 ms/iter 559.64 ms    █         █
+                    (527.73 ms … 574.83 ms) 571.47 ms ▅▅ █ ▅   ▅   █ ▅   ▅▅
+                    ( 21.62 mb …  74.99 mb)  46.84 mb ██▁█▁█▁▁▁█▁▁▁█▁█▁▁▁██
+                   4.24 ipc ( 96.62% cache)   6.29M branch misses
+          2.95G cycles  12.49G instructions 236.46M c-refs   7.99M c-misses
 
-js-toml                      361.89 ms/iter 369.39 ms  █
-                    (346.05 ms … 406.77 ms) 394.74 ms ▅█ ▅
-                    (249.62 mb … 282.33 mb) 265.65 mb ██▁█▁▁▁▁▁▁▇▁▁▁▇▁▁▁▁▁▇
-                   2.55 ipc ( 94.91% cache)   5.64M branch misses
-          1.73G cycles   4.43G instructions 112.66M c-refs   5.74M c-misses
+js-toml                      336.03 ms/iter 328.58 ms  █
+                    (310.28 ms … 431.93 ms) 379.93 ms ▅█   ▅
+                    (267.75 mb … 279.44 mb) 273.42 mb ██▁▁▇█▁▁▁▁▁▁▁▁▁▇▁▁▁▁▇
+                   2.02 ipc ( 94.74% cache)   5.08M branch misses
+          1.65G cycles   3.33G instructions 113.18M c-refs   5.95M c-misses
 
-@decimalturn/toml-patch      176.94 ms/iter 174.86 ms    █
-                    (172.74 ms … 197.94 ms) 182.08 ms █ ██
-                    ( 27.14 mb …  38.55 mb)  28.81 mb █▁████▁▁▁▁▁█▁▁▁▁▁▁▁▁█
-                   3.18 ipc ( 97.69% cache)   3.58M branch misses
-        947.48M cycles   3.02G instructions 130.37M c-refs   3.01M c-misses
+@decimalturn/toml-patch      186.32 ms/iter 185.91 ms          █  █
+                    (178.55 ms … 209.69 ms) 190.20 ms ▅  ▅▅    █ ▅█▅ ▅    ▅
+                    ( 22.18 mb …  62.13 mb)  26.09 mb █▁▁██▁▁▁▁█▁███▁█▁▁▁▁█
+                   2.90 ipc ( 97.50% cache)   3.72M branch misses
+        999.99M cycles   2.90G instructions 120.73M c-refs   3.01M c-misses
 
 summary
   fast-toml
-   1.25x faster than smol-toml
-   1.89x faster than @decimalturn/toml-patch
-   2.12x faster than @ltd/j-toml
-   3.87x faster than js-toml
-   4.45x faster than node-toml
-   4.6x faster than deno's @std/toml
-
-
+   1.23x faster than smol-toml
+   2.02x faster than @decimalturn/toml-patch
+   2.06x faster than @ltd/j-toml
+   3.64x faster than js-toml
+   4.55x faster than deno's @std/toml
+   5.96x faster than node-toml
 node --expose-gc bench/stringify.bench.ts
-clk: ~5.48 GHz
+clk: ~5.52 GHz
 cpu: AMD Ryzen 9 9950X3D 16-Core Processor
-runtime: node 26.3.1 (x64-linux)
+runtime: node 26.5.0 (x64-linux)
 
 benchmark                   avg (min … max) p75 / p99    (min … top 1%)
 ------------------------------------------- -------------------------------
 • spec document
 ------------------------------------------- -------------------------------
-smol-toml                      2.24 µs/iter   2.24 µs  ▄       █
-                        (2.22 µs … 2.27 µs)   2.27 µs  █▃   ▅▆ █▃
-                    (  4.60 kb …   4.71 kb)   4.61 kb ▅███▃██████▃▇▃▃▅▃▁▁▃▅
-                   4.62 ipc ( 99.64% cache)    5.08 branch misses
-         12.21k cycles  56.44k instructions   1.12k c-refs    4.08 c-misses
+smol-toml                      2.29 µs/iter   2.30 µs      ▅   █
+                        (2.26 µs … 2.33 µs)   2.33 µs ▆▆ ▃▆█  ██▃ ▃
+                    (  4.28 kb …   4.65 kb)   4.54 kb █████████████▄▆▄▄▁▄▆▄
+                   4.45 ipc ( 99.40% cache)    5.23 branch misses
+         12.67k cycles  56.39k instructions  909.08 c-refs    5.43 c-misses
 
-@iarna/toml                    8.68 µs/iter   8.67 µs   █
-                        (8.65 µs … 8.89 µs)   8.73 µs  ▅█▅  ▅
-                    (654.88  b …   1.53 kb) 720.60  b ▇███▇▁█▁▁▁▁▁▇▇▁▁▁▁▁▁▇
-                   4.00 ipc ( 99.49% cache)   23.53 branch misses
-         47.95k cycles 191.80k instructions   7.11k c-refs   36.09 c-misses
+@iarna/toml                    8.58 µs/iter   8.57 µs    █
+                        (8.54 µs … 8.79 µs)   8.63 µs  ████  █
+                    (509.76  b …   1.39 kb) 574.04  b █████▁██▁▁▁▁▁▁▁█▁▁▁▁█
+                   3.99 ipc ( 99.30% cache)   24.95 branch misses
+         48.05k cycles 191.70k instructions   6.20k c-refs   43.23 c-misses
 
-@ltd/j-toml                   89.89 µs/iter  90.21 µs                █
-                     (69.82 µs … 209.14 µs)  95.93 µs                █
-                    (  4.04 kb … 389.75 kb)  37.49 kb ▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁█▄▄▃▂▂
-                   4.20 ipc ( 99.76% cache)  544.09 branch misses
-        490.58k cycles   2.06M instructions  35.22k c-refs   82.84 c-misses
+@ltd/j-toml                   89.59 µs/iter  89.41 µs       █
+                     (70.85 µs … 242.29 µs) 127.85 µs       █
+                    (  4.02 kb … 375.16 kb)  37.41 kb ▁▁▂▂▁▁█▇▃▁▁▁▁▁▁▁▁▁▁▁▁
+                   4.16 ipc ( 99.69% cache)  721.33 branch misses
+        495.22k cycles   2.06M instructions  28.23k c-refs   88.81 c-misses
 
-deno's @std/toml               3.86 µs/iter   3.86 µs            █
-                        (3.83 µs … 4.24 µs)   3.88 µs ▅ ▅    █▅▅██▅
-                    (836.05  b …   4.28 kb)   0.98 kb █▁██▅█▅████████▁▁▁▁▁▅
-                   4.00 ipc ( 99.60% cache)    6.22 branch misses
-         21.36k cycles  85.36k instructions   3.32k c-refs   13.27 c-misses
+deno's @std/toml               3.96 µs/iter   3.96 µs    █   ▄ ▄
+                        (3.91 µs … 4.43 µs)   4.01 µs  ▅██ █▅█ █
+                    (803.91  b …   3.95 kb) 965.01  b ▅███▅███▅█▅▅▅▅▁▁▁▁▅▁▅
+                   3.85 ipc ( 99.45% cache)   11.59 branch misses
+         22.20k cycles  85.43k instructions   3.02k c-refs   16.58 c-misses
 
-js-toml                        3.53 µs/iter   3.54 µs    █▂▄
-                        (3.52 µs … 3.58 µs)   3.58 µs   ▆███
-                    (  5.76 kb …   7.29 kb)   6.98 kb ▃▇████▃▅▁▃▁▃▁▁▁▁▁▁▁▁▃
-                   4.37 ipc ( 99.11% cache)   10.24 branch misses
-         19.45k cycles  84.99k instructions   2.10k c-refs   18.67 c-misses
+js-toml                        3.69 µs/iter   3.71 µs   █ ▄
+                        (3.65 µs … 3.82 µs)   3.77 µs  ▅█▅██  █▅█
+                    (  6.46 kb …   7.23 kb)   7.10 kb ██████▅████▅▁█▁▁▁▅▁▁▅
+                   4.14 ipc ( 98.79% cache)   11.99 branch misses
+         20.62k cycles  85.48k instructions   1.97k c-refs   23.80 c-misses
 
-@decimalturn/toml-patch       81.54 µs/iter  81.22 µs  █
-                     (78.63 µs … 341.24 µs) 103.14 µs  █▂
-                    (872.00  b … 831.95 kb) 113.00 kb ▃██▅▃▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁
-                   4.56 ipc ( 99.28% cache)  567.51 branch misses
-        443.97k cycles   2.02M instructions  52.63k c-refs  381.28 c-misses
+@decimalturn/toml-patch       48.60 µs/iter  48.28 µs  █
+                     (45.59 µs … 296.88 µs)  81.95 µs  █
+                    (128.00  b … 703.46 kb)  93.31 kb ▆█▇▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+                   4.05 ipc ( 99.26% cache)  533.40 branch misses
+        270.34k cycles   1.09M instructions  37.72k c-refs  278.17 c-misses
 
 summary
   smol-toml
-   1.58x faster than js-toml
+   1.61x faster than js-toml
    1.73x faster than deno's @std/toml
-   3.88x faster than @iarna/toml
-   36.44x faster than @decimalturn/toml-patch
-   40.18x faster than @ltd/j-toml
+   3.75x faster than @iarna/toml
+   21.25x faster than @decimalturn/toml-patch
+   39.18x faster than @ltd/j-toml
 
 • 5MB document
 ------------------------------------------- -------------------------------
-smol-toml                     42.34 ms/iter  43.06 ms █                   █
-                      (40.50 ms … 45.33 ms)  43.51 ms █    ▅▅▅▅   ▅  ▅▅▅  █
-                    (  9.46 mb …  35.74 mb)  12.91 mb █▁▁▁▁████▁▁▁█▁▁███▁▁█
-                   2.12 ipc ( 95.19% cache)   1.59M branch misses
-        217.80M cycles 462.56M instructions  14.99M c-refs 720.67k c-misses
+smol-toml                     45.33 ms/iter  46.14 ms         █    █
+                      (42.89 ms … 48.08 ms)  47.97 ms ▅▅ ▅ ▅  █▅   █ ▅    ▅
+                    (  9.41 mb …  35.68 mb)  12.98 mb ██▁█▁█▁▁██▁▁▁█▁█▁▁▁▁█
+                   1.98 ipc ( 94.06% cache)   1.62M branch misses
+        234.88M cycles 464.38M instructions  12.57M c-refs 746.25k c-misses
 
-@iarna/toml                  132.74 ms/iter 134.02 ms                █
-                    (125.91 ms … 138.18 ms) 137.02 ms              █ █
-                    ( 27.35 mb …  54.08 mb)  41.53 mb █▁▁█▁▁▁▁█▁▁█▁███▁▁▁▁█
-                   2.56 ipc ( 97.08% cache)   4.44M branch misses
-        704.85M cycles   1.80G instructions  85.83M c-refs   2.50M c-misses
+@iarna/toml                  130.01 ms/iter 130.79 ms █   █
+                    (127.84 ms … 135.01 ms) 132.06 ms █  ▅█ ▅▅     ▅▅   ▅ ▅
+                    ( 23.69 mb …  51.95 mb)  41.55 mb █▁▁██▁██▁▁▁▁▁██▁▁▁█▁█
+                   2.54 ipc ( 96.96% cache)   4.31M branch misses
+        707.33M cycles   1.80G instructions  73.12M c-refs   2.22M c-misses
 
-@ltd/j-toml                  921.98 ms/iter 927.58 ms               █  ██ █
-                    (889.05 ms … 937.02 ms) 929.09 ms ▅             █ ▅██▅█
-                    (  4.20 mb …  33.46 mb)  18.59 mb █▁▁▁▁▁▁▁▁▁▁▁▁▁█▁█████
-                   4.06 ipc ( 99.42% cache)   6.75M branch misses
-          5.04G cycles  20.45G instructions 243.67M c-refs   1.41M c-misses
+@ltd/j-toml                  928.19 ms/iter 933.90 ms                     █
+                    (903.30 ms … 940.61 ms) 934.55 ms               █     █
+                    (  1.89 mb …  32.62 mb)  12.57 mb █▁▁▁▁▁▁▁▁▁▁█▁▁██▁████
+                   4.02 ipc ( 99.15% cache)   7.29M branch misses
+          5.09G cycles  20.45G instructions 194.29M c-refs   1.66M c-misses
 
-deno's @std/toml              68.37 ms/iter  69.68 ms    █      █
-                      (61.79 ms … 78.19 ms)  77.23 ms ▅ ▅█▅  ▅ ▅█ ▅       ▅
-                    ( 29.04 mb …  62.29 mb)  33.86 mb █▁███▁▁█▁██▁█▁▁▁▁▁▁▁█
-                   2.21 ipc ( 95.21% cache)   1.74M branch misses
-        332.33M cycles 732.79M instructions  30.06M c-refs   1.44M c-misses
+deno's @std/toml              68.58 ms/iter  70.20 ms      █
+                      (63.51 ms … 78.12 ms)  75.83 ms ▅    █
+                    ( 29.19 mb …  62.19 mb)  33.69 mb █▁▁▇▁█▇▁▁▁▁▇▁▁▇▁▁▁▁▁▇
+                   2.14 ipc ( 94.82% cache)   1.78M branch misses
+        341.59M cycles 731.18M instructions  26.60M c-refs   1.38M c-misses
 
-js-toml                      106.14 ms/iter 107.44 ms  █
-                    (102.35 ms … 117.91 ms) 108.69 ms ▅█  ▅▅  ▅ ▅▅    ▅  ▅▅
-                    ( 34.03 mb …  62.21 mb)  44.13 mb ██▁▁██▁▁█▁██▁▁▁▁█▁▁██
-                   2.39 ipc ( 96.23% cache)   3.05M branch misses
-        570.22M cycles   1.36G instructions  50.24M c-refs   1.90M c-misses
+js-toml                      110.26 ms/iter 111.58 ms    █
+                    (106.23 ms … 118.30 ms) 116.43 ms    █
+                    ( 31.58 mb …  62.06 mb)  43.79 mb ▇▁▇█▇▇▁▁▁▁▇▁▁▁▁▁▁▇▁▁▇
+                   2.29 ipc ( 96.17% cache)   3.09M branch misses
+        596.81M cycles   1.36G instructions  41.90M c-refs   1.60M c-misses
 
-@decimalturn/toml-patch         1.07 s/iter    1.08 s █       █     █
-                          (1.05 s … 1.14 s)    1.09 s █▅ ▅▅   █     █  ▅  ▅
-                    (116.61 mb … 147.62 mb) 121.20 mb ██▁██▁▁▁█▁▁▁▁▁█▁▁█▁▁█
-                   3.67 ipc ( 93.69% cache)  12.18M branch misses
-          5.77G cycles  21.17G instructions 780.26M c-refs  49.26M c-misses
+@decimalturn/toml-patch      933.72 ms/iter 950.61 ms █               █   █
+                    (898.60 ms … 969.27 ms) 955.92 ms █    ▅ ▅▅  ▅    █ ▅ █
+                    (119.41 mb … 147.95 mb) 122.51 mb █▁▁▁▁█▁██▁▁█▁▁▁▁█▁█▁█
+                   3.20 ipc ( 93.32% cache)  12.50M branch misses
+          5.05G cycles  16.18G instructions 694.63M c-refs  46.41M c-misses
 
 summary
   smol-toml
-   1.61x faster than deno's @std/toml
-   2.51x faster than js-toml
-   3.13x faster than @iarna/toml
-   21.77x faster than @ltd/j-toml
-   25.29x faster than @decimalturn/toml-patch
+   1.51x faster than deno's @std/toml
+   2.43x faster than js-toml
+   2.87x faster than @iarna/toml
+   20.48x faster than @ltd/j-toml
+   20.6x faster than @decimalturn/toml-patch
 ```
 
 </details>
