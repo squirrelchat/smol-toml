@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { AnyTemporalDateTime } from './util.ts'
+import type { AnyTemporal } from './util.ts'
 
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
@@ -65,7 +65,7 @@ function formatString(s: string) {
 	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
 }
 
-function stringifyTemporal(temporal: AnyTemporalDateTime) {
+function stringifyTemporal(temporal: AnyTemporal) {
 	return temporal.toString({
 		calendarName: 'never',
 		timeZoneName: 'never',

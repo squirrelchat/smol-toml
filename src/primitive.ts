@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { AnyTemporalDateTime, IntegersAsBigInt } from './util.js'
+import type { AnyTemporal, IntegersAsBigInt } from './util.js'
 import type { ParseContext } from './parse.ts'
 import { skipComment, skipUntil } from './util.js'
 import { TomlDate } from './date.js'
@@ -207,7 +207,7 @@ function sliceAndTrimEndOf(ctx: ParseContext, start: number, end: number): strin
 }
 
 /** @internal */
-export function parseValue(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, end: number | undefined, temporal: boolean): boolean | number | bigint | TomlDate | AnyTemporalDateTime {
+export function parseValue(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, end: number | undefined, temporal: boolean): boolean | number | bigint | TomlDate | AnyTemporal {
 	let ptr = ctx.p
 	let err = { toml: ctx.s, ptr }
 

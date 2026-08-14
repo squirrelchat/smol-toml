@@ -35,7 +35,7 @@ export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate
 
 /** @internal */
-export type AnyTemporalDateTime =
+export type AnyTemporal =
 	| Temporal.Instant
 	| Temporal.PlainDate
 	| Temporal.PlainDateTime
@@ -51,14 +51,14 @@ export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueW
 
 // may have Temporal and TomlDate
 export type TomlTableTemporal = { [key: string]: TomlValueTemporal }
-export type TomlValueTemporal = TomlPrimitive|AnyTemporalDateTime | TomlValueTemporal[] | TomlTableTemporal
+export type TomlValueTemporal = TomlPrimitive|AnyTemporal | TomlValueTemporal[] | TomlTableTemporal
 
 // may have Temporal but no TomlDate
 export type TomlTableOnlyTemporal = { [key: string]: TomlValueOnlyTemporal }
-export type TomlValueOnlyTemporal = Exclude<TomlPrimitive, TomlDate>|AnyTemporalDateTime | TomlValueOnlyTemporal[] | TomlTableOnlyTemporal
+export type TomlValueOnlyTemporal = Exclude<TomlPrimitive, TomlDate>|AnyTemporal | TomlValueOnlyTemporal[] | TomlTableOnlyTemporal
 // no-bigint version
 export type TomlTableOnlyTemporalWithoutBigInt = { [key: string]: TomlValueOnlyTemporalWithoutBigInt }
-export type TomlValueOnlyTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|AnyTemporalDateTime | TomlValueOnlyTemporalWithoutBigInt[] | TomlTableOnlyTemporalWithoutBigInt
+export type TomlValueOnlyTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|AnyTemporal | TomlValueOnlyTemporalWithoutBigInt[] | TomlTableOnlyTemporalWithoutBigInt
 
 /** @internal */
 export function indexOfNewline(str: string, start = 0) {
