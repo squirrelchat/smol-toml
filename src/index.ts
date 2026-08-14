@@ -26,17 +26,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { parse } from './parse.js'
-import { stringify } from './stringify.js'
+import { parse } from './parse.ts'
+import { stringify } from './stringify.ts'
 
-import { TomlDate } from './date.js'
-import { TomlError } from './error.js'
+import { TomlDate } from './date.ts'
+import { TomlError } from './error.ts'
 
-export type { TomlValue, TomlTable, TomlValueWithoutBigInt, TomlTableWithoutBigInt } from './util.js'
+export type { TomlValue, TomlTable, TomlValueWithoutBigInt, TomlTableWithoutBigInt } from './util.ts'
 export default { parse, stringify, TomlDate, TomlError }
 export { parse, stringify, TomlDate, TomlError }
 
 export type {
 	/** @deprecated use TomlValue instead */
 	TomlValue as TomlPrimitive,
-} from './util.js'
+} from './util.ts'

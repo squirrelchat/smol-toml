@@ -26,9 +26,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { ParseContext } from './parse.js'
-import type { TomlDate } from './date.js'
-import { TomlError } from './error.js'
+import type { ParseContext } from './parse.ts'
+import type { TomlDate } from './date.ts'
+import { TomlError } from './error.ts'
 
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 

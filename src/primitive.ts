@@ -26,12 +26,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { AnyTemporal, IntegersAsBigInt } from './util.js'
+import type { AnyTemporal, IntegersAsBigInt } from './util.ts'
 import type { ParseContext } from './parse.ts'
-import { skipComment, skipUntil } from './util.js'
-import { TomlDate } from './date.js'
-import { TomlError } from './error.js'
-import { parseTemporal } from './temporal.js'
+import { skipComment, skipUntil } from './util.ts'
+import { TomlDate } from './date.ts'
+import { TomlError } from './error.ts'
+import { parseTemporal } from './temporal.ts'
 
 // let CTRL_REGEX = /[\x00-\x08\x0f-\x1f\x7f]/
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/

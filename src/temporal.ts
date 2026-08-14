@@ -26,8 +26,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { AnyTemporal } from './util.js'
-import { DATE_TIME_RE } from './date.js'
+import type { AnyTemporal } from './util.ts'
+import { DATE_TIME_RE } from './date.ts'
 
 export function parseTemporal(s: string): AnyTemporal {
     const match = s.match(DATE_TIME_RE)

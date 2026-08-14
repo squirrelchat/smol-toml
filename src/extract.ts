@@ -27,10 +27,10 @@
  */
 
 import type { ParseContext } from './parse.ts'
-import type { IntegersAsBigInt, TomlValueTemporal } from './util.js'
-import { parseString, parseValue } from './primitive.js'
-import { parseArray, parseInlineTable } from './struct.js'
-import { TomlError } from './error.js'
+import type { IntegersAsBigInt, TomlValueTemporal } from './util.ts'
+import { parseString, parseValue } from './primitive.ts'
+import { parseArray, parseInlineTable } from './struct.ts'
+import { TomlError } from './error.ts'
 
 /** @internal */
 export function extractValue(ctx: ParseContext, end: number | undefined, integersAsBigInt: IntegersAsBigInt, temporal: boolean): TomlValueTemporal {

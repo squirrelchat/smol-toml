@@ -26,10 +26,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { parseKey } from './struct.js'
-import { extractValue } from './extract.js'
-import { skipVoid, type IntegersAsBigInt, type TomlTable, type TomlTableWithoutBigInt, type TomlTableOnlyTemporal, type TomlTableOnlyTemporalWithoutBigInt, type TomlTableTemporal } from './util.js'
-import { TomlError } from './error.js'
+import { parseKey } from './struct.ts'
+import { extractValue } from './extract.ts'
+import { skipVoid, type IntegersAsBigInt, type TomlTable, type TomlTableWithoutBigInt, type TomlTableOnlyTemporal, type TomlTableOnlyTemporalWithoutBigInt, type TomlTableTemporal } from './util.ts'
+import { TomlError } from './error.ts'
 
 const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
