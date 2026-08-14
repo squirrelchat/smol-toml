@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { it, expect } from 'vitest'
+import { it, expect, describe } from 'vitest'
 import type { IntegersAsBigInt } from '../src/util.ts'
 import { parseValue as _parseValue } from '../src/primitive.ts'
 import { TomlError } from '../src/error.ts'
@@ -210,4 +210,56 @@ it('handles extreme datetimes', () => {
 	expect(parseValue('9999-12-31 23:59:59Z', false)).toStrictEqual(new TomlDate('9999-12-31 23:59:59Z'))
 	expect(parseValue('9999-12-31 23:59:59', false)).toStrictEqual(new TomlDate('9999-12-31 23:59:59'))
 	expect(parseValue('9999-12-31', false)).toStrictEqual(new TomlDate('9999-12-31'))
+})
+
+describe.skipIf(!globalThis.Temporal)("parses to Temporal types", () => {
+	function parseValue(str: string) {
+		return _parseValue({ s: str, p: 0, d: 0 }, false, undefined, true)
+	}
+
+	it('parses datetimes', () => {
+		expect(parseValue('1979-05-27T07:32:00')).toStrictEqual(Temporal.PlainDateTime.from('1979-05-27T07:32:00'))
+		expect(parseValue('1979-05-27T00:32:00.999999')).toStrictEqual(Temporal.PlainDateTime.from('1979-05-27T00:32:00.999999'))
+		expect(parseValue('1979-05-27T07:32:00Z')).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00[utc]'))
+		expect(parseValue('1979-05-27T00:32:00-07:00')).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T00:32:00[-07:00]'))
+		expect(parseValue('1979-05-27T00:32:00.999999-07:00')).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T00:32:00.999999[-07:00]'))
+		expect(parseValue('1979-05-27T07:32')).toStrictEqual(Temporal.PlainDateTime.from('1979-05-27T07:32:00'))
+		expect(parseValue('1979-05-27T07:32Z')).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00[utc]'))
+		expect(parseValue('1979-05-27T00:32-07:00')).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T00:32:00[-07:00]'))
+	})
+
+	it('parses datetimes with a space instead of T', () => {
+		expect(parseValue('1979-05-27 07:32:00Z')).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00[utc]'))
+	})
+
+	it('parses datetimes with lowercase T', () => {
+		expect(parseValue('1979-05-27t07:32:00Z')).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00[utc]'))
+	})
+
+	it('parses dates', () => {
+		expect(parseValue('1979-05-27')).toStrictEqual(Temporal.PlainDate.from('1979-05-27'))
+	})
+
+	it('parses times', () => {
+		expect(parseValue('07:32:00')).toStrictEqual(Temporal.PlainTime.from('07:32:00'))
+		expect(parseValue('00:32:00.999999')).toStrictEqual(Temporal.PlainTime.from('00:32:00.999999'))
+		expect(parseValue('07:32')).toStrictEqual(Temporal.PlainTime.from('07:32:00'))
+	})
+
+	it('rejects invalid dates', () => {
+		expect(() => parseValue('07:3:00')).toThrow(TomlError)
+		expect(() => parseValue('27-05-1979')).toThrow(TomlError)
+	})
+
+	it('handles extreme datetimes', () => {
+		expect(parseValue('0001-01-01 00:00:00Z')).toStrictEqual(Temporal.ZonedDateTime.from('0001-01-01 00:00:00[utc]'))
+		expect(parseValue('0001-01-01 00:00:00')).toStrictEqual(Temporal.PlainDateTime.from('0001-01-01 00:00:00'))
+		expect(parseValue('0001-01-01 00:00Z')).toStrictEqual(Temporal.ZonedDateTime.from('0001-01-01 00:00:00[utc]'))
+		expect(parseValue('0001-01-01 00:00')).toStrictEqual(Temporal.PlainDateTime.from('0001-01-01 00:00:00'))
+		expect(parseValue('0001-01-01')).toStrictEqual(Temporal.PlainDate.from('0001-01-01'))
+
+		expect(parseValue('9999-12-31 23:59:59Z')).toStrictEqual(Temporal.ZonedDateTime.from('9999-12-31 23:59:59[utc]'))
+		expect(parseValue('9999-12-31 23:59:59')).toStrictEqual(Temporal.PlainDateTime.from('9999-12-31 23:59:59'))
+		expect(parseValue('9999-12-31')).toStrictEqual(Temporal.PlainDate.from('9999-12-31'))
+	})
 })
