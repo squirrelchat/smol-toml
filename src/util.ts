@@ -33,11 +33,6 @@ import { TomlError } from './error.js'
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate
-export type TomlTable = { [key: string]: TomlValue }
-export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
-
-export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
-export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
 /** @internal */
 export type AnyTemporalDateTime =
@@ -46,6 +41,24 @@ export type AnyTemporalDateTime =
 	| Temporal.PlainDateTime
 	| Temporal.PlainTime
 	| Temporal.ZonedDateTime
+
+// may have TomlDate but no Temporal
+export type TomlTable = { [key: string]: TomlValue }
+export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
+// no-bigint version
+export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
+export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
+
+// may have Temporal and TomlDate
+export type TomlTableTemporal = { [key: string]: TomlValueTemporal }
+export type TomlValueTemporal = TomlPrimitive|AnyTemporalDateTime | TomlValueTemporal[] | TomlTableTemporal
+
+// may have Temporal but no TomlDate
+export type TomlTableOnlyTemporal = { [key: string]: TomlValueOnlyTemporal }
+export type TomlValueOnlyTemporal = Exclude<TomlPrimitive, TomlDate>|AnyTemporalDateTime | TomlValueOnlyTemporal[] | TomlTableOnlyTemporal
+// no-bigint version
+export type TomlTableOnlyTemporalWithoutBigInt = { [key: string]: TomlValueOnlyTemporalWithoutBigInt }
+export type TomlValueOnlyTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|AnyTemporalDateTime | TomlValueOnlyTemporalWithoutBigInt[] | TomlTableOnlyTemporalWithoutBigInt
 
 /** @internal */
 export function indexOfNewline(str: string, start = 0) {

@@ -33,7 +33,7 @@ import { TomlError } from '../src/error.ts'
 import { TomlDate } from '../src/date.ts'
 
 function parseValue(str: string, iab: IntegersAsBigInt) {
-	return _parseValue({ s: str, p: 0, d: 0 }, iab, undefined)
+	return _parseValue({ s: str, p: 0, d: 0 }, iab, undefined, false)
 }
 
 it('parses integers', () => {

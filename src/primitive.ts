@@ -26,10 +26,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { AnyTemporalDateTime, IntegersAsBigInt } from './util.js'
 import type { ParseContext } from './parse.ts'
+import { skipComment, skipUntil } from './util.js'
 import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
-import { skipComment, skipUntil, type IntegersAsBigInt } from './util.ts'
+import { parseTemporal } from './temporal.js'
 
 // let CTRL_REGEX = /[\x00-\x08\x0f-\x1f\x7f]/
 let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
@@ -205,7 +207,7 @@ function sliceAndTrimEndOf(ctx: ParseContext, start: number, end: number): strin
 }
 
 /** @internal */
-export function parseValue(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, end: number | undefined): boolean | number | bigint | TomlDate {
+export function parseValue(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, end: number | undefined, temporal: boolean): boolean | number | bigint | TomlDate | AnyTemporalDateTime {
 	let ptr = ctx.p
 	let err = { toml: ctx.s, ptr }
 
@@ -246,8 +248,18 @@ export function parseValue(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt
 		return numeric
 	}
 
-	const date = new TomlDate(value)
-	if (!date.isValid()) throw new TomlError('invalid value', err)
+	if (temporal) {
+		try {
+			return parseTemporal(value)
+		} catch (e) {
+			if (e != 0)
+				throw new TomlError(`invalid temporal value (${e})`, err)
+		}
+	} else {
+		const date = new TomlDate(value)
+		if (date.isValid())
+			return date
+	}
 
-	return date
+	throw new TomlError('invalid value', err)
 }
