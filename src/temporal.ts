@@ -26,7 +26,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import 'temporal-polyfill/global' // FIXME temporary
 import { DATE_TIME_RE } from './date.js'
 
 export type TemporalUnion =
