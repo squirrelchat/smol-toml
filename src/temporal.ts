@@ -26,15 +26,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { AnyTemporal } from './util.js'
 import { DATE_TIME_RE } from './date.js'
 
-export type TemporalUnion =
-    | Temporal.ZonedDateTime
-    | Temporal.PlainDateTime
-    | Temporal.PlainDate
-    | Temporal.PlainTime
-
-export function parseTemporal(s: string): TemporalUnion {
+export function parseTemporal(s: string): AnyTemporal {
     const match = s.match(DATE_TIME_RE)
     if (match) {
         // if has no date
