@@ -27,10 +27,10 @@
  */
 
 import type { ParseContext } from './parse.ts'
-import { parseString } from './primitive.js'
-import { extractValue } from './extract.js'
-import { indexOfNewline, skipVoid, type IntegersAsBigInt, type TomlTable, type TomlValue } from './util.js'
-import { TomlError } from './error.js'
+import { parseString } from './primitive.ts'
+import { extractValue } from './extract.ts'
+import { indexOfNewline, skipVoid, type IntegersAsBigInt, type TomlTableTemporal, type TomlValueTemporal } from './util.ts'
+import { TomlError } from './error.ts'
 
 let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
 
@@ -115,8 +115,8 @@ export function parseKey(ctx: ParseContext, end = '='): string[] {
 }
 
 /** @internal */
-export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt): TomlTable {
-	let res: TomlTable = {}
+export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, temporal: boolean): TomlTableTemporal {
+	let res: TomlTableTemporal = {}
 	let seen = new Set()
 	let c: number
 
@@ -157,7 +157,7 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 			})
 		}
 
-		let value = extractValue(ctx, 0x7d /* } */, integersAsBigInt)
+		let value = extractValue(ctx, 0x7d /* } */, integersAsBigInt, temporal)
 		seen.add(t[k!] = value)
 
 		skipVoid(ctx)
@@ -177,8 +177,8 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 }
 
 /** @internal */
-export function parseArray(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt): TomlValue[] {
-	let res: TomlValue[] = []
+export function parseArray(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, temporal: boolean): TomlValueTemporal[] {
+	let res: TomlValueTemporal[] = []
 	let c
 
 	ctx.p++
@@ -189,7 +189,7 @@ export function parseArray(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt
 			return res
 		}
 
-		res.push(extractValue(ctx, 0x5d /* ] */, integersAsBigInt))
+		res.push(extractValue(ctx, 0x5d /* ] */, integersAsBigInt, temporal))
 
 		skipVoid(ctx)
 		if ((c = ctx.s.charCodeAt(ctx.p++)) === 0x5d /* ] */) {

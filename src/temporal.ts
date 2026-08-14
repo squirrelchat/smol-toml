@@ -26,17 +26,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { parse } from './parse.ts'
-import { stringify } from './stringify.ts'
+import type { AnyTemporal } from './util.ts'
+import { DATE_TIME_RE } from './date.ts'
 
-import { TomlDate } from './date.ts'
-import { TomlError } from './error.ts'
+export function parseTemporal(s: string): AnyTemporal {
+    const match = s.match(DATE_TIME_RE)
+    if (match) {
+        // if has no date
+        if (!match[1]) return Temporal.PlainTime.from(s)
 
-export type { TomlValue, TomlTable, TomlValueWithoutBigInt, TomlTableWithoutBigInt } from './util.ts'
-export default { parse, stringify, TomlDate, TomlError }
-export { parse, stringify, TomlDate, TomlError }
+        // if has no time
+        if (!match[2]) return Temporal.PlainDate.from(s)
 
-export type {
-	/** @deprecated use TomlValue instead */
-	TomlValue as TomlPrimitive,
-} from './util.ts'
+        let offset = match[3] || null
+        if (!offset) return Temporal.PlainDateTime.from(s)
+
+        if (offset.toLowerCase() == "z") offset = "UTC"
+        return Temporal.Instant.from(s).toZonedDateTimeISO(offset)
+    }
+    throw 0
+}

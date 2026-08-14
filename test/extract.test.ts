@@ -31,68 +31,68 @@ import { extractValue } from '../src/extract.ts'
 import { TomlError } from '../src/error.ts'
 
 it('parses booleans', () => {
-	expect(extractValue({ s: 'true', p: 0, d: 0 }, undefined, false)).toBe(true)
-	expect(extractValue({ s: 'false', p: 0, d: 0 }, undefined, false)).toBe(false)
+	expect(extractValue({ s: 'true', p: 0, d: 0 }, undefined, false, false)).toBe(true)
+	expect(extractValue({ s: 'false', p: 0, d: 0 }, undefined, false, false)).toBe(false)
 
-	expect(() => extractValue({ s: 'True', p: 0, d: 0 }, undefined, false)).toThrow(TomlError)
+	expect(() => extractValue({ s: 'True', p: 0, d: 0 }, undefined, false, false)).toThrow(TomlError)
 })
 
 it('extracts value of correct type', () => {
 	{
 		const ctx = { s: '[ 1, 2 ]', p: 2, d: 10 }
-		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual(1)
+		expect(extractValue(ctx, 0x5d /* ] */, false, false)).toStrictEqual(1)
 		expect(ctx.p).toBe(3)
 	}
 	{
 		const ctx = { s: '[ "uwu", 2 ]', p: 2, d: 10 }
-		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual('uwu')
+		expect(extractValue(ctx, 0x5d /* ] */, false, false)).toStrictEqual('uwu')
 		expect(ctx.p).toBe(7)
 	}
 	{
 		const ctx = { s: '[ {}, 2 ]', p: 2, d: 10 }
-		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual({})
+		expect(extractValue(ctx, 0x5d /* ] */, false, false)).toStrictEqual({})
 		expect(ctx.p).toBe(4)
 	}
 	{
 		const ctx = { s: '[ 2 ]', p: 2, d: 10 }
-		expect(extractValue(ctx, 0x5d /* ] */, false)).toStrictEqual(2)
+		expect(extractValue(ctx, 0x5d /* ] */, false, false)).toStrictEqual(2)
 		expect(ctx.p).toBe(4)
 	}
 	{
 		const ctx = { s: '2\n', p: 0, d: 10 }
-		expect(extractValue(ctx, undefined, false)).toStrictEqual(2)
+		expect(extractValue(ctx, undefined, false, false)).toStrictEqual(2)
 		expect(ctx.p).toBe(1)
 	}
 
 	{
 		const ctx = { s: '"""uwu"""\n', p: 0, d: 10 }
-		expect(extractValue(ctx, undefined, false)).toStrictEqual('uwu')
+		expect(extractValue(ctx, undefined, false, false)).toStrictEqual('uwu')
 		expect(ctx.p).toBe(9)
 	}
 	{
 		const ctx = { s: '"""this is a "multiline string""""\n', p: 0, d: 10 }
-		expect(extractValue(ctx, undefined, false)).toStrictEqual('this is a "multiline string"')
+		expect(extractValue(ctx, undefined, false, false)).toStrictEqual('this is a "multiline string"')
 		expect(ctx.p).toBe(34)
 	}
 	{
 		const ctx = { s: '"""this is a "multiline string"""""\n', p: 0, d: 10 }
-		expect(extractValue(ctx, undefined, false)).toStrictEqual('this is a "multiline string""')
+		expect(extractValue(ctx, undefined, false, false)).toStrictEqual('this is a "multiline string""')
 		expect(ctx.p).toBe(35)
 	}
 	{
 		const ctx = { s: '"uwu""\n', p: 0, d: 10 }
-		expect(extractValue(ctx, undefined, false)).toStrictEqual('uwu')
+		expect(extractValue(ctx, undefined, false, false)).toStrictEqual('uwu')
 		expect(ctx.p).toBe(5)
 	}
 
 	{
 		const ctx = { s: '"\\\\"\n', p: 0, d: 10 }
-		expect(extractValue(ctx, undefined, false)).toStrictEqual('\\')
+		expect(extractValue(ctx, undefined, false, false)).toStrictEqual('\\')
 		expect(ctx.p).toBe(4)
 	}
 	{
 		const ctx = { s: "'uwu\\'", p: 0, d: 10 }
-		expect(extractValue(ctx, undefined, false)).toStrictEqual('uwu\\')
+		expect(extractValue(ctx, undefined, false, false)).toStrictEqual('uwu\\')
 		expect(ctx.p).toBe(6)
 	}
 })

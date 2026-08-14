@@ -26,26 +26,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { ParseContext } from './parse.js'
-import type { TomlDate } from './date.js'
-import { TomlError } from './error.js'
+import type { ParseContext } from './parse.ts'
+import type { TomlDate } from './date.ts'
+import { TomlError } from './error.ts'
 
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate
-export type TomlTable = { [key: string]: TomlValue }
-export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
-
-export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
-export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
 
 /** @internal */
-export type AnyTemporalDateTime =
+export type AnyTemporal =
 	| Temporal.Instant
 	| Temporal.PlainDate
 	| Temporal.PlainDateTime
 	| Temporal.PlainTime
 	| Temporal.ZonedDateTime
+
+// may have TomlDate but no Temporal
+export type TomlTable = { [key: string]: TomlValue }
+export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
+// no-bigint version
+export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
+export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
+
+// may have Temporal and TomlDate
+export type TomlTableTemporal = { [key: string]: TomlValueTemporal }
+export type TomlValueTemporal = TomlPrimitive|AnyTemporal | TomlValueTemporal[] | TomlTableTemporal
+
+// may have Temporal but no TomlDate
+export type TomlTableOnlyTemporal = { [key: string]: TomlValueOnlyTemporal }
+export type TomlValueOnlyTemporal = Exclude<TomlPrimitive, TomlDate>|AnyTemporal | TomlValueOnlyTemporal[] | TomlTableOnlyTemporal
+// no-bigint version
+export type TomlTableOnlyTemporalWithoutBigInt = { [key: string]: TomlValueOnlyTemporalWithoutBigInt }
+export type TomlValueOnlyTemporalWithoutBigInt = Exclude<TomlPrimitive, TomlDate|bigint>|AnyTemporal | TomlValueOnlyTemporalWithoutBigInt[] | TomlTableOnlyTemporalWithoutBigInt
 
 /** @internal */
 export function indexOfNewline(str: string, start = 0) {

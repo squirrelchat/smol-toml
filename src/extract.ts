@@ -27,13 +27,13 @@
  */
 
 import type { ParseContext } from './parse.ts'
-import type { IntegersAsBigInt, TomlValue } from './util.js'
-import { parseString, parseValue } from './primitive.js'
-import { parseArray, parseInlineTable } from './struct.js'
-import { TomlError } from './error.js'
+import type { IntegersAsBigInt, TomlValueTemporal } from './util.ts'
+import { parseString, parseValue } from './primitive.ts'
+import { parseArray, parseInlineTable } from './struct.ts'
+import { TomlError } from './error.ts'
 
 /** @internal */
-export function extractValue(ctx: ParseContext, end: number | undefined, integersAsBigInt: IntegersAsBigInt): TomlValue {
+export function extractValue(ctx: ParseContext, end: number | undefined, integersAsBigInt: IntegersAsBigInt, temporal: boolean): TomlValueTemporal {
 	let ptr = ctx.p
 	let c = ctx.s.charCodeAt(ptr)
 
@@ -47,8 +47,8 @@ export function extractValue(ctx: ParseContext, end: number | undefined, integer
 		}
 
 		let value = c === 0x5b /* [ */
-			? parseArray(ctx, integersAsBigInt)
-			: parseInlineTable(ctx, integersAsBigInt)
+			? parseArray(ctx, integersAsBigInt, temporal)
+			: parseInlineTable(ctx, integersAsBigInt, temporal)
 
 		ctx.d++
 		return value
@@ -76,5 +76,5 @@ export function extractValue(ctx: ParseContext, end: number | undefined, integer
 	}
 
 	// Legacy logic for numbers and dates. Slow and needs to be rewritten.
-	return parseValue(ctx, integersAsBigInt, end)
+	return parseValue(ctx, integersAsBigInt, end, temporal)
 }
