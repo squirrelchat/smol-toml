@@ -26,6 +26,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { ParseContext } from './parse.ts'
+
 type TomlErrorOptions = ErrorOptions & {
 	toml: string
 	ptr: number
@@ -65,7 +67,8 @@ export class TomlError extends Error {
 	column: number
 	codeblock: string
 
-	constructor(message: string, options: TomlErrorOptions) {
+	constructor(message: string, options: TomlErrorOptions | ParseContext) {
+		options = 's' in options ? { toml: options.s, ptr: options.p } : options
 		const [line, column] = getLineColFromPtr(options.toml, options.ptr)
 		const codeblock = makeCodeBlock(options.toml, line, column)
 

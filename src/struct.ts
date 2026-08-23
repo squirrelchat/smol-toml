@@ -41,12 +41,7 @@ export function parseKey(ctx: ParseContext, end = '='): string[] {
 	let parsed = []
 
 	let endPtr = ctx.s.indexOf(end, start)
-	if (endPtr < 0) {
-		throw new TomlError('incomplete key-value: cannot find end of key', {
-			toml: ctx.s,
-			ptr: start,
-		})
-	}
+	if (endPtr < 0) throw new TomlError('incomplete key-value: cannot find end of key', ctx)
 
 	do {
 		let c = ctx.s.charCodeAt(ctx.p = ++dot)
@@ -55,12 +50,8 @@ export function parseKey(ctx: ParseContext, end = '='): string[] {
 		if (c !== 0x20 && c !== 0x9 /* \t */) {
 			// If it's a string
 			if (c === 0x22 /* " */ || c === 0x27 /* ' */) {
-				if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2)) {
-					throw new TomlError('multiline strings are not allowed in keys', {
-						toml: ctx.s,
-						ptr: ctx.p,
-					})
-				}
+				if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2))
+					throw new TomlError('multiline strings are not allowed in keys', ctx)
 
 				let part = parseString(ctx)
 				dot = ctx.s.indexOf('.', ctx.p)
@@ -74,12 +65,8 @@ export function parseKey(ctx: ParseContext, end = '='): string[] {
 					})
 				}
 
-				if (strEnd.trimStart()) {
-					throw new TomlError('found extra tokens after the string part', {
-						toml: ctx.s,
-						ptr: ctx.p,
-					})
-				}
+				if (strEnd.trimStart())
+					throw new TomlError('found extra tokens after the string part', ctx)
 
 				if (endPtr < ctx.p) {
 					endPtr = ctx.s.indexOf(end, ctx.p)
@@ -97,10 +84,7 @@ export function parseKey(ctx: ParseContext, end = '='): string[] {
 				dot = ctx.s.indexOf('.', ctx.p)
 				let part = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot)
 				if (!KEY_PART_RE.test(part)) {
-					throw new TomlError('only letter, numbers, dashes and underscores are allowed in keys', {
-						toml: ctx.s,
-						ptr: ctx.p,
-					})
+					throw new TomlError('only letter, numbers, dashes and underscores are allowed in bare keys', ctx)
 				}
 
 				parsed.push(part.trimEnd())
@@ -116,6 +100,7 @@ export function parseKey(ctx: ParseContext, end = '='): string[] {
 
 /** @internal */
 export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt): TomlTable {
+	let err = { toml: ctx.s, ptr: ctx.p }
 	let res: TomlTable = {}
 	let seen = new Set()
 	let c: number
@@ -131,7 +116,7 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 		let k: string
 		let t: any = res
 		let hasOwn = false
-		let p = ctx.p
+		let err = { toml: ctx.s, ptr: ctx.p }
 
 		let key = parseKey(ctx)
 		for (let i = 0; i < key.length; i++) {
@@ -139,10 +124,7 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 
 			k = key[i]!
 			if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
-				throw new TomlError('trying to redefine an already defined value', {
-					toml: ctx.s,
-					ptr: p,
-				})
+				throw new TomlError('trying to redefine an already defined value', err)
 			}
 
 			if (!hasOwn && k === '__proto__') {
@@ -151,10 +133,7 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 		}
 
 		if (hasOwn) {
-			throw new TomlError('trying to redefine an already defined value', {
-				toml: ctx.s,
-				ptr: ctx.p,
-			})
+			throw new TomlError('trying to redefine an already defined value', err)
 		}
 
 		let value = extractValue(ctx, 0x7d /* } */, integersAsBigInt)
@@ -170,14 +149,12 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 		}
 	}
 
-	throw new TomlError('unfinished table encountered', {
-		toml: ctx.s,
-		ptr: ctx.p,
-	})
+	throw new TomlError('unfinished table encountered', err)
 }
 
 /** @internal */
 export function parseArray(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt): TomlValue[] {
+	let err = { toml: ctx.s, ptr: ctx.p }
 	let res: TomlValue[] = []
 	let c
 
@@ -201,8 +178,5 @@ export function parseArray(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt
 		}
 	}
 
-	throw new TomlError('unfinished array encountered', {
-		toml: ctx.s,
-		ptr: ctx.p,
-	})
+	throw new TomlError('unfinished array encountered', err)
 }

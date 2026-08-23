@@ -183,10 +183,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 
 		skipVoid(ctx, true)
 		if (ctx.p < toml.length && (tmp = toml.charCodeAt(ctx.p)) !== 0xa /* \n */ && tmp !== 0xd /* \r */) {
-			throw new TomlError('each key-value declaration must be followed by an end-of-line', {
-				toml: toml,
-				ptr: ctx.p,
-			})
+			throw new TomlError('each key-value declaration must be followed by an end-of-line', ctx)
 		}
 		skipVoid(ctx)
 	}

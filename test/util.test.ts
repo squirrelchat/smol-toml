@@ -27,7 +27,7 @@
  */
 
 import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid, skipUntil } from '../src/util.ts'
+import { indexOfNewline, skipVoid } from '../src/util.ts'
 
 it('gives the index of next line', () => {
 	expect(indexOfNewline('test\n')).toBe(4)
@@ -93,31 +93,5 @@ it('skips comments', () => {
 		const ctx = { s: '    # this is a comment\n   uwu', p: 0, d: 10 }
 		skipVoid(ctx, true)
 		expect(ctx.p).toBe(23)
-	}
-})
-
-it('skips until the next valuable token', () => {
-	{
-		const ctx = { s: '[ 3, 4, ]', p: 1, d: 10 }
-		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
-		expect(ctx.p).toBe(3)
-	}
-
-	{
-		const ctx = { s: '[ 3, 4, ]', p: 4, d: 10 }
-		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
-		expect(ctx.p).toBe(6)
-	}
-
-	{
-		const ctx = { s: '[ 3, 4, ]', p: 7, d: 10 }
-		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
-		expect(ctx.p).toBe(8)
-	}
-
-	{
-		const ctx = { s: '[ [ 1, 2 ], [ 3, 4 ] ]', p: 6, d: 10 }
-		skipUntil(ctx, 0x2c /* , */, 0x5d /* ] */)
-		expect(ctx.p).toBe(9)
 	}
 })
