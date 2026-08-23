@@ -52,10 +52,17 @@ function untagObject(obj) {
 				if (obj.value === '-inf') return -Infinity
 				return Number(obj.value)
 			case 'datetime':
+				return Temporal.ZonedDateTime.from(
+					obj.value[obj.value.length - 1].toUpperCase() === 'Z'
+						? obj.value + '[UTC]'
+						: obj.value + '[' + obj.value.slice(obj.value.length - 6) + ']'
+				)
 			case 'datetime-local':
+				return Temporal.PlainDateTime.from(obj.value)
 			case 'date-local':
+				return Temporal.PlainDate.from(obj.value)
 			case 'time-local':
-				return new TomlDate(obj.value)
+				return Temporal.PlainTime.from(obj.value)
 		}
 
 		throw new Error('cannot untag object')

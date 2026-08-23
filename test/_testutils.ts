@@ -26,73 +26,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid } from '../src/util.ts'
-import { mkctx } from './_testutils.ts'
+import type { ParseContext } from '../src/parse.ts'
+import type { IntegersAsBigInt } from '../src/util.ts'
 
-it('gives the index of next line', () => {
-	expect(indexOfNewline('test\n')).toBe(4)
-	expect(indexOfNewline('test\r\n')).toBe(4)
-	expect(indexOfNewline('test\ruwu\n')).toBe(8)
-	expect(indexOfNewline('test')).toBe(-1)
-})
+type CtxOpts = { ptr?: number, bigint?: IntegersAsBigInt, date?: boolean }
 
-it('skips whitespace', () => {
-	{
-		const ctx = mkctx('    uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('    uwu', { ptr: 2 })
-		skipVoid(ctx)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('\t uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(2)
-	}
-
-	{
-		const ctx = mkctx('uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(0)
-	}
-
-	{
-		const ctx = mkctx('\r\nuwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(2)
-	}
-})
-
-it('skips whitespace but not newlines', () => {
-	{
-		const ctx = mkctx('    uwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('\r\nuwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(0)
-	}
-})
-
-it('skips comments', () => {
-	{
-		const ctx = mkctx('    # this is a comment\n   uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(27)
-	}
-
-	{
-		const ctx = mkctx('    # this is a comment\n   uwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(23)
-	}
-})
+export function mkctx(toml: string, opts: CtxOpts = {}): ParseContext {
+	return { s: toml, p: opts.ptr ?? 0, d: 10, bi: opts.bigint ?? false, ld: opts.date ?? false }
+}

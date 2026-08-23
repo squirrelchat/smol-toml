@@ -29,94 +29,95 @@
 import { it, expect } from 'vitest'
 import { parseKey } from '../src/struct.ts'
 import { TomlError } from '../src/error.ts'
+import { mkctx } from './_testutils.ts'
 
 it('parses simple keys', () => {
 	{
-		const ctx = { s: 'key =', p: 0, d: 10 }
+		const ctx = mkctx('key =')
 		expect(parseKey(ctx)).toStrictEqual(['key'])
 		expect(ctx.p).toBe(5)
 	}
 	{
-		const ctx = { s: 'bare_key =', p: 0, d: 10 }
+		const ctx = mkctx('bare_key =')
 		expect(parseKey(ctx)).toStrictEqual(['bare_key'])
 		expect(ctx.p).toBe(10)
 	}
 	{
-		const ctx = { s: 'bare-key =', p: 0, d: 10 }
+		const ctx = mkctx('bare-key =')
 		expect(parseKey(ctx)).toStrictEqual(['bare-key'])
 		expect(ctx.p).toBe(10)
 	}
 	{
-		const ctx = { s: '1234 =', p: 0, d: 10 }
+		const ctx = mkctx('1234 =')
 		expect(parseKey(ctx)).toStrictEqual(['1234'])
 		expect(ctx.p).toBe(6)
 	}
 
 	{
-		const ctx = { s: 'key=', p: 0, d: 10 }
+		const ctx = mkctx('key=')
 		expect(parseKey(ctx)).toStrictEqual(['key'])
 		expect(ctx.p).toBe(4)
 	}
 	{
-		const ctx = { s: 'bare_key=', p: 0, d: 10 }
+		const ctx = mkctx('bare_key=')
 		expect(parseKey(ctx)).toStrictEqual(['bare_key'])
 		expect(ctx.p).toBe(9)
 	}
 	{
-		const ctx = { s: 'bare-key=', p: 0, d: 10 }
+		const ctx = mkctx('bare-key=')
 		expect(parseKey(ctx)).toStrictEqual(['bare-key'])
 		expect(ctx.p).toBe(9)
 	}
 	{
-		const ctx = { s: '1234=', p: 0, d: 10 }
+		const ctx = mkctx('1234=')
 		expect(parseKey(ctx)).toStrictEqual(['1234'])
 		expect(ctx.p).toBe(5)
 	}
 })
 
 it('parses quoted keys', () => {
-	expect(parseKey({ s: '"127.0.0.1" =', p: 0, d: 10 })).toStrictEqual(['127.0.0.1'])
-	expect(parseKey({ s: '"character encoding" =', p: 0, d: 10 })).toStrictEqual(['character encoding'])
-	expect(parseKey({ s: '"ʎǝʞ" =', p: 0, d: 10 })).toStrictEqual(['ʎǝʞ'])
-	expect(parseKey({ s: "'key2' =", p: 0, d: 10 })).toStrictEqual(['key2'])
-	expect(parseKey({ s: '\'quoted "value"\' =', p: 0, d: 10 })).toStrictEqual(['quoted "value"'])
+	expect(parseKey(mkctx('"127.0.0.1" ='))).toStrictEqual(['127.0.0.1'])
+	expect(parseKey(mkctx('"character encoding" ='))).toStrictEqual(['character encoding'])
+	expect(parseKey(mkctx('"ʎǝʞ" ='))).toStrictEqual(['ʎǝʞ'])
+	expect(parseKey(mkctx("'key2' ="))).toStrictEqual(['key2'])
+	expect(parseKey(mkctx('\'quoted "value"\' ='))).toStrictEqual(['quoted "value"'])
 })
 
 it('parses empty keys', () => {
-	expect(() => parseKey({ s: ' =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(parseKey({ s: '"" =', p: 0, d: 10 })).toStrictEqual([''])
-	expect(parseKey({ s: "'' =", p: 0, d: 10 })).toStrictEqual([''])
+	expect(() => parseKey(mkctx(' ='))).toThrow(TomlError)
+	expect(parseKey(mkctx('"" ='))).toStrictEqual([''])
+	expect(parseKey(mkctx("'' ="))).toStrictEqual([''])
 })
 
 it('parses dotted keys', () => {
-	expect(parseKey({ s: 'physical.color =', p: 0, d: 10 })).toStrictEqual(['physical', 'color'])
-	expect(parseKey({ s: 'physical.shape =', p: 0, d: 10 })).toStrictEqual(['physical', 'shape'])
-	expect(parseKey({ s: 'site."google.com" =', p: 0, d: 10 })).toStrictEqual(['site', 'google.com'])
+	expect(parseKey(mkctx('physical.color ='))).toStrictEqual(['physical', 'color'])
+	expect(parseKey(mkctx('physical.shape ='))).toStrictEqual(['physical', 'shape'])
+	expect(parseKey(mkctx('site."google.com" ='))).toStrictEqual(['site', 'google.com'])
 })
 
 it('ignores whitespace', () => {
-	expect(parseKey({ s: 'fruit.name =', p: 0, d: 10 })).toStrictEqual(['fruit', 'name'])
-	expect(parseKey({ s: 'fruit. color =', p: 0, d: 10 })).toStrictEqual(['fruit', 'color'])
-	expect(parseKey({ s: 'fruit . flavor =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
-	expect(parseKey({ s: 'fruit . "flavor" =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
-	expect(parseKey({ s: '"fruit" . flavor =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
-	expect(parseKey({ s: '"fruit"\t.\tflavor =', p: 0, d: 10 })).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey(mkctx('fruit.name ='))).toStrictEqual(['fruit', 'name'])
+	expect(parseKey(mkctx('fruit. color ='))).toStrictEqual(['fruit', 'color'])
+	expect(parseKey(mkctx('fruit . flavor ='))).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey(mkctx('fruit . "flavor" ='))).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey(mkctx('"fruit" . flavor ='))).toStrictEqual(['fruit', 'flavor'])
+	expect(parseKey(mkctx('"fruit"\t.\tflavor ='))).toStrictEqual(['fruit', 'flavor'])
 })
 
 it('rejects invalid keys', () => {
-	expect(() => parseKey({ s: '"uwu"\n =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: 'uwu. =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: 'éwé =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: 'uwu..owo =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: 'uwu.\nowo =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: 'uwu\n.owo =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: '"uwu"\n.owo =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: 'uwu\n =', p: 0, d: 10 })).toThrow(TomlError)
-	expect(() => parseKey({ s: '"uwu =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey(mkctx('"uwu"\n ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('uwu. ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('éwé ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('uwu..owo ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('uwu.\nowo ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('uwu\n.owo ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('"uwu"\n.owo ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('uwu\n ='))).toThrow(TomlError)
+	expect(() => parseKey(mkctx('"uwu ='))).toThrow(TomlError)
 
-	expect(() => parseKey({ s: 'uwu."owo"hehe =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey(mkctx('uwu."owo"hehe ='))).toThrow(TomlError)
 
-	expect(() => parseKey({ s: 'uwu hehe =', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey(mkctx('uwu hehe ='))).toThrow(TomlError)
 
-	expect(() => parseKey({ s: '"""long\nkey""" = 1', p: 0, d: 10 })).toThrow(TomlError)
+	expect(() => parseKey(mkctx('"""long\nkey""" = 1'))).toThrow(TomlError)
 })

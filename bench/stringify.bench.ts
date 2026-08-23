@@ -36,8 +36,8 @@ import { stringify as denoStdStringify } from '@std/toml'
 import { dump as jsTomlStringify } from 'js-toml'
 import { stringify as dtTomlPatchStringify } from '@decimalturn/toml-patch'
 
-const tomlSpec = parse(await readFile(new URL('./testfiles/toml-spec-example.toml', import.meta.url), 'utf8'))
-const toml5MB = parse(await readFile(new URL('./testfiles/5mb-mixed.toml', import.meta.url), 'utf8'))
+const tomlSpec = parse(await readFile(new URL('./testfiles/toml-spec-example.toml', import.meta.url), 'utf8'), { useLegacyDate: true })
+const toml5MB = parse(await readFile(new URL('./testfiles/5mb-mixed.toml', import.meta.url), 'utf8'), { useLegacyDate: true })
 
 summary(() => {
 	for (const [name, toml] of [['spec document', tomlSpec], ['5MB document', toml5MB]] as const) {

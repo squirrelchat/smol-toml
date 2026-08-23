@@ -62,7 +62,7 @@ function isArrayOfTables(obj: any[]) {
 }
 
 function formatString(s: string) {
-	return JSON.stringify(s).replace(/\x7f/g, '\\u007f')
+	return JSON.stringify(s).replaceAll('\x7f', '\\u007f')
 }
 
 function stringifyTemporal(temporal: AnyTemporalDateTime) {

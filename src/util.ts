@@ -32,7 +32,7 @@ import { TomlError } from './error.js'
 
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
-export type TomlPrimitive = string | number | bigint | boolean | TomlDate
+export type TomlPrimitive = string | number | bigint | boolean | TomlDate | AnyTemporalDateTime
 export type TomlTable = { [key: string]: TomlValue }
 export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 
@@ -46,6 +46,14 @@ export type AnyTemporalDateTime =
 	| Temporal.PlainDateTime
 	| Temporal.PlainTime
 	| Temporal.ZonedDateTime
+
+/** @internal */
+export type AnyTemporalDateTimeCtor =
+	| Temporal.InstantConstructor
+	| Temporal.PlainDateConstructor
+	| Temporal.PlainDateTimeConstructor
+	| Temporal.PlainTimeConstructor
+	| Temporal.ZonedDateTimeConstructor
 
 /** @internal */
 export function indexOfNewline(str: string, start = 0) {
@@ -67,10 +75,7 @@ export function skipComment(ctx: ParseContext) {
 		}
 
 		if ((c < 0x20 && c !== 0x9 /* \t */) || c === 0x7f) {
-			throw new TomlError('control characters are not allowed in comments', {
-				toml: ctx.s,
-				ptr: ctx.p,
-			})
+			throw new TomlError('control characters are not allowed in comments', ctx)
 		}
 	}
 }
@@ -90,28 +95,4 @@ export function skipVoid(ctx: ParseContext, banNewLines?: boolean, banComments?:
 		if (banComments || c !== 0x23 /* # */) break
 		skipComment(ctx)
 	}
-}
-
-/** @internal */
-export function skipUntil(ctx: ParseContext, sep: number, end?: number | undefined) {
-	let ptr = ctx.p
-	if (!end) {
-		ptr = indexOfNewline(ctx.s, ptr)
-		ctx.p = ptr < 0 ? ctx.s.length : ptr
-		return
-	}
-
-	for (; ctx.p < ctx.s.length; ctx.p++) {
-		let c = ctx.s.charCodeAt(ctx.p)
-		if (c === 0x23 /* # */) {
-			skipComment(ctx)
-		} else if (c === end || c === sep) {
-			return
-		}
-	}
-
-	throw new TomlError('cannot find end of structure', {
-		toml: ctx.s,
-		ptr,
-	})
 }

@@ -26,73 +26,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid } from '../src/util.ts'
-import { mkctx } from './_testutils.ts'
+// To be used with --inspect-brk
 
-it('gives the index of next line', () => {
-	expect(indexOfNewline('test\n')).toBe(4)
-	expect(indexOfNewline('test\r\n')).toBe(4)
-	expect(indexOfNewline('test\ruwu\n')).toBe(8)
-	expect(indexOfNewline('test')).toBe(-1)
+import { bench, do_not_optimize, run, summary } from 'mitata'
+
+import { readFile } from 'fs/promises'
+import { parse } from '../dist/index.js'
+import fastTomlParse from 'fast-toml'
+
+const toml5MB = await readFile(new URL('./testfiles/5mb-mixed.toml', import.meta.url), 'utf8')
+
+summary(() => {
+	bench('smol-toml', function* () {
+		yield {
+			[0]() {
+				return toml5MB
+			},
+			bench(toml: string) {
+				return do_not_optimize(parse(toml, { useLegacyDate: false }))
+			},
+		}
+	})
+
+	bench('fast-toml', function* () {
+		yield {
+			[0]() {
+				return toml5MB
+			},
+			bench(toml: string) {
+				return do_not_optimize(fastTomlParse(toml))
+			},
+		}
+	})
 })
 
-it('skips whitespace', () => {
-	{
-		const ctx = mkctx('    uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(4)
-	}
+await run()
 
-	{
-		const ctx = mkctx('    uwu', { ptr: 2 })
-		skipVoid(ctx)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('\t uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(2)
-	}
-
-	{
-		const ctx = mkctx('uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(0)
-	}
-
-	{
-		const ctx = mkctx('\r\nuwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(2)
-	}
-})
-
-it('skips whitespace but not newlines', () => {
-	{
-		const ctx = mkctx('    uwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('\r\nuwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(0)
-	}
-})
-
-it('skips comments', () => {
-	{
-		const ctx = mkctx('    # this is a comment\n   uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(27)
-	}
-
-	{
-		const ctx = mkctx('    # this is a comment\n   uwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(23)
-	}
+await new Promise(() => {
+	setInterval(() => {}, 1e6)
 })

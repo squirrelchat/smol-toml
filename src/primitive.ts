@@ -27,14 +27,9 @@
  */
 
 import type { ParseContext } from './parse.ts'
-import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
-import { skipComment, skipUntil, type IntegersAsBigInt } from './util.ts'
 
 // let CTRL_REGEX = /[\x00-\x08\x0f-\x1f\x7f]/
-let INT_REGEX = /^((0x[0-9a-fA-F](_?[0-9a-fA-F])*)|(([+-]|0[ob])?\d(_?\d)*))$/
-let FLOAT_REGEX = /^[+-]?\d(_?\d)*(\.\d(_?\d)*)?([eE][+-]?\d(_?\d)*)?$/
-let LEADING_ZERO = /^[+-]?0[0-9_]/
 
 /** @internal */
 export function parseString(ctx: ParseContext): string {
@@ -100,10 +95,7 @@ export function parseString(ctx: ParseContext): string {
 
 		// Control characters are banned in TOML, so we throw an error if we encounter them
 		else if ((c < 0x20 && c !== 0x9 /* \t */) || c === 0x7f) {
-			throw new TomlError('control characters are not allowed in strings', {
-				toml: ctx.s,
-				ptr: ctx.p,
-			})
+			throw new TomlError('control characters are not allowed in strings', ctx)
 		}
 
 		// The string might terminate while we're parsing through a newline escape.
@@ -116,11 +108,17 @@ export function parseString(ctx: ParseContext): string {
 			}
 
 			// If we're in a newline escape still, then there's nothing to add.
-			if (!state) parsed += ctx.s.slice(sliceStart, ctx.p)
+			if (!state) {
+				// Avoid a useless concat operation if the string can be used as-is.
+				let s = ctx.s.slice(sliceStart, ctx.p)
+				parsed = parsed ? parsed + s : s;
+			}
+
 			ctx.p += isMultiline ? 3 : 1
 			return parsed
 		}
 
+		// Baseline state; keep moving forward unless an escape sequence starts
 		else if (!state) {
 			if (!isLiteral && c === 0x5c /* \ */) {
 				parsed += ctx.s.slice(sliceStart, (sliceStart = ctx.p))
@@ -130,33 +128,36 @@ export function parseString(ctx: ParseContext): string {
 
 		else if (state === 1) {
 			if (c === 0x78 /* x */ || c === 0x75 /* u */ || c === 0x55 /* U */) { // Unicode escape
+				let err = { toml: ctx.s, ptr: ctx.p++ - 1 }
 				let value = 0
 				let len = c === 0x78 /* x */ ? 2 : c === 0x75 /* u */ ? 4 : 8
 				for (let j = 0; j < len; j++, ctx.p++) {
-					let hex = ctx.s.charCodeAt(ctx.p + 1)
+					let hex = ctx.s.charCodeAt(ctx.p)
 					let digit =
 						/* 0-9 */ hex >= 0x30 && hex <= 0x39 ? hex - 0x30 :
 						/* A-F */ hex >= 0x41 && hex <= 0x46 ? hex - 0x41 + 10 :
 						/* a-f */ hex >= 0x61 && hex <= 0x66 ? hex - 0x61 + 10 : -1
 
-					if (digit < 0) throw new TomlError('invalid non-hex character in unicode escape', { toml: ctx.s, ptr: ctx.p + 1 })
+					if (digit < 0) throw new TomlError('invalid non-hex character in unicode escape', ctx)
 					value = (value << 4) | digit
 				}
 
 				// Because JS does bitwise on signed 32bit integers, all 0xfzzzzzzz values are actually seen as negative
 				if (value < 0 || value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) {
-					throw new TomlError('invalid unicode escape', { toml: ctx.s, ptr: ctx.p })
+					throw new TomlError('invalid unicode escape', err)
 				}
 
 				parsed += String.fromCodePoint(value)
-				sliceStart = ctx.p + 1
+				sliceStart = ctx.p--
 				state = 0
 			}
 
-			else if (c === 0x20 || c === 0x9 /* \t */) { // If it was a newline, it'd have been handled earlier
+			// Newline escape sequence. We only need to care about spaces and tabs; newlines are dealt with earlier
+			else if (isMultiline && (c === 0x20 || c === 0x9 /* \t */)) {
 				state = 2
 			}
 
+			// Basic escape sequence
 			else {
 				if (c === 0x62 /* b */) parsed += '\b'
 				else if (c === 0x74 /* t */) parsed += '\t'
@@ -166,12 +167,13 @@ export function parseString(ctx: ParseContext): string {
 				else if (c === 0x65 /* e */) parsed += '\x1b'
 				else if (c === 0x22 /* " */) parsed += '"'
 				else if (c === 0x5c /* \ */) parsed += '\\'
-				else throw new TomlError('unrecognized escape sequence', { toml: ctx.s, ptr: ctx.p })
+				else throw new TomlError('unrecognised escape sequence', ctx)
 				sliceStart = ctx.p + 1
 				state = 0
 			}
 		}
 
+		// Newline escape continuation: keep moving forward until the first non-whitespace char
 		else if (c !== 0x20 && c !== 0x9 /* \t */) {
 			if (state === 2) {
 				throw new TomlError('invalid escape: only line-ending whitespace may be escaped', {
@@ -188,66 +190,4 @@ export function parseString(ctx: ParseContext): string {
 	}
 
 	throw new TomlError('unfinished string', { toml: ctx.s, ptr: start })
-}
-
-function sliceAndTrimEndOf(ctx: ParseContext, start: number, end: number): string {
-	let value = ctx.s.slice(start, end)
-
-	let commentIdx = value.indexOf('#')
-	if (commentIdx > 0) {
-		// The call to skipComment allows to "validate" the comment
-		// (absence of control characters)
-		skipComment({ s: value, p: commentIdx, d: 0 })
-		value = value.slice(0, commentIdx)
-	}
-
-	return value.trimEnd()
-}
-
-/** @internal */
-export function parseValue(ctx: ParseContext, integersAsBigInt: IntegersAsBigInt, end: number | undefined): boolean | number | bigint | TomlDate {
-	let ptr = ctx.p
-	let err = { toml: ctx.s, ptr }
-
-	skipUntil(ctx, 0x2c /* , */, end)
-
-	let value = sliceAndTrimEndOf(ctx, ptr, ctx.p)
-	if (!value) throw new TomlError('incomplete declaration: value expected', err)
-
-	if (value === '-inf') return -Infinity
-	if (value === 'inf' || value === '+inf') return Infinity
-	if (value === 'nan' || value === '+nan' || value === '-nan') return NaN
-
-	// Avoid FP representation of -0
-	if (value === '-0') return integersAsBigInt ? 0n : 0
-
-	// Numbers
-	let isInt = INT_REGEX.test(value)
-	if (isInt || FLOAT_REGEX.test(value)) {
-		if (LEADING_ZERO.test(value)) {
-			throw new TomlError('leading zeroes are not allowed', err)
-		}
-
-		value = value.replace(/_/g, '')
-		let numeric: number | bigint = +value
-
-		if (isNaN(numeric)) {
-			throw new TomlError('invalid number', err)
-		}
-
-		if (isInt) {
-			if ((isInt = !Number.isSafeInteger(numeric)) && !integersAsBigInt) {
-				throw new TomlError('integer value cannot be represented losslessly', err)
-			}
-
-			if (isInt || integersAsBigInt === true) numeric = BigInt(value)
-		}
-
-		return numeric
-	}
-
-	const date = new TomlDate(value)
-	if (!date.isValid()) throw new TomlError('invalid value', err)
-
-	return date
 }

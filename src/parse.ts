@@ -45,6 +45,11 @@ export type ParseContext = {
 	p: number
 	/** Available recursion depth. */
 	d: number
+
+	/** Whether to parse integers as BigInt. */
+	bi: IntegersAsBigInt
+	/** Whether to use the legacy TomlDate instead of Temporal. */
+	ld: boolean
 }
 
 function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
@@ -126,12 +131,21 @@ function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type
 export interface ParseOptions {
 	maxDepth?: number
 	integersAsBigInt?: IntegersAsBigInt
+	useLegacyDate?: boolean
 }
 
 export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable
 export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt
-export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: ParseOptions = {}): TomlTable {
-	let ctx = { s: toml, p: 0, d: maxDepth }
+export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLegacyDate = true }: ParseOptions = {}): TomlTable {
+	let ctx = {
+		s: toml,
+		p: 0,
+		d: maxDepth,
+
+		bi: integersAsBigInt,
+		ld: useLegacyDate
+	}
+
 	let res = {}
 	let meta = {}
 
@@ -140,7 +154,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 	let m = meta
 
 	// BOM is allowed, skip.
-	// Caveat: JS is UTF-16, so we have to check for the UTF-16 BOM instead of the UTF-8 BOM sequence!
+	// JS is UTF-16, so we have to check for the UTF-16 BOM instead of the UTF-8 BOM sequence!
 	if (toml.charCodeAt(0) === 0xfeff) ctx.p++
 
 	skipVoid(ctx)
@@ -152,10 +166,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 			let k = parseKey(ctx, ']')
 			if (isTableArray) {
 				if (toml.charCodeAt(ctx.p) !== 0x5d /* ] */) {
-					throw new TomlError('expected end of table array declaration', {
-						toml: toml,
-						ptr: ctx.p,
-					})
+					throw new TomlError('expected end of table array declaration', ctx)
 				}
 
 				ctx.p++
@@ -183,15 +194,12 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 			}
 
 			skipVoid(ctx, true, true)
-			p[1][p[0]] = extractValue(ctx, void 0, integersAsBigInt)
+			p[1][p[0]] = extractValue(ctx, void 0)
 		}
 
 		skipVoid(ctx, true)
 		if (ctx.p < toml.length && (tmp = toml.charCodeAt(ctx.p)) !== 0xa /* \n */ && (tmp !== 0xd /* \r */ || toml.charCodeAt(ctx.p + 1) !== 0xa /* \n */)) {
-			throw new TomlError('each key-value declaration must be followed by an end-of-line', {
-				toml: toml,
-				ptr: ctx.p,
-			})
+			throw new TomlError('each key-value declaration must be followed by an end-of-line', ctx)
 		}
 		skipVoid(ctx)
 	}

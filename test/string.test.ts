@@ -29,9 +29,10 @@
 import { it, expect } from 'vitest'
 import { parseString as _parseString } from '../src/primitive.ts'
 import { TomlError } from '../src/error.ts'
+import { mkctx } from './_testutils.ts'
 
 function parseString(str: string, ptr: number) {
-	const ctx = { s: str, p: ptr, d: 10 }
+	const ctx = mkctx(str, { ptr })
 	const res = _parseString(ctx)
 	return [res, ctx.p]
 }

@@ -29,98 +29,99 @@
 import { it, expect } from 'vitest'
 import { parseArray } from '../src/struct.ts'
 import { TomlError } from '../src/error.ts'
+import { mkctx } from './_testutils.ts'
 
 it('parses arrays', () => {
 	{
-		const ctx = { s: '[ 1, 2, 3 ]', p: 0, d: 10 }
-		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3])
+		const ctx = mkctx('[ 1, 2, 3 ]')
+		expect(parseArray(ctx)).toStrictEqual([1, 2, 3])
 		expect(ctx.p).toBe(11)
 	}
 
 	{
-		const ctx = { s: '[1,2,3]', p: 0, d: 10 }
-		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3])
+		const ctx = mkctx('[1,2,3]')
+		expect(parseArray(ctx)).toStrictEqual([1, 2, 3])
 		expect(ctx.p).toBe(7)
 	}
 
-	expect(parseArray({ s: '[ "red", "yellow", "green" ]', p: 0, d: 10 }, false)).toStrictEqual(['red', 'yellow', 'green'])
-	expect(parseArray({ s: '[ "all", \'strings\', """are the same""", \'\'\'type\'\'\' ]', p: 0, d: 10 }, false)).toStrictEqual(['all', 'strings', 'are the same', 'type'])
+	expect(parseArray(mkctx('[ "red", "yellow", "green" ]'))).toStrictEqual(['red', 'yellow', 'green'])
+	expect(parseArray(mkctx('[ "all", \'strings\', """are the same""", \'\'\'type\'\'\' ]'))).toStrictEqual(['all', 'strings', 'are the same', 'type'])
 })
 
 it('parses arrays of mixed types', () => {
-	expect(parseArray({ s: '[ 0.1, 0.2, 0.5, 1, 2, 5 ]', p: 0, d: 10 }, false)).toStrictEqual([0.1, 0.2, 0.5, 1, 2, 5])
-	expect(parseArray({ s: '[ 10, "red", false ]', p: 0, d: 10 }, false)).toStrictEqual([10, 'red', false])
+	expect(parseArray(mkctx('[ 0.1, 0.2, 0.5, 1, 2, 5 ]'))).toStrictEqual([0.1, 0.2, 0.5, 1, 2, 5])
+	expect(parseArray(mkctx('[ 10, "red", false ]'))).toStrictEqual([10, 'red', false])
 })
 
 it('parses nested arrays', () => {
-	expect(parseArray({ s: '[ [ 1, 2 ], [3, 4, 5] ]', p: 0, d: 10 }, false)).toStrictEqual([
+	expect(parseArray(mkctx('[ [ 1, 2 ], [3, 4, 5] ]'))).toStrictEqual([
 		[1, 2],
 		[3, 4, 5],
 	])
-	expect(parseArray({ s: '[ [ 1, 2 ], ["a", "b", "c"] ]', p: 0, d: 10 }, false)).toStrictEqual([
+	expect(parseArray(mkctx('[ [ 1, 2 ], ["a", "b", "c"] ]'))).toStrictEqual([
 		[1, 2],
 		['a', 'b', 'c'],
 	])
 })
 
 it('parses inline table values', () => {
-	expect(parseArray({ s: '[ { a = "uwu", b = 1, c = false } ]', p: 0, d: 10 }, false)).toStrictEqual([{ a: 'uwu', b: 1, c: false }])
+	expect(parseArray(mkctx('[ { a = "uwu", b = 1, c = false } ]'))).toStrictEqual([{ a: 'uwu', b: 1, c: false }])
 })
 
 it('handles multiline arrays', () => {
-	expect(parseArray({ s: '[\n  1, 2, 3\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 3])
-	expect(parseArray({ s: '[\n  1,\n  2\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
+	expect(parseArray(mkctx('[\n  1, 2, 3\n]'))).toStrictEqual([1, 2, 3])
+	expect(parseArray(mkctx('[\n  1,\n  2\n]'))).toStrictEqual([1, 2])
 
-	expect(parseArray({ s: '[\r\n  1, 2, 3\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 3])
-	expect(parseArray({ s: '[\r\n  1,\r\n  2\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
+	expect(parseArray(mkctx('[\r\n  1, 2, 3\r\n]'))).toStrictEqual([1, 2, 3])
+	expect(parseArray(mkctx('[\r\n  1,\r\n  2\r\n]'))).toStrictEqual([1, 2])
 })
 
 it('tolerates trailing commas', () => {
-	expect(parseArray({ s: '[ 1, 2, 3, ]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 3])
-	expect(parseArray({ s: '[\n  1,\n  2,\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
+	expect(parseArray(mkctx('[ 1, 2, 3, ]'))).toStrictEqual([1, 2, 3])
+	expect(parseArray(mkctx('[\n  1,\n  2,\n]'))).toStrictEqual([1, 2])
 
-	expect(parseArray({ s: '[\r\n  1,\r\n  2,\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2])
+	expect(parseArray(mkctx('[\r\n  1,\r\n  2,\r\n]'))).toStrictEqual([1, 2])
 })
 
 it('is not bothered by comments', () => {
-	expect(parseArray({ s: '[\n  1,\n  2, # uwu\n  # hehe 3,\n  4,\n  # owo\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 4])
-	expect(parseArray({ s: '[\r\n  1,\r\n  2, # uwu\r\n  # hehe 3,\r\n  4,\r\n  # owo\r\n]', p: 0, d: 10 }, false)).toStrictEqual([1, 2, 4])
+	expect(parseArray(mkctx('[\n  1,\n  2, # uwu\n  # hehe 3,\n  4,\n  # owo\n]'))).toStrictEqual([1, 2, 4])
+	expect(parseArray(mkctx('[\r\n  1,\r\n  2, # uwu\r\n  # hehe 3,\r\n  4,\r\n  # owo\r\n]'))).toStrictEqual([1, 2, 4])
 
 	{
-		const ctx = { s: '[ 1,# 9, 9,\n2#,9\n,#9\n3#]\n,4]', p: 0, d: 10 }
-		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3, 4])
+		const ctx = mkctx('[ 1,# 9, 9,\n2#,9\n,#9\n3#]\n,4]')
+		expect(parseArray(ctx)).toStrictEqual([1, 2, 3, 4])
 		expect(ctx.p).toBe(28)
 	}
 
 	{
-		const ctx = { s: '[ 1,# 9, 9,\n2#,9\n]', p: 0, d: 10 }
-		expect(parseArray(ctx, false)).toStrictEqual([1, 2])
+		const ctx = mkctx('[ 1,# 9, 9,\n2#,9\n]')
+		expect(parseArray(ctx)).toStrictEqual([1, 2])
 		expect(ctx.p).toBe(18)
 	}
 
 	{
-		const ctx = { s: '[[[[#["#"],\n["#"]]]]#]\n]', p: 0, d: 10 }
-		expect(parseArray(ctx, false)).toStrictEqual([[[[['#']]]]])
+		const ctx = mkctx('[[[[#["#"],\n["#"]]]]#]\n]')
+		expect(parseArray(ctx)).toStrictEqual([[[[['#']]]]])
 		expect(ctx.p).toBe(24)
 	}
 })
 
 it('rejects invalid arrays', () => {
-	expect(() => parseArray({ s: '[ 1,, 2]', p: 0, d: 10 }, false)).toThrow(TomlError)
-	expect(() => parseArray({ s: '[ 1, 2, 3 ', p: 0, d: 10 }, false)).toThrow(TomlError)
-	expect(() => parseArray({ s: '[ 1, "2" a, 3 ]', p: 0, d: 10 }, false)).toThrow(TomlError)
+	expect(() => parseArray(mkctx('[ 1,, 2]'))).toThrow(TomlError)
+	expect(() => parseArray(mkctx('[ 1, 2, 3 '))).toThrow(TomlError)
+	expect(() => parseArray(mkctx('[ 1, "2" a, 3 ]'))).toThrow(TomlError)
 })
 
 it('consumes only an array and aborts', () => {
 	{
-		const ctx = { s: '[ 1, 2, 3 ]\nnext-value = 10', p: 0, d: 10 }
-		expect(parseArray(ctx, false)).toStrictEqual([1, 2, 3])
+		const ctx = mkctx('[ 1, 2, 3 ]\nnext-value = 10')
+		expect(parseArray(ctx)).toStrictEqual([1, 2, 3])
 		expect(ctx.p).toBe(11)
 	}
 
 	{
-		const ctx = { s: '[ { a = "uwu", b = 1, c = false, d = [ 1 ] } ]\nnext-value = 10', p: 0, d: 10 }
-		expect(parseArray(ctx, false)).toStrictEqual([{ a: 'uwu', b: 1, c: false, d: [1] }])
+		const ctx = mkctx('[ { a = "uwu", b = 1, c = false, d = [ 1 ] } ]\nnext-value = 10')
+		expect(parseArray(ctx)).toStrictEqual([{ a: 'uwu', b: 1, c: false, d: [1] }])
 		expect(ctx.p).toBe(46)
 	}
 })

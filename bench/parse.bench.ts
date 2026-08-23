@@ -50,7 +50,7 @@ summary(() => {
 						return toml
 					},
 					bench(toml: string) {
-						return do_not_optimize(smolTomlParse(toml))
+						return do_not_optimize(smolTomlParse(toml, { useLegacyDate: false }))
 					},
 				}
 			})
@@ -105,7 +105,7 @@ summary(() => {
 						return toml
 					},
 					bench(toml: string) {
-						return do_not_optimize(nodeTomlParse(toml))
+						return do_not_optimize(nodeTomlParse(toml, { useTemporal: true }))
 					},
 				}
 			})

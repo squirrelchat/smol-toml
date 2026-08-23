@@ -20,79 +20,37 @@
  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * SERVICES LOSS OF USE, DATA, OR PROFITS OR BUSINESS INTERRUPTION) HOWEVER
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid } from '../src/util.ts'
-import { mkctx } from './_testutils.ts'
+import { randomUUID } from 'node:crypto'
+import { bench, do_not_optimize, run, summary } from 'mitata'
 
-it('gives the index of next line', () => {
-	expect(indexOfNewline('test\n')).toBe(4)
-	expect(indexOfNewline('test\r\n')).toBe(4)
-	expect(indexOfNewline('test\ruwu\n')).toBe(8)
-	expect(indexOfNewline('test')).toBe(-1)
+summary(() => {
+	bench('replace(/-/g, "")', function*() {
+		yield {
+			[0]() {
+				return randomUUID()
+			},
+			bench(str: string) {
+				return do_not_optimize(str.replace(/-/g, ''))
+			},
+		}
+	})
+
+	bench('replaceAll("-", "")', function*() {
+		yield {
+			[0]() {
+				return randomUUID()
+			},
+			bench(str: string) {
+				return do_not_optimize(str.replaceAll('-', ''))
+			},
+		}
+	})
 })
 
-it('skips whitespace', () => {
-	{
-		const ctx = mkctx('    uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('    uwu', { ptr: 2 })
-		skipVoid(ctx)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('\t uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(2)
-	}
-
-	{
-		const ctx = mkctx('uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(0)
-	}
-
-	{
-		const ctx = mkctx('\r\nuwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(2)
-	}
-})
-
-it('skips whitespace but not newlines', () => {
-	{
-		const ctx = mkctx('    uwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(4)
-	}
-
-	{
-		const ctx = mkctx('\r\nuwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(0)
-	}
-})
-
-it('skips comments', () => {
-	{
-		const ctx = mkctx('    # this is a comment\n   uwu')
-		skipVoid(ctx)
-		expect(ctx.p).toBe(27)
-	}
-
-	{
-		const ctx = mkctx('    # this is a comment\n   uwu')
-		skipVoid(ctx, true)
-		expect(ctx.p).toBe(23)
-	}
-})
+await run()
