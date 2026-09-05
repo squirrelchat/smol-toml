@@ -210,6 +210,13 @@ it('rejects invalid arrays of table', () => {
 	expect(() => parse('[[uwu] ]')).toThrow(TomlError)
 })
 
+it('rejects an array of tables header closed by a single bracket', () => {
+	expect(() => parse('[[uwu]')).toThrow(TomlError)
+	expect(() => parse('[[uwu]x')).toThrow(TomlError)
+	expect(() => parse('[[uwu]\nowo = 1')).toThrow(TomlError)
+	expect(() => parse('[[uwu] ')).toThrow(TomlError)
+})
+
 it('parses arrays of tables with subtables', () => {
 	const doc = `
 [[fruits]]

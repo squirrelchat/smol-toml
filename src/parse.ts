@@ -147,10 +147,12 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 
 			let k = parseKey(ctx, ']')
 			if (isTableArray) {
-				if (toml.charCodeAt(ctx.p - 1) !== 0x5d /* ] */) {
+				// `ctx.p - 1` rejects anything between the two brackets (parseKey
+				// skips trailing whitespace), `ctx.p` requires the second one.
+				if (toml.charCodeAt(ctx.p - 1) !== 0x5d /* ] */ || toml.charCodeAt(ctx.p) !== 0x5d /* ] */) {
 					throw new TomlError('expected end of table declaration', {
 						toml: toml,
-						ptr: ctx.p - 1,
+						ptr: ctx.p,
 					})
 				}
 
