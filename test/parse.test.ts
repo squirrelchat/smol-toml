@@ -210,6 +210,19 @@ it('rejects invalid arrays of table', () => {
 	expect(() => parse('[[uwu] ]')).toThrow(TomlError)
 })
 
+it('rejects an array-table header closed by a single bracket at the end of the document', () => {
+	// A single trailing `]` after `[[a` is not a valid `array-table-close` (which
+	// requires two adjacent brackets), even when it happens to be the last thing
+	// in the document.
+	expect(() => parse('[[a]')).toThrow(TomlError)
+})
+
+it('rejects an array-table header closed by a single bracket followed by extra content', () => {
+	// The parser used to silently swallow the one character following a lone `]`
+	// here instead of noticing the second bracket was missing.
+	expect(() => parse('[[a]x')).toThrow(TomlError)
+})
+
 it('parses arrays of tables with subtables', () => {
 	const doc = `
 [[fruits]]
