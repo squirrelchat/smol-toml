@@ -100,6 +100,9 @@ key2 = 456
 		'table-1': { key1: 'some string', key2: 123 },
 		'table-2': { key1: 'another string', key2: 456 },
 	})
+
+	expect(parse('[uwu]\nx = 1')).toStrictEqual({ uwu: { x: 1 } })
+	expect(parse('[uwu]  \nx = 1')).toStrictEqual({ uwu: { x: 1 } })
 })
 
 it('rejects unfinished tables', () => {
@@ -204,10 +207,14 @@ color = "gray"
 	expect(parse(doc)).toStrictEqual({
 		products: [{ name: 'Hammer', sku: 738594937 }, {}, { name: 'Nail', sku: 284758393, color: 'gray' }],
 	})
+
+	expect(parse('[[uwu]]\nx = 1')).toStrictEqual({ uwu: [{ x: 1 }] })
+	expect(parse('[[uwu]]  \nx = 1')).toStrictEqual({ uwu: [{ x: 1 }] })
 })
 
 it('rejects invalid arrays of table', () => {
-	expect(() => parse('[[uwu] ]')).toThrow(TomlError)
+	expect(() => parse('[[uwu]\nx = 1')).toThrow(/expected end of table array declaration/)
+	expect(() => parse('[[uwu] ]\nx = 1')).toThrow(/expected end of table array declaration/)
 })
 
 it('parses arrays of tables with subtables', () => {

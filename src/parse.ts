@@ -139,6 +139,10 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 	let tbl = res
 	let m = meta
 
+	// BOM is allowed, skip.
+	// Caveat: JS is UTF-16, so we have to check for the UTF-16 BOM instead of the UTF-8 BOM sequence!
+	if (toml.charCodeAt(0) === 0xfeff) ctx.p++
+
 	skipVoid(ctx)
 	while (ctx.p < toml.length) {
 		if (toml.charCodeAt(ctx.p) === 0x5b /* [ */) {
@@ -147,10 +151,10 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 
 			let k = parseKey(ctx, ']')
 			if (isTableArray) {
-				if (toml.charCodeAt(ctx.p - 1) !== 0x5d /* ] */) {
-					throw new TomlError('expected end of table declaration', {
+				if (toml.charCodeAt(ctx.p) !== 0x5d /* ] */) {
+					throw new TomlError('expected end of table array declaration', {
 						toml: toml,
-						ptr: ctx.p - 1,
+						ptr: ctx.p,
 					})
 				}
 
@@ -178,6 +182,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt }: Parse
 				})
 			}
 
+			skipVoid(ctx, true, true)
 			p[1][p[0]] = extractValue(ctx, void 0, integersAsBigInt)
 		}
 

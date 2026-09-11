@@ -110,7 +110,6 @@ export function parseKey(ctx: ParseContext, end = '='): string[] {
 	} while (dot + 1 && dot < endPtr)
 
 	ctx.p = endPtr + 1
-	skipVoid(ctx, true, true)
 	return parsed
 }
 
@@ -157,6 +156,7 @@ export function parseInlineTable(ctx: ParseContext, integersAsBigInt: IntegersAs
 			})
 		}
 
+		skipVoid(ctx, true, true)
 		let value = extractValue(ctx, 0x7d /* } */, integersAsBigInt)
 		seen.add(t[k!] = value)
 
