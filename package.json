@@ -36,21 +36,21 @@
 	},
 	"devDependencies": {
 		"@mitata/counters": "^0.0.8",
-		"@tsconfig/node-lts": "^24.0.0",
+		"@tsconfig/node-lts": "^24.0.1",
 		"@tsconfig/node-ts": "^23.6.4",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^26.2.0",
+		"@types/node": "^26.5.1",
 		"mitata": "^1.0.34",
-		"pin-github-action": "^3.5.1",
-		"rolldown": "^1.2.3",
+		"pin-github-action": "^3.5.2",
+		"rolldown": "^1.2.8",
 		"typescript": "^7.0.2",
-		"vite": "^7.3.6",
-		"vitest": "^4.1.10"
+		"vite": "^8.3.0",
+		"vitest": "^5.0.0"
 	},
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
-			"version": "11.21.0",
+			"version": "12.3.4",
 			"onFail": "error"
 		},
 		"runtime": {
