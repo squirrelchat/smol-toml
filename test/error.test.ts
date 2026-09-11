@@ -29,82 +29,161 @@
 import { it, describe, expect } from 'vitest'
 import { TomlError } from '../src/error.ts'
 
+function tomlWithPtrAt(toml: string, search: string, offset = 0) {
+	return { toml, ptr: toml.indexOf(search) + offset }
+}
+
 it('correctly converts pointer to line/column', () => {
-	const err1 = new TomlError('unexpected woof!!', {
-		toml: 'meow meow woof meow',
-		ptr: 'meow meow woof meow'.indexOf('woof'),
-	})
+	const err1 = new TomlError(
+		'unexpected woof!!',
+		tomlWithPtrAt('meow meow woof meow', 'woof')
+	)
 
-	const err2 = new TomlError('unexpected woof!!', {
-		toml: 'nya\nmeow meow woof meow',
-		ptr: 'nya\nmeow meow woof meow'.indexOf('woof'),
-	})
+	const err2 = new TomlError(
+		'unexpected woof!!',
+		tomlWithPtrAt('nya\nmeow meow woof meow', 'woof')
+	)
 
-	const err3 = new TomlError('unexpected newline in meowing!!', {
-		toml: 'meow meow\nmeow meow',
-		ptr: 'meow meow\nmeow meow'.indexOf('\n'),
-	})
+	const err3 = new TomlError(
+		'unexpected newline in meowing!!',
+		tomlWithPtrAt('meow meow\nmeow meow', '\n')
+	)
+
+	const err4 = new TomlError(
+		'unexpected newline in meowing!!',
+		tomlWithPtrAt('meow meow\nmeow meow', '\n', 1)
+	)
+
+	const err5 = new TomlError(
+		'unexpected newline in meowing!!',
+		tomlWithPtrAt('meow meow\r\nmeow meow', '\r')
+	)
+
+	const err6 = new TomlError(
+		'unexpected newline in meowing!!',
+		tomlWithPtrAt('meow meow\r\nmeow meow', '\r', 1)
+	)
+
+	const err7 = new TomlError(
+		'unexpected newline in meowing!!',
+		tomlWithPtrAt('meow meow\r\nmeow meow', '\r', 2)
+	)
 
 	expect(err1.line).toBe(1)
 	expect(err1.column).toBe(11)
 	expect(err2.line).toBe(2)
 	expect(err2.column).toBe(11)
+
 	expect(err3.line).toBe(1)
 	expect(err3.column).toBe(10)
+	expect(err4.line).toBe(2)
+	expect(err4.column).toBe(1)
+
+	expect(err5.line).toBe(1)
+	expect(err5.column).toBe(10)
+	expect(err6.line).toBe(1)
+	expect(err6.column).toBe(11)
+	expect(err7.line).toBe(2)
+	expect(err7.column).toBe(1)
 })
 
 describe('codeblock', () => {
-	it('generates properly for 1 line', () => {
-		const err = new TomlError('unexpected woof!!', {
-			toml: 'meow meow woof meow',
-			ptr: 'meow meow woof meow'.indexOf('woof'),
+	describe.for(['\n', '\r\n'])('%j newline', (nl) => {
+		it('generates properly for 1 line', () => {
+			const err = new TomlError(
+				'unexpected woof!!',
+				tomlWithPtrAt(
+					`meow meow woof meow`,
+					'woof'
+				)
+			)
+
+			expect(err.codeblock).toBe('1:  meow meow woof meow\n              ^\n')
 		})
 
-		expect(err.codeblock).toBe('1:  meow meow woof meow\n              ^\n')
-	})
+		it('generates properly for 2 line (err on line 1)', () => {
+			const err = new TomlError(
+				'unexpected woof!!',
+				tomlWithPtrAt(
+					`meow meow woof meow${nl}meow meow meow meow`,
+					'woof'
+				)
+			)
 
-	it('generates properly for 2 line (err on line 1)', () => {
-		const err = new TomlError('unexpected woof!!', {
-			toml: 'meow meow woof meow\nmeow meow meow meow',
-			ptr: 'meow meow woof meow\nmeow meow meow meow'.indexOf('woof'),
+			expect(err.codeblock).toBe('1:  meow meow woof meow\n              ^\n2:  meow meow meow meow\n')
 		})
 
-		expect(err.codeblock).toBe('1:  meow meow woof meow\n              ^\n2:  meow meow meow meow\n')
-	})
+		it('generates properly for 2 line (err on line 2)', () => {
+			const err = new TomlError(
+				'unexpected woof!!',
+				tomlWithPtrAt(
+					`meow meow meow meow${nl}meow meow woof meow`,
+					'woof'
+				)
+			)
 
-	it('generates properly for 2 line (err on line 2)', () => {
-		const err = new TomlError('unexpected woof!!', {
-			toml: 'meow meow meow meow\nmeow meow woof meow',
-			ptr: 'meow meow meow meow\nmeow meow woof meow'.indexOf('woof'),
+			expect(err.codeblock).toBe('1:  meow meow meow meow\n2:  meow meow woof meow\n              ^\n')
 		})
 
-		expect(err.codeblock).toBe('1:  meow meow meow meow\n2:  meow meow woof meow\n              ^\n')
-	})
+		it('generates properly for 2 line (err on newline sequence)', () => {
+			const err = new TomlError(
+				'unexpected newline!!',
+				tomlWithPtrAt(
+					`meow meow meow meow${nl}meow meow meow meow`,
+					nl
+				)
+			)
 
-	it('generates properly for 5 line (err on line 3)', () => {
-		const err = new TomlError('unexpected woof!!', {
-			toml: 'meow meow meow meow\nmeow meow meow meow\nmeow meow woof meow\nmeow meow meow meow\nmeow meow meow meow',
-			ptr: 'meow meow meow meow\nmeow meow meow meow\nmeow meow woof meow\nmeow meow meow meow\nmeow meow meow meow'.indexOf('woof'),
+			expect(err.codeblock).toBe(`1:  meow meow meow meow\n                       ^\n2:  meow meow meow meow\n`)
 		})
 
-		expect(err.codeblock).toBe('2:  meow meow meow meow\n3:  meow meow woof meow\n              ^\n4:  meow meow meow meow\n')
-	})
+		it('generates properly for 2 line (err on newline, \\n specifically)', () => {
+			const err = new TomlError(
+				'unexpected newline!!',
+				tomlWithPtrAt(
+					`meow meow meow meow${nl}meow meow meow meow`,
+					'\n'
+				)
+			)
 
-	it('generates properly for 5 line (err on line 1)', () => {
-		const err = new TomlError('unexpected woof!!', {
-			toml: 'meow meow woof meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow meow meow',
-			ptr: 'meow meow woof meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow meow meow'.indexOf('woof'),
+			const nlb = ' '.repeat(nl.length)
+			expect(err.codeblock).toBe(`1:  meow meow meow meow\n                      ${nlb}^\n2:  meow meow meow meow\n`)
 		})
 
-		expect(err.codeblock).toBe('1:  meow meow woof meow\n              ^\n2:  meow meow meow meow\n')
-	})
+		it('generates properly for 5 line (err on line 3)', () => {
+			const err = new TomlError(
+				'unexpected woof!!',
+				tomlWithPtrAt(
+					`meow meow meow meow${nl}meow meow meow meow${nl}meow meow woof meow${nl}meow meow meow meow${nl}meow meow meow meow`,
+					'woof'
+				)
+			)
 
-	it('generates properly for 5 line (err on line 5)', () => {
-		const err = new TomlError('unexpected woof!!', {
-			toml: 'meow meow meow meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow woof meow',
-			ptr: 'meow meow meow meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow meow meow\nmeow meow woof meow'.indexOf('woof'),
+			expect(err.codeblock).toBe('2:  meow meow meow meow\n3:  meow meow woof meow\n              ^\n4:  meow meow meow meow\n')
 		})
 
-		expect(err.codeblock).toBe('4:  meow meow meow meow\n5:  meow meow woof meow\n              ^\n')
+		it('generates properly for 5 line (err on line 1)', () => {
+			const err = new TomlError(
+				'unexpected woof!!',
+				tomlWithPtrAt(
+					`meow meow woof meow${nl}meow meow meow meow${nl}meow meow meow meow${nl}meow meow meow meow${nl}meow meow meow meow`,
+					'woof'
+				)
+			)
+
+			expect(err.codeblock).toBe('1:  meow meow woof meow\n              ^\n2:  meow meow meow meow\n')
+		})
+
+		it('generates properly for 5 line (err on line 5)', () => {
+			const err = new TomlError(
+				'unexpected woof!!',
+				tomlWithPtrAt(
+					`meow meow meow meow${nl}meow meow meow meow${nl}meow meow meow meow${nl}meow meow meow meow${nl}meow meow woof meow`,
+					'woof'
+				)
+			)
+
+			expect(err.codeblock).toBe('4:  meow meow meow meow\n5:  meow meow woof meow\n              ^\n')
+		})
 	})
 })

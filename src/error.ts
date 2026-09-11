@@ -32,12 +32,12 @@ type TomlErrorOptions = ErrorOptions & {
 }
 
 function getLineColFromPtr(string: string, ptr: number): [number, number] {
-	let lines = string.slice(0, ptr).split(/\r\n|\n|\r/g)
+	let lines = string.slice(0, ptr).split(/\r?\n/)
 	return [lines.length, lines.pop()!.length + 1]
 }
 
 function makeCodeBlock(string: string, line: number, column: number) {
-	let lines = string.split(/\r\n|\n|\r/g)
+	let lines = string.split(/\r?\n/)
 	let codeblock = ''
 
 	let numberLen = (Math.log10(line + 1) | 0) + 1
