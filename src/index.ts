@@ -33,10 +33,12 @@ import { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
 export type { TomlValue, TomlTable, TomlValueWithoutBigInt, TomlTableWithoutBigInt } from './util.js'
-export default { parse, stringify, TomlDate, TomlError }
 export { parse, stringify, TomlDate, TomlError }
 
 export type {
-	/** @deprecated use TomlValue instead */
+	/** @deprecated use {@link TomlValue} instead */
 	TomlValue as TomlPrimitive,
 } from './util.js'
+
+/** @deprecated use `import * as ... from 'smol-toml'` instead */
+export default { parse, stringify, TomlDate, TomlError }
