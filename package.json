@@ -50,7 +50,7 @@
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
-			"version": "12.3.4",
+			"version": "12.4.1",
 			"onFail": "error"
 		},
 		"runtime": {

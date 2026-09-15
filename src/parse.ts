@@ -163,7 +163,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLega
 			let isTableArray = toml.charCodeAt(++ctx.p) === 0x5b /* [ */
 			tmp = ctx.p += +isTableArray
 
-			let k = parseKey(ctx, ']')
+			let k = parseKey(ctx, 0x5d /* ] */)
 			if (isTableArray) {
 				if (toml.charCodeAt(ctx.p) !== 0x5d /* ] */) {
 					throw new TomlError('expected end of table array declaration', ctx)

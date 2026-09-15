@@ -29,72 +29,66 @@
 import type { ParseContext } from './parse.ts'
 import { parseString } from './primitive.js'
 import { extractValue } from './extract.js'
-import { indexOfNewline, skipVoid, type TomlTable, type TomlValue } from './util.js'
+import { skipVoid, type TomlTable, type TomlValue } from './util.js'
 import { TomlError } from './error.js'
 
-let KEY_PART_RE = /^[a-zA-Z0-9-_]+[ \t]*$/
-
 /** @internal */
-export function parseKey(ctx: ParseContext, end = '='): string[] {
-	let start = ctx.p
-	let dot = start - 1
+export function parseKey(ctx: ParseContext, end = 0x3d /* = */): string[] {
+	// States:
+	// 0: before first char
+	// 1: parsing bare key
+	// 2: after key component
+	let err = { toml: ctx.s, ptr: ctx.p-- }
+	let state = 0
 	let parsed = []
+	let sliceStart
+	let c
 
-	let endPtr = ctx.s.indexOf(end, start)
-	if (endPtr < 0) throw new TomlError('incomplete key-value: cannot find end of key', ctx)
+	while (c = ctx.s.charCodeAt(++ctx.p)) {
+		// End of key
+		if (c === end) {
+			if (!state) throw new TomlError('unexpected end of key', ctx)
+			if (state === 1) parsed.push(ctx.s.slice(sliceStart, ctx.p))
+			return ctx.p++, parsed
+		}
 
-	do {
-		let c = ctx.s.charCodeAt(ctx.p = ++dot)
+		// Dotted key separator
+		else if (c === 0x2e /* . */) {
+			if (!state) throw new TomlError('illegal empty bare key', ctx)
+			if (state === 1) parsed.push(ctx.s.slice(sliceStart, ctx.p))
+			state = 0
+		}
 
-		// If it's whitespace, ignore
-		if (c !== 0x20 && c !== 0x9 /* \t */) {
-			// If it's a string
-			if (c === 0x22 /* " */ || c === 0x27 /* ' */) {
-				if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2))
-					throw new TomlError('multiline strings are not allowed in keys', ctx)
+		// Quoted key
+		else if (!state && (c === 0x22 /* " */ || c === 0x27 /* ' */)) {
+			if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2))
+				throw new TomlError('illegal quoted key: multiline strings are not allowed', ctx)
+			parsed.push(parseString(ctx))
+			state = 2
+			ctx.p--
+		}
 
-				let part = parseString(ctx)
-				dot = ctx.s.indexOf('.', ctx.p)
-
-				let strEnd = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot)
-				let newLine = indexOfNewline(strEnd)
-				if (newLine > -1) {
-					throw new TomlError('newlines are not allowed in keys', {
-						toml: ctx.s,
-						ptr: newLine,
-					})
-				}
-
-				if (strEnd.trimStart())
-					throw new TomlError('found extra tokens after the string part', ctx)
-
-				if (endPtr < ctx.p) {
-					endPtr = ctx.s.indexOf(end, ctx.p)
-					if (endPtr < 0) {
-						throw new TomlError('incomplete key-value: cannot find end of key', {
-							toml: ctx.s,
-							ptr: start,
-						})
-					}
-				}
-
-				parsed.push(part)
-			} else {
-				// Normal raw key part consumption and validation
-				dot = ctx.s.indexOf('.', ctx.p)
-				let part = ctx.s.slice(ctx.p, dot < 0 || dot > endPtr ? endPtr : dot)
-				if (!KEY_PART_RE.test(part)) {
-					throw new TomlError('only letter, numbers, dashes and underscores are allowed in bare keys', ctx)
-				}
-
-				parsed.push(part.trimEnd())
+		// Whitespace; no-op in state 0 and 2, end of bare key in state 1
+		else if (c === 0x20 || c === 0x9 /* \t */) {
+			if (state === 1) {
+				parsed.push(ctx.s.slice(sliceStart, ctx.p))
+				state = 2
 			}
 		}
-		// Until there's no more dot
-	} while (dot + 1 && dot < endPtr)
 
-	ctx.p = endPtr + 1
-	return parsed
+		// If state is post-key, no character is allowed; otherwise ensure it's a bare-key component
+		else if (state === 2 || (c < 0x30 && c !== 0x2d /* - */) || (c > 0x39 && c < 0x41) || (c > 0x5a && c < 0x61 && c !== 0x5f /* _ */) || c > 0x7a) {
+			throw new TomlError('illegal character in key', ctx)
+		}
+
+		// Illegal character
+		else if (!state) {
+			state = 1
+			sliceStart = ctx.p
+		}
+	}
+
+	throw new TomlError('incomplete key-value: cannot find end of key', err)
 }
 
 /** @internal */
@@ -137,7 +131,7 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 
 		skipVoid(ctx, true, true)
 		let value = extractValue(ctx, 0x7d /* } */)
-		seen.add(t[k!] = value)
+		if (typeof (t[k!] = value) === 'object') seen.add(value)
 
 		skipVoid(ctx)
 		if ((c = ctx.s.charCodeAt(ctx.p++)) === 0x7d /* } */) {

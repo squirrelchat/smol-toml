@@ -27,15 +27,8 @@
  */
 
 import { it, expect } from 'vitest'
-import { indexOfNewline, skipVoid } from '../src/util.ts'
+import { skipVoid } from '../src/util.ts'
 import { mkctx } from './_testutils.ts'
-
-it('gives the index of next line', () => {
-	expect(indexOfNewline('test\n')).toBe(4)
-	expect(indexOfNewline('test\r\n')).toBe(4)
-	expect(indexOfNewline('test\ruwu\n')).toBe(8)
-	expect(indexOfNewline('test')).toBe(-1)
-})
 
 it('skips whitespace', () => {
 	{

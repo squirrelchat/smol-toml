@@ -56,13 +56,6 @@ export type AnyTemporalDateTimeCtor =
 	| Temporal.ZonedDateTimeConstructor
 
 /** @internal */
-export function indexOfNewline(str: string, start = 0) {
-	let idx = str.indexOf('\n', start)
-	if (str.charCodeAt(idx - 1) === 0xd /* \r */) idx--
-	return idx
-}
-
-/** @internal */
 export function skipComment(ctx: ParseContext) {
 	for (; ctx.p < ctx.s.length; ctx.p++) {
 		let c = ctx.s.charCodeAt(ctx.p)!
