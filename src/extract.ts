@@ -88,7 +88,7 @@ export function extractValue(ctx: ParseContext, end: number | undefined): TomlVa
 	}
 
 	if (c === 0x2b /* + */ || c === 0x2d /* - */) {
-		return parseNumber(ctx, ctx.s.charCodeAt(++ctx.p), ctx.p - 1, 10, 0x2c - c, end)
+		return parseNumber(ctx, ctx.s.charCodeAt(++ctx.p), ctx.p - 1, 0x2c - c, end)
 	}
 
 	// Rough heuristic, but `parseDate` falls back to number parsing if it's a false positive.
@@ -102,7 +102,7 @@ export function extractValue(ctx: ParseContext, end: number | undefined): TomlVa
 		return parseTime(ctx, c, end)
 	}
 
-	return parseNumber(ctx, c, ctx.p, 10, 0, end)
+	return parseNumber(ctx, c, ctx.p, 0, end)
 }
 
 // State:
@@ -119,53 +119,53 @@ export function extractValue(ctx: ParseContext, end: number | undefined): TomlVa
 // states 2-5, 14, 16 are ONLY permitted iif base === 10
 function parseNumber(
 	ctx: ParseContext,
-	c: number,
+	startChr: number,
 	startPtr: number,
-	base: NumberBase,
 	sign: number,
 	endChr: number | undefined,
 ): number | bigint {
+	let c = startChr
 	let state = 0
 	let err = { toml: ctx.s, ptr: startPtr }
 	let hasUnderscores = false
 
-	for (; ctx.p < ctx.s.length && !isEndOfValue(c, endChr); c = ctx.s.charCodeAt(++ctx.p)) {
-		if (!state) {
-			// (+/-)inf
-			if (c === 0x69 /* i */) {
-				if (ctx.s.charCodeAt(++ctx.p) !== 0x6e || ctx.s.charCodeAt(++ctx.p) !== 0x66)
-					throw new TomlError('invalid value', err)
-				return ctx.p++, (sign || 1) / 0
-			}
+	// (+/-)inf
+	if (c === 0x69 /* i */) {
+		if (ctx.s.charCodeAt(++ctx.p) !== 0x6e || ctx.s.charCodeAt(++ctx.p) !== 0x66)
+			throw new TomlError('invalid value', err)
+		return ctx.p++, (sign || 1) / 0
+	}
 
-			// (+/-)nan
-			if (c === 0x6e /* n */) {
-				if (ctx.s.charCodeAt(++ctx.p) !== 0x61 || ctx.s.charCodeAt(++ctx.p) !== 0x6e)
-					throw new TomlError('invalid value', err)
-				return ctx.p++, NaN
-			}
+	// (+/-)nan
+	if (c === 0x6e /* n */) {
+		if (ctx.s.charCodeAt(++ctx.p) !== 0x61 || ctx.s.charCodeAt(++ctx.p) !== 0x6e)
+			throw new TomlError('invalid value', err)
+		return ctx.p++, NaN
+	}
 
-			// Leading zero
-			// Only allowed cases: `0<EOV>`, `0.(...)`, `0e(...)`, `0x(...)`, `0b(...)`, `0o(...)`
-			// FWIW, `0e(...)` is a stupid case, but it's not banned per-se so we have to parse it
-			if (base === 10 && c === 0x30 /* 0 */) {
-				c = ctx.s.charCodeAt(++ctx.p)
-				if (isEndOfValue(c, endChr)) return ctx.bi === true ? 0n : 0 // note: conveniently deals with `-0`
+	// Leading zero
+	// Only allowed cases: `0<EOV>`, `0.(...)`, `0e(...)`, `0x(...)`, `0b(...)`, `0o(...)`
+	// FWIW, `0e(...)` is a stupid case, but it's not banned per-se so we have to parse it
+	if (c === 0x30 /* 0 */) {
+		c = ctx.s.charCodeAt(++ctx.p)
+		if (isEndOfValue(c, endChr)) return ctx.bi === true ? 0n : 0 // note: conveniently deals with `-0`
 
-				if (!sign) {
-					let _base = 0 as NumberBase | 0
-					if (c === 0x78 /* x */) _base = 16
-					else if (c === 0x62 /* b */) _base = 2
-					else if (c === 0x6f /* o */) _base = 8
-					if (_base) return parseNumber(ctx, ctx.s.charCodeAt(++ctx.p), startPtr, _base, sign, endChr)
-				}
-
-				if (c === 0x2e /* . */) state = 2
-				else if (c === 0x65 /* e */ || c === 0x45 /* E */) state = 4
-				else throw new TomlError('illegal leading zero', err)
-				continue
-			}
+		if (!sign) {
+			if (c === 0x78 /* x */) return parseIntegerBaseN(ctx, startPtr, 16, endChr, err)
+			else if (c === 0x62 /* b */) return parseIntegerBaseN(ctx, startPtr, 2, endChr, err)
+			else if (c === 0x6f /* o */) return parseIntegerBaseN(ctx, startPtr, 8, endChr, err)
 		}
+
+		if (c === 0x2e /* . */) state = 2
+		else if (c === 0x65 /* e */ || c === 0x45 /* E */) state = 4
+		else throw new TomlError('illegal leading zero', err)
+	}
+
+	// If the 1st char is not a digit by now, then it's not a valid TOML value at all
+	else if (!isDigit(c)) throw new TomlError('invalid value', err)
+
+	while (c = ctx.s.charCodeAt(++ctx.p), !isEndOfValue(c, endChr)) {
+		if (!state) state = 1 // Detects single-digit numbers we can use a fast parse path for
 
 		// The way the states are numbered is not random: underscores are always permitted in odd-numbered states and
 		// never permitted in even-numbered ones.
@@ -175,29 +175,27 @@ function parseNumber(
 			hasUnderscores = true
 		}
 
-		// Transition to fractional part. Only base 10 numerals may have a decimal part.
-		else if (base === 10 && state === 1 && c === 0x2e /* . */) {
-			state = 2
-		}
+		// Transition to fractional part.
+		else if (state === 1 && c === 0x2e /* . */) state = 2
 
-		// Transition to exponent part. Explicitly check base, `E` is a valid hex digit.
-		else if (base === 10 && (state === 1 || state === 3) && (c === 0x65 /* e */ || c === 0x45 /* E */)) {
-			state = 4
-		}
+		// Transition to exponent part.
+		else if ((state === 1 || state === 3) && (c === 0x65 /* e */ || c === 0x45 /* E */)) state = 4
 
 		// + and - are permitted in state 4 only (handled before entering the function for state 0)
-		else if (c === 0x2b /* + */ || c === 0x2d /* - */) {
-			if (state !== 4) throw new TomlError('illegal sign', ctx)
-		}
+		else if (state === 4 && (c === 0x2b /* + */ || c === 0x2d /* - */)) { /* no-op */ }
 
 		// All special cases have been handled; only digits are allowed here
-		else if (!isDigit(c, base)) {
-			throw new TomlError(`illegal character in base ${base} numeric literal`, ctx)
-		}
+		else if (!isDigit(c)) throw new TomlError(`illegal character in numeric literal`, ctx)
 
 		// Clear state flags
 		else if (state > 9) state -= 11
 		else if (!(state & 1)) state++
+	}
+
+	// Single-char number; we can fast-path these very easily.
+	if (!state) {
+		let val = startChr - 0x30 /* 0 */
+		return ctx.bi === true ? BigInt(val) : val
 	}
 
 	// Even-numbered states absolutely require a digit next; not even end of value is permitted
@@ -205,11 +203,45 @@ function parseNumber(
 
 	let str = ctx.s.slice(startPtr, ctx.p)
 	if (hasUnderscores) str = str.replaceAll('_', '') // perf: replaceAll 1.25x faster than replace with a regex
-	if (state > 1) return parseFloat(str)
 
+	return state > 1
+		? parseFloat(str)
+		: parseInteger(ctx, str, 10, err)
+}
+
+function parseIntegerBaseN(
+	ctx: ParseContext,
+	startPtr: number,
+	base: NumberBase,
+	endChr: number | undefined,
+	err: TomlErrorOptions,
+) {
+	let c, underscore = 1
+	while (c = ctx.s.charCodeAt(++ctx.p), !isEndOfValue(c, endChr)) {
+		if (c === 0x5f /* _ */) {
+			if (underscore & 1) throw new TomlError('illegal underscore', ctx)
+			underscore = 3
+		}
+
+		// We only need to check if the number is a valid digit, nothing else is permitted
+		else if (!isDigit(c, base)) throw new TomlError(`illegal character in numeric literal`, ctx)
+
+		// Clear underscore flag
+		else if (underscore & 1) underscore--
+	}
+
+	// Trailing underscore is not allowed
+	if (underscore & 1) throw new TomlError('unfinished numeric value', ctx)
+
+	let str = ctx.s.slice(startPtr + 2, ctx.p)
+	if (underscore) str = str.replaceAll('_', '') // perf: replaceAll 1.25x faster than replace with a regex
+
+	return parseInteger(ctx, str, base, err)
+}
+
+function parseInteger(ctx: ParseContext, str: string, base: NumberBase, err: TomlErrorOptions) {
 	if (ctx.bi !== true) int: {
-		// Don't need to handle `-0`; return 0 is always inlined
-		let val = parseInt(base !== 10 ? str.slice(2) : str, base)
+		let val = parseInt(str, base)
 		if (!Number.isSafeInteger(val)) {
 			if (ctx.bi) break int
 			throw new TomlError('integer value cannot be represented losslessly', err)
@@ -218,7 +250,7 @@ function parseNumber(
 		return val
 	}
 
-	return BigInt(str)
+	return base === 10 ? BigInt(str) : BigInt((base === 2 ? '0b' : base === 8 ? '0o' : '0x') + str)
 }
 
 function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
@@ -230,7 +262,7 @@ function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
 		!isDigit(ctx.s.charCodeAt(ctx.p++)) ||
 		!isDigit(ctx.s.charCodeAt(ctx.p++))
 	) {
-		return parseNumber(ctx, c, ctx.p = start, 10, 0, endChr)
+		return parseNumber(ctx, c, ctx.p = start, 0, endChr)
 	}
 
 	if (!(c = ctx.s.charCodeAt(ctx.p += 6)) || ((c !== 0x20 || !isDigit(ctx.s.charCodeAt(ctx.p + 1))) && c !== 0x54 /* T */ && c !== 0x74 /* t */)) {
@@ -267,7 +299,7 @@ function parseTime(ctx: ParseContext, c: number, endChr: number | undefined) {
 	let err = { toml: ctx.s, ptr: ctx.p }
 
 	if (!isDigit(c) || !isDigit(ctx.s.charCodeAt(++ctx.p))) {
-		return parseNumber(ctx, c, --ctx.p, 10, 0, endChr)
+		return parseNumber(ctx, c, --ctx.p, 0, endChr)
 	}
 
 	if (ctx.s.charCodeAt(ctx.p += 4) === 0x3a /* : */) ctx.p += 3
