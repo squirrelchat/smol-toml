@@ -35,11 +35,11 @@ function extendedTypeOf(obj: any) {
 	let type = typeof obj
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
-		if (typeof obj?.getUTCDate === 'function' && obj instanceof Date) return 'date'
+		if (typeof obj.getUTCDate === 'function' && obj instanceof Date) return 'date'
 		if (
 			globalThis.Temporal &&
-			// check for the 'since' property as an early bailout that avoids running all 5 instanceof checks
-			typeof obj?.since === 'function' &&
+			// check for the 'until' property as an early bailout that avoids running all 5 instanceof checks
+			typeof obj.until === 'function' &&
 			(obj instanceof Temporal.Instant ||
 				obj instanceof Temporal.PlainDate ||
 				obj instanceof Temporal.PlainDateTime ||
@@ -61,8 +61,18 @@ function isArrayOfTables(obj: any[]) {
 	return obj.length != 0
 }
 
-function formatString(s: string) {
+function formatWellFormedStringUnchecked(s: string) {
 	return JSON.stringify(s).replaceAll('\x7f', '\\u007f')
+}
+
+function formatString(s: string) {
+	return formatWellFormedStringUnchecked(s.toWellFormed())
+}
+
+function formatKey(s: string) {
+	if (BARE_KEY.test(s)) return s
+	if (!s.isWellFormed()) throw new RangeError('key contains illegal lone surrogates')
+	return formatWellFormedStringUnchecked(s)
 }
 
 function stringifyTemporal(temporal: AnyTemporalDateTime) {
@@ -115,9 +125,7 @@ function stringifyInlineTable(obj: any, depth: number, numberAsFloat: boolean) {
 		let k = keys[i]!
 		if (i) res += ', '
 
-		res += BARE_KEY.test(k) ? k : formatString(k)
-		res += ' = '
-		res += stringifyValue(obj[k], extendedTypeOf(obj[k]), depth - 1, numberAsFloat)
+		res += formatKey(k) + ' = ' + stringifyValue(obj[k], extendedTypeOf(obj[k]), depth - 1, numberAsFloat)
 	}
 
 	return res + ' }'
@@ -170,7 +178,7 @@ function stringifyTable(tableKey: string | 0, obj: any, prefix: string, depth: n
 				throw new TypeError(`cannot serialize values of type '${type}'`)
 			}
 
-			let key = BARE_KEY.test(k) ? k : formatString(k)
+			let key = formatKey(k)
 
 			if (type === 'array' && isArrayOfTables(obj[k])) {
 				tables += (tables && '\n') + stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat)
