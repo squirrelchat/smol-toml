@@ -42,9 +42,8 @@ function isDigit(char: number, base: NumberBase = 10): boolean {
 }
 
 function isEndOfValue(char: number, delim: number | undefined) {
-	return !char ||
-		// Whitespace -- we're permissive on `\r` for performance; it'll be dealt with later anyway
-		char === 0x20 || char === 0x9 /* \t */ || char === 0xa /* \n */ || char === 0xd /* \r */ ||
+	// Whitespace -- we're permissive on `\r` for performance; it'll be dealt with later anyway
+	return char === 0x20 || char === 0x9 /* \t */ || char === 0xa /* \n */ || char === 0xd /* \r */ ||
 		// Structure end or next value delimiter
 		(delim && (char === delim || char === 0x2c /* , */)) ||
 		// Comment
@@ -146,8 +145,7 @@ function parseNumber(
 	// Only allowed cases: `0<EOV>`, `0.(...)`, `0e(...)`, `0x(...)`, `0b(...)`, `0o(...)`
 	// FWIW, `0e(...)` is a stupid case, but it's not banned per-se so we have to parse it
 	if (c === 0x30 /* 0 */) {
-		c = ctx.s.charCodeAt(++ctx.p)
-		if (isEndOfValue(c, endChr)) return ctx.bi === true ? 0n : 0 // note: conveniently deals with `-0`
+		if (++ctx.p >= ctx.s.length || isEndOfValue(c = ctx.s.charCodeAt(ctx.p), endChr)) return ctx.bi === true ? 0n : 0 // note: conveniently deals with `-0`
 
 		if (!sign) {
 			if (c === 0x78 /* x */) return parseIntegerBaseN(ctx, startPtr, 16, endChr)
@@ -163,7 +161,7 @@ function parseNumber(
 	// If the 1st char is not a digit by now, then it's not a valid TOML value at all
 	else if (!isDigit(c)) TomlError.x('invalid value', ctx, startPtr)
 
-	while (c = ctx.s.charCodeAt(++ctx.p), !isEndOfValue(c, endChr)) {
+	while (++ctx.p < ctx.s.length && (c = ctx.s.charCodeAt(ctx.p), !isEndOfValue(c, endChr))) {
 		if (!state) state = 1 // Detects single-digit numbers we can use a fast parse path for
 
 		// The way the states are numbered is not random: underscores are always permitted in odd-numbered states and
@@ -215,7 +213,7 @@ function parseIntegerBaseN(
 	endChr: number | undefined,
 ) {
 	let c, underscore = 1
-	while (c = ctx.s.charCodeAt(++ctx.p), !isEndOfValue(c, endChr)) {
+	while (++ctx.p < ctx.s.length && (c = ctx.s.charCodeAt(ctx.p), !isEndOfValue(c, endChr))) {
 		if (c === 0x5f /* _ */) {
 			if (underscore & 1) TomlError.x('illegal underscore', ctx)
 			underscore = 3

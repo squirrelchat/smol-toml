@@ -76,12 +76,14 @@ export function skipComment(ctx: ParseContext) {
 /** @internal */
 export function skipVoid(ctx: ParseContext, banNewLines?: boolean, banComments?: boolean) {
 	let c
-	while (1) {
+	while (ctx.p < ctx.s.length) {
 		while (
-			(c = ctx.s.charCodeAt(ctx.p)) === 0x20 ||
-			c === 0x9 /* \t */ ||
-			(!banNewLines &&
-				(c === 0xa /* \n */ || (c === 0xd /* \r */ && ctx.s.charCodeAt(ctx.p + 1) === 0xa /* \n */))
+			ctx.p < ctx.s.length && (
+				(c = ctx.s.charCodeAt(ctx.p)) === 0x20 ||
+				c === 0x9 /* \t */ ||
+				(!banNewLines &&
+					(c === 0xa /* \n */ || (c === 0xd /* \r */ && ctx.s.charCodeAt(ctx.p + 1) === 0xa /* \n */))
+				)
 			)
 		) ctx.p++
 
