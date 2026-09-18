@@ -29,8 +29,6 @@
 import type { ParseContext } from './parse.ts'
 import { TomlError } from './error.js'
 
-// let CTRL_REGEX = /[\x00-\x08\x0f-\x1f\x7f]/
-
 /** @internal */
 export function parseString(ctx: ParseContext): string {
 	let startPtr = ctx.p
@@ -44,36 +42,8 @@ export function parseString(ctx: ParseContext): string {
 		else if (c === 0xd /* \r */ && ctx.s.charCodeAt(ctx.p + 1) === 0xa /* \n */) ctx.p += 2
 	}
 
-	/*
-	The fast path does not seem to bring significant performance gains, so it's commented out.
-	Kept for reference and/or future fafoing.
-
-	Without: spec  3.54 µs/iter    4.06 ipc (99.37% cache)   13.96 branch misses   20.48k cycles    83.22k instructions
-	         5MB   107.84 ms/iter  2.34 ipc (98.43% cache)   2.65M branch misses   582.91M cycles   1.37G instructions
-
-	With:    spec  3.53 µs/iter    4.06 ipc (99.33% cache)   17.42 branch misses   20.45k cycles    82.99k instructions
-	         5MB   109.40 ms/iter  2.34 ipc (98.51% cache)   2.67M branch misses   580.60M cycles   1.36G instructions
-
-	if (isLiteral) {
-		// Literal strings fast path - no transform needs to occur; just grab the str and that's it
-		let endPtr = ctx.s.indexOf(isMultiline ? "'''" : "'", ctx.p)
-		if (endPtr < 0) throw new TomlError("unfinished string literal", ctx)
-
-		if (isMultiline) {
-			// If the string ends with 4-5 quotes, then the first 1-2 are part of the string
-			if (ctx.s.charCodeAt(endPtr + 3) === 0x27 /* ' * /) endPtr++
-			if (ctx.s.charCodeAt(endPtr + 3) === 0x27 /* ' * /) endPtr++
-		}
-
-		let string = ctx.s.slice(ctx.p, endPtr)
-		if (CTRL_REGEX.test(string)) {
-			let match = string.match(CTRL_REGEX)!
-			throw new TomlError('control characters are not allowed in strings', { toml: ctx.s, ptr: ctx.p + (match.index ?? 0) })
-		}
-		ctx.p = endPtr + (isMultiline ? 3 : 1)
-		return string
-	}
-	/**/
+	// For the record: it is not worth it to use a fast-path for literal strings using `indexOf`.
+	// Doing a char-by-char iteration ends up dispatching less instructions, for the same wall-clock runtime.
 
 	let parsed = ''
 	let sliceStart = ctx.p
