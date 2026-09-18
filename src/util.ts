@@ -68,7 +68,7 @@ export function skipComment(ctx: ParseContext) {
 		}
 
 		if ((c < 0x20 && c !== 0x9 /* \t */) || c === 0x7f) {
-			throw new TomlError('control characters are not allowed in comments', ctx)
+			TomlError.x('control characters are not allowed in comments', ctx)
 		}
 	}
 }

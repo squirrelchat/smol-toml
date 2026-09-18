@@ -33,7 +33,7 @@ import { TomlError } from './error.js'
 
 /** @internal */
 export function parseString(ctx: ParseContext): string {
-	let start = ctx.p
+	let startPtr = ctx.p
 	let c = ctx.s.charCodeAt(ctx.p++)
 	let first = c
 	let isLiteral = c === 0x27 /* ' */
@@ -94,7 +94,7 @@ export function parseString(ctx: ParseContext): string {
 
 		// Control characters are banned in TOML, so we throw an error if we encounter them
 		else if ((c < 0x20 && c !== 0x9 /* \t */) || c === 0x7f) {
-			throw new TomlError('control characters are not allowed in strings', ctx)
+			TomlError.x('control characters are not allowed in strings', ctx)
 		}
 
 		// The string might terminate while we're parsing through a newline escape.
@@ -110,7 +110,7 @@ export function parseString(ctx: ParseContext): string {
 			if (!state) {
 				// Avoid a useless concat operation if the string can be used as-is.
 				let s = ctx.s.slice(sliceStart, ctx.p)
-				parsed = parsed ? parsed + s : s;
+				parsed = parsed ? parsed + s : s
 			}
 
 			ctx.p += isMultiline ? 3 : 1
@@ -127,7 +127,7 @@ export function parseString(ctx: ParseContext): string {
 
 		else if (state === 1) {
 			if (c === 0x78 /* x */ || c === 0x75 /* u */ || c === 0x55 /* U */) { // Unicode escape
-				let err = { toml: ctx.s, ptr: ctx.p++ - 1 }
+				let errPtr = ctx.p++ - 1
 				let value = 0
 				let len = c === 0x78 /* x */ ? 2 : c === 0x75 /* u */ ? 4 : 8
 				for (let j = 0; j < len; j++, ctx.p++) {
@@ -137,13 +137,13 @@ export function parseString(ctx: ParseContext): string {
 						/* A-F */ hex >= 0x41 && hex <= 0x46 ? hex - 0x41 + 10 :
 						/* a-f */ hex >= 0x61 && hex <= 0x66 ? hex - 0x61 + 10 : -1
 
-					if (digit < 0) throw new TomlError('invalid non-hex character in unicode escape', ctx)
+					if (digit < 0) TomlError.x('invalid non-hex character in unicode escape', ctx)
 					value = (value << 4) | digit
 				}
 
 				// Because JS does bitwise on signed 32bit integers, all 0xfzzzzzzz values are actually seen as negative
 				if (value < 0 || value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) {
-					throw new TomlError('invalid unicode escape', err)
+					TomlError.x('invalid unicode escape', ctx, errPtr)
 				}
 
 				parsed += String.fromCodePoint(value)
@@ -166,7 +166,7 @@ export function parseString(ctx: ParseContext): string {
 				else if (c === 0x65 /* e */) parsed += '\x1b'
 				else if (c === 0x22 /* " */) parsed += '"'
 				else if (c === 0x5c /* \ */) parsed += '\\'
-				else throw new TomlError('unrecognised escape sequence', ctx)
+				else TomlError.x('unrecognised escape sequence', ctx)
 				sliceStart = ctx.p + 1
 				state = 0
 			}
@@ -174,12 +174,7 @@ export function parseString(ctx: ParseContext): string {
 
 		// Newline escape continuation: keep moving forward until the first non-whitespace char
 		else if (c !== 0x20 && c !== 0x9 /* \t */) {
-			if (state === 2) {
-				throw new TomlError('invalid escape: only line-ending whitespace may be escaped', {
-					toml: ctx.s,
-					ptr: sliceStart,
-				})
-			}
+			if (state === 2) TomlError.x('invalid escape: only line-ending whitespace may be escaped', ctx, sliceStart)
 
 			// State cannot be zero, or we'd have branched earlier already.
 			// If it's a backslash, immediately transition to the escape state so it can be processed.
@@ -188,5 +183,5 @@ export function parseString(ctx: ParseContext): string {
 		}
 	}
 
-	throw new TomlError('unfinished string', { toml: ctx.s, ptr: start })
+	TomlError.x('unfinished string', ctx, startPtr)
 }

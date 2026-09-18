@@ -67,8 +67,7 @@ export class TomlError extends Error {
 	column: number
 	codeblock: string
 
-	constructor(message: string, options: TomlErrorOptions | ParseContext) {
-		options = 's' in options ? { toml: options.s, ptr: options.p } : options
+	constructor(message: string, options: TomlErrorOptions) {
 		const [line, column] = getLineColFromPtr(options.toml, options.ptr)
 		const codeblock = makeCodeBlock(options.toml, line, column)
 
@@ -76,5 +75,10 @@ export class TomlError extends Error {
 		this.line = line
 		this.column = column
 		this.codeblock = codeblock
+	}
+
+	/** @internal */
+	static x(message: string, ctx: ParseContext, ptr?: number | null | undefined): never {
+		throw new TomlError(message, { toml: ctx.s, ptr: ptr ?? ctx.p })
 	}
 }

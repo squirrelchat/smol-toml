@@ -30,7 +30,7 @@ import type { ParseContext } from './parse.ts'
 import type { AnyTemporalDateTimeCtor, TomlValue } from './util.js'
 import { parseString } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
-import { TomlError, TomlErrorOptions } from './error.js'
+import { TomlError } from './error.js'
 import { TomlDate } from './date.ts';
 
 type NumberBase = 2 | 8 | 10 | 16
@@ -53,12 +53,12 @@ function isEndOfValue(char: number, delim: number | undefined) {
 
 /** @internal */
 export function extractValue(ctx: ParseContext, end: number | undefined): TomlValue {
-	let err = { toml: ctx.s, ptr: ctx.p }
+	let errPtr = ctx.p
 	let c = ctx.s.charCodeAt(ctx.p)
 
 	// Structs
 	if (c === 0x5b /* [ */ || c === 0x7b /* { */) {
-		if (!ctx.d--) throw new TomlError('document contains excessively nested structures. aborting.', ctx)
+		ctx.d-- || TomlError.x('document contains excessively nested structures. aborting.', ctx)
 
 		let value = c === 0x5b /* [ */
 			? parseArray(ctx)
@@ -77,18 +77,18 @@ export function extractValue(ctx: ParseContext, end: number | undefined): TomlVa
 	// We can fast-path because the first character is enough to know the only possible value
 	if (c === 0x74 /* t */) { // Only possible valid value is `true`
 		if (ctx.s.charCodeAt(++ctx.p) !== 0x72 || ctx.s.charCodeAt(++ctx.p) !== 0x75 || ctx.s.charCodeAt(++ctx.p) !== 0x65)
-			throw new TomlError('invalid value', err)
+			TomlError.x('invalid value', ctx, errPtr)
 		return ctx.p++, true
 	}
 
 	if (c === 0x66 /* f */) { // Only possible valid value is `false`
 		if (ctx.s.charCodeAt(++ctx.p) !== 0x61 || ctx.s.charCodeAt(++ctx.p) !== 0x6c || ctx.s.charCodeAt(++ctx.p) !== 0x73 || ctx.s.charCodeAt(++ctx.p) !== 0x65)
-			throw new TomlError('invalid value', err)
+			TomlError.x('invalid value', ctx, errPtr)
 		return ctx.p++, false
 	}
 
 	if (c === 0x2b /* + */ || c === 0x2d /* - */) {
-		return parseNumber(ctx, ctx.s.charCodeAt(++ctx.p), ctx.p - 1, 0x2c - c, end)
+		return parseNumber(ctx, ctx.p, ctx.s.charCodeAt(++ctx.p), 0x2c - c, end)
 	}
 
 	// Rough heuristic, but `parseDate` falls back to number parsing if it's a false positive.
@@ -102,7 +102,7 @@ export function extractValue(ctx: ParseContext, end: number | undefined): TomlVa
 		return parseTime(ctx, c, end)
 	}
 
-	return parseNumber(ctx, c, ctx.p, 0, end)
+	return parseNumber(ctx, ctx.p, c, 0, end)
 }
 
 // State:
@@ -119,27 +119,26 @@ export function extractValue(ctx: ParseContext, end: number | undefined): TomlVa
 // states 2-5, 14, 16 are ONLY permitted iif base === 10
 function parseNumber(
 	ctx: ParseContext,
-	startChr: number,
 	startPtr: number,
+	startChr: number,
 	sign: number,
 	endChr: number | undefined,
 ): number | bigint {
 	let c = startChr
 	let state = 0
-	let err = { toml: ctx.s, ptr: startPtr }
 	let hasUnderscores = false
 
 	// (+/-)inf
 	if (c === 0x69 /* i */) {
 		if (ctx.s.charCodeAt(++ctx.p) !== 0x6e || ctx.s.charCodeAt(++ctx.p) !== 0x66)
-			throw new TomlError('invalid value', err)
+			TomlError.x('invalid value', ctx, startPtr)
 		return ctx.p++, (sign || 1) / 0
 	}
 
 	// (+/-)nan
 	if (c === 0x6e /* n */) {
 		if (ctx.s.charCodeAt(++ctx.p) !== 0x61 || ctx.s.charCodeAt(++ctx.p) !== 0x6e)
-			throw new TomlError('invalid value', err)
+			TomlError.x('invalid value', ctx, startPtr)
 		return ctx.p++, NaN
 	}
 
@@ -151,18 +150,18 @@ function parseNumber(
 		if (isEndOfValue(c, endChr)) return ctx.bi === true ? 0n : 0 // note: conveniently deals with `-0`
 
 		if (!sign) {
-			if (c === 0x78 /* x */) return parseIntegerBaseN(ctx, startPtr, 16, endChr, err)
-			else if (c === 0x62 /* b */) return parseIntegerBaseN(ctx, startPtr, 2, endChr, err)
-			else if (c === 0x6f /* o */) return parseIntegerBaseN(ctx, startPtr, 8, endChr, err)
+			if (c === 0x78 /* x */) return parseIntegerBaseN(ctx, startPtr, 16, endChr)
+			else if (c === 0x62 /* b */) return parseIntegerBaseN(ctx, startPtr, 2, endChr)
+			else if (c === 0x6f /* o */) return parseIntegerBaseN(ctx, startPtr, 8, endChr)
 		}
 
 		if (c === 0x2e /* . */) state = 2
 		else if (c === 0x65 /* e */ || c === 0x45 /* E */) state = 4
-		else throw new TomlError('illegal leading zero', err)
+		else TomlError.x('illegal leading zero', ctx, startPtr)
 	}
 
 	// If the 1st char is not a digit by now, then it's not a valid TOML value at all
-	else if (!isDigit(c)) throw new TomlError('invalid value', err)
+	else if (!isDigit(c)) TomlError.x('invalid value', ctx, startPtr)
 
 	while (c = ctx.s.charCodeAt(++ctx.p), !isEndOfValue(c, endChr)) {
 		if (!state) state = 1 // Detects single-digit numbers we can use a fast parse path for
@@ -170,7 +169,7 @@ function parseNumber(
 		// The way the states are numbered is not random: underscores are always permitted in odd-numbered states and
 		// never permitted in even-numbered ones.
 		if (c === 0x5f /* _ */) {
-			if (!(state & 1)) throw new TomlError('illegal underscore', ctx)
+			if (!(state & 1)) TomlError.x('illegal underscore', ctx)
 			state += 11 // 11 is a marker that makes the state even and greater than 9; see the numbering + rationale above
 			hasUnderscores = true
 		}
@@ -185,7 +184,7 @@ function parseNumber(
 		else if (state === 4 && (c === 0x2b /* + */ || c === 0x2d /* - */)) { /* no-op */ }
 
 		// All special cases have been handled; only digits are allowed here
-		else if (!isDigit(c)) throw new TomlError(`illegal character in numeric literal`, ctx)
+		else if (!isDigit(c)) TomlError.x(`illegal character in numeric literal`, ctx)
 
 		// Clear state flags
 		else if (state > 9) state -= 11
@@ -199,14 +198,14 @@ function parseNumber(
 	}
 
 	// Even-numbered states absolutely require a digit next; not even end of value is permitted
-	if (!(state & 1)) throw new TomlError('unfinished numeric value', err)
+	if (!(state & 1)) TomlError.x('unfinished numeric value', ctx, startPtr)
 
 	let str = ctx.s.slice(startPtr, ctx.p)
 	if (hasUnderscores) str = str.replaceAll('_', '') // perf: replaceAll 1.25x faster than replace with a regex
 
 	return state > 1
 		? parseFloat(str)
-		: parseInteger(ctx, str, 10, err)
+		: parseInteger(ctx, str, 10, startPtr)
 }
 
 function parseIntegerBaseN(
@@ -214,37 +213,36 @@ function parseIntegerBaseN(
 	startPtr: number,
 	base: NumberBase,
 	endChr: number | undefined,
-	err: TomlErrorOptions,
 ) {
 	let c, underscore = 1
 	while (c = ctx.s.charCodeAt(++ctx.p), !isEndOfValue(c, endChr)) {
 		if (c === 0x5f /* _ */) {
-			if (underscore & 1) throw new TomlError('illegal underscore', ctx)
+			if (underscore & 1) TomlError.x('illegal underscore', ctx)
 			underscore = 3
 		}
 
 		// We only need to check if the number is a valid digit, nothing else is permitted
-		else if (!isDigit(c, base)) throw new TomlError(`illegal character in numeric literal`, ctx)
+		else if (!isDigit(c, base)) TomlError.x(`illegal character in numeric literal`, ctx)
 
 		// Clear underscore flag
 		else if (underscore & 1) underscore--
 	}
 
 	// Trailing underscore is not allowed
-	if (underscore & 1) throw new TomlError('unfinished numeric value', ctx)
+	if (underscore & 1) TomlError.x('unfinished numeric value', ctx)
 
 	let str = ctx.s.slice(startPtr + 2, ctx.p)
 	if (underscore) str = str.replaceAll('_', '') // perf: replaceAll 1.25x faster than replace with a regex
 
-	return parseInteger(ctx, str, base, err)
+	return parseInteger(ctx, str, base, startPtr)
 }
 
-function parseInteger(ctx: ParseContext, str: string, base: NumberBase, err: TomlErrorOptions) {
+function parseInteger(ctx: ParseContext, str: string, base: NumberBase, startPtr: number) {
 	if (ctx.bi !== true) int: {
 		let val = parseInt(str, base)
 		if (!Number.isSafeInteger(val)) {
 			if (ctx.bi) break int
-			throw new TomlError('integer value cannot be represented losslessly', err)
+			TomlError.x('integer value cannot be represented losslessly', ctx, startPtr)
 		}
 
 		return val
@@ -254,7 +252,7 @@ function parseInteger(ctx: ParseContext, str: string, base: NumberBase, err: Tom
 }
 
 function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
-	let start = ctx.p++, err = { toml: ctx.s, ptr: start }
+	let startPtr = ctx.p++
 
 	if (
 		!isDigit(c) ||
@@ -262,16 +260,16 @@ function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
 		!isDigit(ctx.s.charCodeAt(ctx.p++)) ||
 		!isDigit(ctx.s.charCodeAt(ctx.p++))
 	) {
-		return parseNumber(ctx, c, ctx.p = start, 0, endChr)
+		return parseNumber(ctx, ctx.p = startPtr, c, 0, endChr)
 	}
 
 	if (!(c = ctx.s.charCodeAt(ctx.p += 6)) || ((c !== 0x20 || !isDigit(ctx.s.charCodeAt(ctx.p + 1))) && c !== 0x54 /* T */ && c !== 0x74 /* t */)) {
-		let t = ctx.s.slice(start, ctx.p)
-		return ctx.ld ? tomlDateFrom(t, err) : temporalSafeFrom(Temporal.PlainDate, t, err)
+		let t = ctx.s.slice(startPtr, ctx.p)
+		return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.PlainDate, t, startPtr)
 	}
 
 	if (ctx.s.charCodeAt(ctx.p += 3) !== 0x3a /* : */)
-		throw new TomlError('invalid date-time: time part is malformed', err)
+		TomlError.x('invalid date-time: time part is malformed', ctx, startPtr)
 
 	if (ctx.s.charCodeAt(ctx.p += 3) === 0x3a /* : */) ctx.p += 3
 	if (ctx.s.charCodeAt(ctx.p) === 0x2e /* . */)
@@ -279,47 +277,47 @@ function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
 
 	if (c = ctx.s.charCodeAt(ctx.p)) {
 		if (c === 0x5a /* Z */ || c === 0x7a /* z */) {
-			let t = ctx.s.slice(start, ctx.p++)
-			return ctx.ld ? tomlDateFrom(t, err) : temporalSafeFrom(Temporal.ZonedDateTime, t + '[UTC]', err)
+			let t = ctx.s.slice(startPtr, ctx.p++)
+			return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.ZonedDateTime, t + '[UTC]', startPtr)
 		}
 
 		if (c === 0x2b /* + */ || c === 0x2d /* - */) {
 			// Temporal's ZonedDateTime is weird asf when it comes to dealing with traditional offsets...
 			// It's 1.2x faster to allocate a new string to pass to ZDT than use Instant.toZonedDateTimeISO
-			let t = ctx.s.slice(start, ctx.p += 6)
-			return ctx.ld ? tomlDateFrom(t, err) : temporalSafeFrom(Temporal.ZonedDateTime, t + '[' + ctx.s.slice(ctx.p - 6, ctx.p) + ']', err)
+			let t = ctx.s.slice(startPtr, ctx.p += 6)
+			return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.ZonedDateTime, t + '[' + ctx.s.slice(ctx.p - 6, ctx.p) + ']', startPtr)
 		}
 	}
 
-	let t = ctx.s.slice(start, ctx.p)
-	return ctx.ld ? tomlDateFrom(t, err) : temporalSafeFrom(Temporal.PlainDateTime, t, err)
+	let t = ctx.s.slice(startPtr, ctx.p)
+	return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.PlainDateTime, t, startPtr)
 }
 
 function parseTime(ctx: ParseContext, c: number, endChr: number | undefined) {
-	let err = { toml: ctx.s, ptr: ctx.p }
+	let start = ctx.p
 
 	if (!isDigit(c) || !isDigit(ctx.s.charCodeAt(++ctx.p))) {
-		return parseNumber(ctx, c, --ctx.p, 0, endChr)
+		return parseNumber(ctx, --ctx.p, c, 0, endChr)
 	}
 
 	if (ctx.s.charCodeAt(ctx.p += 4) === 0x3a /* : */) ctx.p += 3
 	if (ctx.s.charCodeAt(ctx.p) === 0x2e /* . */)
 		while (isDigit(ctx.s.charCodeAt(++ctx.p))) ;
 
-	let t = ctx.s.slice(err.ptr, ctx.p)
-	return ctx.ld ? tomlDateFrom(t, err) : temporalSafeFrom(Temporal.PlainTime, t, err)
+	let t = ctx.s.slice(start, ctx.p)
+	return ctx.ld ? tomlDateFrom(ctx, t, start) : temporalSafeFrom(ctx, Temporal.PlainTime, t, start)
 }
 
-function tomlDateFrom(str: string, err: TomlErrorOptions) {
+function tomlDateFrom(ctx: ParseContext, str: string, errPtr: number) {
 	let date = new TomlDate(str)
-	if (!date.isValid()) throw new TomlError('invalid date', err)
+	if (!date.isValid()) TomlError.x('invalid date', ctx, errPtr)
 	return date
 }
 
-function temporalSafeFrom(t: AnyTemporalDateTimeCtor, str: string, err: TomlErrorOptions) {
+function temporalSafeFrom(ctx: ParseContext, t: AnyTemporalDateTimeCtor, str: string, errPtr: number) {
 	try {
 		return t.from(str)
 	} catch (e) {
-		throw new TomlError((e instanceof Error ? e.message : e?.toString()) + ` (while parsing ${str})`, err)
+		TomlError.x(e instanceof Error ? e.message : e?.toString()!, ctx, errPtr)
 	}
 }

@@ -38,23 +38,23 @@ export function parseKey(ctx: ParseContext, end = 0x3d /* = */): string[] {
 	// 0: before first char
 	// 1: parsing bare key
 	// 2: after key component
-	let err = { toml: ctx.s, ptr: ctx.p-- }
+	let startPtr
 	let state = 0
 	let parsed = []
 	let sliceStart
-	let c
+	let c = ctx.s.charCodeAt(startPtr = ctx.p)
 
-	while (c = ctx.s.charCodeAt(++ctx.p)) {
+	do {
 		// End of key
 		if (c === end) {
-			if (!state) throw new TomlError('unexpected end of key', ctx)
+			if (!state) TomlError.x('unexpected end of key', ctx)
 			if (state === 1) parsed.push(ctx.s.slice(sliceStart, ctx.p))
 			return ctx.p++, parsed
 		}
 
 		// Dotted key separator
 		else if (c === 0x2e /* . */) {
-			if (!state) throw new TomlError('illegal empty bare key', ctx)
+			if (!state) TomlError.x('illegal empty bare key', ctx)
 			if (state === 1) parsed.push(ctx.s.slice(sliceStart, ctx.p))
 			state = 0
 		}
@@ -62,7 +62,7 @@ export function parseKey(ctx: ParseContext, end = 0x3d /* = */): string[] {
 		// Quoted key
 		else if (!state && (c === 0x22 /* " */ || c === 0x27 /* ' */)) {
 			if (c === ctx.s.charCodeAt(ctx.p + 1) && c === ctx.s.charCodeAt(ctx.p + 2))
-				throw new TomlError('illegal quoted key: multiline strings are not allowed', ctx)
+				TomlError.x('illegal quoted key: multiline strings are not allowed', ctx)
 			parsed.push(parseString(ctx))
 			state = 2
 			ctx.p--
@@ -78,7 +78,7 @@ export function parseKey(ctx: ParseContext, end = 0x3d /* = */): string[] {
 
 		// If state is post-key, no character is allowed; otherwise ensure it's a bare-key component
 		else if (state === 2 || (c < 0x30 && c !== 0x2d /* - */) || (c > 0x39 && c < 0x41) || (c > 0x5a && c < 0x61 && c !== 0x5f /* _ */) || c > 0x7a) {
-			throw new TomlError('illegal character in key', ctx)
+			TomlError.x('illegal character in key', ctx)
 		}
 
 		// Illegal character
@@ -86,19 +86,18 @@ export function parseKey(ctx: ParseContext, end = 0x3d /* = */): string[] {
 			state = 1
 			sliceStart = ctx.p
 		}
-	}
+	} while (c = ctx.s.charCodeAt(++ctx.p))
 
-	throw new TomlError('incomplete key-value: cannot find end of key', err)
+	TomlError.x('incomplete key-value: cannot find end of key', ctx, startPtr)
 }
 
 /** @internal */
 export function parseInlineTable(ctx: ParseContext): TomlTable {
-	let err = { toml: ctx.s, ptr: ctx.p }
+	let startPtr = ctx.p++
 	let res: TomlTable = {}
 	let seen = new Set()
 	let c: number
 
-	ctx.p++
 	while (ctx.p < ctx.s.length) {
 		skipVoid(ctx)
 		if ((c = ctx.s.charCodeAt(ctx.p)) === 0x7d /* } */) {
@@ -109,7 +108,7 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 		let k: string
 		let t: any = res
 		let hasOwn = false
-		let err = { toml: ctx.s, ptr: ctx.p }
+		let errPtr = ctx.p
 
 		let key = parseKey(ctx)
 		for (let i = 0; i < key.length; i++) {
@@ -117,7 +116,7 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 
 			k = key[i]!
 			if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
-				throw new TomlError('trying to redefine an already defined value', err)
+				TomlError.x('trying to redefine an already defined value', ctx, errPtr)
 			}
 
 			if (!hasOwn && k === '__proto__') {
@@ -126,7 +125,7 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 		}
 
 		if (hasOwn) {
-			throw new TomlError('trying to redefine an already defined value', err)
+			TomlError.x('trying to redefine an already defined value', ctx, errPtr)
 		}
 
 		skipVoid(ctx, true, true)
@@ -138,17 +137,15 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 			return res
 		}
 
-		if (c !== 0x2c /* , */) {
-			throw new TomlError('expected comma or end of structure', { toml: ctx.s, ptr: ctx.p - 1 })
-		}
+		if (c !== 0x2c /* , */) TomlError.x('expected comma or end of structure', ctx, ctx.p - 1)
 	}
 
-	throw new TomlError('unfinished table encountered', err)
+	TomlError.x('unfinished table', ctx, startPtr)
 }
 
 /** @internal */
 export function parseArray(ctx: ParseContext): TomlValue[] {
-	let err = { toml: ctx.s, ptr: ctx.p }
+	let startPtr = ctx.p
 	let res: TomlValue[] = []
 	let c
 
@@ -167,10 +164,8 @@ export function parseArray(ctx: ParseContext): TomlValue[] {
 			return res
 		}
 
-		if (c !== 0x2c /* , */) {
-			throw new TomlError('expected comma or end of structure', { toml: ctx.s, ptr: ctx.p - 1 })
-		}
+		if (c !== 0x2c /* , */) TomlError.x('expected comma or end of structure', ctx, ctx.p - 1)
 	}
 
-	throw new TomlError('unfinished array encountered', err)
+	TomlError.x('unfinished array', ctx, startPtr)
 }

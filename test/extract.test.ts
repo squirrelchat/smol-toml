@@ -80,8 +80,8 @@ it('supports integers larger than the max safe integer number when bigints are e
 
 it('supports integers larger than the Number max value when bigints are enabled', () => {
 	const nineRepeat = '9'.repeat(310)
-	expect(extractValue({ s: nineRepeat, p: 0, d: 0, bi: 'asNeeded', ld: false }, undefined)).toBe(BigInt(nineRepeat))
-	expect(extractValue({ s: nineRepeat, p: 0, d: 0, bi: true, ld: false }, undefined)).toBe(BigInt(nineRepeat))
+	expect(extractValue(mkctx(nineRepeat, { bigint: 'asNeeded' }), undefined)).toBe(BigInt(nineRepeat))
+	expect(extractValue(mkctx(nineRepeat, { bigint: true }), undefined)).toBe(BigInt(nineRepeat))
 })
 
 it('supports floats larger than the max safe integer number', () => {
@@ -96,13 +96,13 @@ it('only uses bigint for large values when bigints are enabled as needed', () =>
 
 it('interprets TOML-floats larger than the Number max value as Infinity', () => {
 	let nineRepeatFloat = '9'.repeat(310) + '.0'
-	expect(extractValue({ s: nineRepeatFloat, p: 0, d: 0, bi: false, ld: false }, undefined)).toBe(Infinity)
-	expect(extractValue({ s: nineRepeatFloat, p: 0, d: 0, bi: 'asNeeded', ld: false }, undefined)).toBe(Infinity)
-	expect(extractValue({ s: nineRepeatFloat, p: 0, d: 0, bi: true, ld: false }, undefined)).toBe(Infinity)
+	expect(extractValue(mkctx(nineRepeatFloat, { bigint: false }), undefined)).toBe(Infinity)
+	expect(extractValue(mkctx(nineRepeatFloat, { bigint: 'asNeeded' }), undefined)).toBe(Infinity)
+	expect(extractValue(mkctx(nineRepeatFloat, { bigint: true }), undefined)).toBe(Infinity)
 	nineRepeatFloat = '-' + nineRepeatFloat
-	expect(extractValue({ s: nineRepeatFloat, p: 0, d: 0, bi: false, ld: false }, undefined)).toBe(-Infinity)
-	expect(extractValue({ s: nineRepeatFloat, p: 0, d: 0, bi: 'asNeeded', ld: false }, undefined)).toBe(-Infinity)
-	expect(extractValue({ s: nineRepeatFloat, p: 0, d: 0, bi: true, ld: false }, undefined)).toBe(-Infinity)
+	expect(extractValue(mkctx(nineRepeatFloat, { bigint: false }), undefined)).toBe(-Infinity)
+	expect(extractValue(mkctx(nineRepeatFloat, { bigint: 'asNeeded' }), undefined)).toBe(-Infinity)
+	expect(extractValue(mkctx(nineRepeatFloat, { bigint: true }), undefined)).toBe(-Infinity)
 })
 
 it('rejects leading zeroes', () => {
@@ -321,7 +321,7 @@ it('extracts value of correct type', () => {
 		expect(ctx.p).toBe(4)
 	}
 	{
-		const ctx = { s: "'uwu\\'", p: 0, d: 10, bi: false, ld: false }
+		const ctx = mkctx("'uwu\\'")
 		expect(extractValue(ctx, undefined)).toStrictEqual('uwu\\')
 		expect(ctx.p).toBe(6)
 	}

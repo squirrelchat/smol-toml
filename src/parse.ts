@@ -40,16 +40,16 @@ type PeekResult = [string, TomlTable, MetaRecord] | null
 /** @internal */
 export type ParseContext = {
 	/** The document string. */
-	s: string
+	readonly s: string
 	/** The current position in the string. */
 	p: number
 	/** Available recursion depth. */
 	d: number
 
 	/** Whether to parse integers as BigInt. */
-	bi: IntegersAsBigInt
+	readonly bi: IntegersAsBigInt
 	/** Whether to use the legacy TomlDate instead of Temporal. */
-	ld: boolean
+	readonly ld: boolean
 }
 
 function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
@@ -137,13 +137,13 @@ export interface ParseOptions {
 export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable
 export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt
 export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLegacyDate = true }: ParseOptions = {}): TomlTable {
-	let ctx = {
+	let ctx: ParseContext = {
 		s: toml,
 		p: 0,
 		d: maxDepth,
 
 		bi: integersAsBigInt,
-		ld: useLegacyDate
+		ld: useLegacyDate,
 	}
 
 	let res = {}
@@ -166,19 +166,14 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLega
 			let k = parseKey(ctx, 0x5d /* ] */)
 			if (isTableArray) {
 				if (toml.charCodeAt(ctx.p) !== 0x5d /* ] */) {
-					throw new TomlError('expected end of table array declaration', ctx)
+					TomlError.x('expected end of table array declaration', ctx)
 				}
 
 				ctx.p++
 			}
 
 			let p = peekTable(k, res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
-			if (!p) {
-				throw new TomlError('trying to redefine an already defined table or value', {
-					toml: toml,
-					ptr: tmp,
-				})
-			}
+			if (!p) TomlError.x('trying to redefine an already defined table or value', ctx, tmp)
 
 			m = p[2]
 			tbl = p[1]
@@ -186,12 +181,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLega
 			tmp = ctx.p
 			let k = parseKey(ctx)
 			let p = peekTable(k, tbl, m, Type.DOTTED)
-			if (!p) {
-				throw new TomlError('trying to redefine an already defined table or value', {
-					toml: toml,
-					ptr: tmp,
-				})
-			}
+			if (!p) TomlError.x('trying to redefine an already defined table or value', ctx, tmp)
 
 			skipVoid(ctx, true, true)
 			p[1][p[0]] = extractValue(ctx, void 0)
@@ -199,7 +189,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLega
 
 		skipVoid(ctx, true)
 		if (ctx.p < toml.length && (tmp = toml.charCodeAt(ctx.p)) !== 0xa /* \n */ && (tmp !== 0xd /* \r */ || toml.charCodeAt(ctx.p + 1) !== 0xa /* \n */)) {
-			throw new TomlError('each key-value declaration must be followed by an end-of-line', ctx)
+			TomlError.x('each key-value declaration must be followed by an end-of-line', ctx)
 		}
 		skipVoid(ctx)
 	}
