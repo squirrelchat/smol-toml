@@ -94,7 +94,7 @@ export function parseKey(ctx: ParseContext, end = 0x3d /* = */): string[] {
 /** @internal */
 export function parseInlineTable(ctx: ParseContext): TomlTable {
 	let startPtr = ctx.p++
-	let res: TomlTable = {}
+	let res: TomlTable = Object.create(null)
 	let seen = new Set()
 	let c: number
 
@@ -112,7 +112,7 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 
 		let key = parseKey(ctx)
 		for (let i = 0; i < key.length; i++) {
-			if (i) t = hasOwn! ? t[k!] : (t[k!] = {})
+			if (i) t = hasOwn! ? t[k!] : (t[k!] = Object.create(null))
 
 			k = key[i]!
 			if ((hasOwn = Object.hasOwn(t, k)) && (typeof t[k] !== 'object' || seen.has(t[k]))) {
@@ -145,11 +145,10 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 
 /** @internal */
 export function parseArray(ctx: ParseContext): TomlValue[] {
-	let startPtr = ctx.p
+	let startPtr = ctx.p++
 	let res: TomlValue[] = []
 	let c
 
-	ctx.p++
 	while (ctx.p < ctx.s.length) {
 		skipVoid(ctx)
 		if ((c = ctx.s.charCodeAt(ctx.p)) === 0x5d /* ] */) {

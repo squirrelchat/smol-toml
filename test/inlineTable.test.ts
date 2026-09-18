@@ -34,22 +34,22 @@ import { mkctx } from './_testutils.ts'
 it('parses inline tables', () => {
 	{
 		const ctx = mkctx('{ first = "Tom", last = "Preston-Werner" }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(42)
 	}
 	{
 		const ctx = mkctx('{ x = 1, y = 2 }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ x: 1, y: 2 })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, x: 1, y: 2 })
 		expect(ctx.p).toBe(16)
 	}
 	{
 		const ctx = mkctx('{ type.name = "pug", type.value = 1, "hehe.owo" = "uwu" }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ type: { name: 'pug', value: 1 }, 'hehe.owo': 'uwu' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, type: { __proto__: null, name: 'pug', value: 1 }, 'hehe.owo': 'uwu' })
 		expect(ctx.p).toBe(57)
 	}
 	{
 		const ctx = mkctx('{}')
-		expect(parseInlineTable(ctx)).toStrictEqual({})
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null })
 		expect(ctx.p).toBe(2)
 	}
 })
@@ -57,22 +57,22 @@ it('parses inline tables', () => {
 it('parse inline tables with non traditional spaces', () => {
 	{
 		const ctx = mkctx('{ first = "Tom" ,last = "Preston-Werner" }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(42)
 	}
 	{
 		const ctx = mkctx('{ first = "Tom" , last = "Preston-Werner" }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(43)
 	}
 	{
 		const ctx = mkctx('{first="Tom",last="Preston-Werner"}')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(35)
 	}
 	{
 		const ctx = mkctx('{	first="Tom"    ,	last="Preston-Werner"}')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(41)
 	}
 })
@@ -80,18 +80,18 @@ it('parse inline tables with non traditional spaces', () => {
 it('parses multiline tables', () => {
 	{
 		const ctx = mkctx('{ first = "Tom", last = "Preston-Werner"\n}')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(42)
 	}
 	{
 		const ctx = mkctx('{\n  first = "Tom",\n  last = "Preston-Werner"\n}')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(46)
 	}
 	{
 		// No longer an error in TOML 1.1.0
 		const ctx = mkctx('{ first = "Tom" \n, last = "Preston-Werner" }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ first: 'Tom', last: 'Preston-Werner' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, first: 'Tom', last: 'Preston-Werner' })
 		expect(ctx.p).toBe(44)
 	}
 
@@ -100,7 +100,7 @@ it('parses multiline tables', () => {
 
 	{
 		const ctx = mkctx('{ test = """Multiline\nstrings\nare\nvalid""" }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ test: 'Multiline\nstrings\nare\nvalid' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, test: 'Multiline\nstrings\nare\nvalid' })
 		expect(ctx.p).toBe(44)
 	}
 })
@@ -108,12 +108,12 @@ it('parses multiline tables', () => {
 it('parses nested structures', () => {
 	{
 		const ctx = mkctx('{ uwu = { owo = true, cute = true, mean = false } }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ uwu: { owo: true, cute: true, mean: false } })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, uwu: { __proto__: null, owo: true, cute: true, mean: false } })
 		expect(ctx.p).toBe(51)
 	}
 	{
 		const ctx = mkctx('{ uwu = [ "meow", "nya", "hehe", ] }')
-		expect(parseInlineTable(ctx)).toStrictEqual({ uwu: ['meow', 'nya', 'hehe'] })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, uwu: ['meow', 'nya', 'hehe'] })
 		expect(ctx.p).toBe(36)
 	}
 })
@@ -121,7 +121,7 @@ it('parses nested structures', () => {
 it('parses multiline nested structures', () => {
 	{
 		const ctx = mkctx('{\n\ta = {\n\t\tb = 1,\n\t\tc = [\n\t\t\t0,\n\t\t\t1,\n\t\t],\n\t\t},\n\td = "wow"\n}')
-		expect(parseInlineTable(ctx)).toStrictEqual({ a: { b: 1, c: [0, 1] }, d: 'wow' })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, a: { __proto__: null, b: 1, c: [0, 1] }, d: 'wow' })
 		expect(ctx.p).toBe(60)
 	}
 })
@@ -147,21 +147,38 @@ it('rejects invalid tables', () => {
 })
 
 it('handles JS quirks', () => {
-	expect(parseInlineTable(mkctx('{ __proto__ = 3 }'))).toStrictEqual(JSON.parse('{"__proto__":3}'))
-	expect(parseInlineTable(mkctx('{ __proto__ = { uwu = "owo" } }'))).toStrictEqual(JSON.parse('{"__proto__":{"uwu":"owo"}}'))
-	expect(parseInlineTable(mkctx('{ prototype = false }'))).toStrictEqual(JSON.parse('{"prototype":false}'))
-	expect(parseInlineTable(mkctx('{ hasOwnProperty = false }'))).toStrictEqual(JSON.parse('{"hasOwnProperty":false}'))
+	const nullproto = (obj: any) => {
+		Object.setPrototypeOf(obj, null)
+		for (const v of Object.values(obj))
+			if (typeof v === 'object' && !Array.isArray(obj))
+				nullproto(v)
+		return obj
+	}
+
+	const mkobj = (json: string) => nullproto(JSON.parse(json))
+
+	expect(parseInlineTable(mkctx('{ __proto__ = 3 }')))
+		.toStrictEqual(mkobj('{"__proto__":3}'))
+
+	expect(parseInlineTable(mkctx('{ __proto__ = { uwu = "owo" } }')))
+		.toStrictEqual(mkobj('{"__proto__":{"uwu":"owo"}}'))
+
+	expect(parseInlineTable(mkctx('{ prototype = false }')))
+		.toStrictEqual(mkobj('{"prototype":false}'))
+
+	expect(parseInlineTable(mkctx('{ hasOwnProperty = false }')))
+		.toStrictEqual(mkobj('{"hasOwnProperty":false}'))
 })
 
 it('consumes only a table and stops', () => {
 	{
 		const ctx = mkctx('{ uwu = 1 }\nnext-value = 10')
-		expect(parseInlineTable(ctx)).toStrictEqual({ uwu: 1 })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, uwu: 1 })
 		expect(ctx.p).toBe(11)
 	}
 	{
 		const ctx = mkctx('{ a = [ "uwu" ], b = 1, c = false, d = { hehe = 1 } }\nnext-value = 10')
-		expect(parseInlineTable(ctx)).toStrictEqual({ a: ['uwu'], b: 1, c: false, d: { hehe: 1 } })
+		expect(parseInlineTable(ctx)).toStrictEqual({ __proto__: null, a: ['uwu'], b: 1, c: false, d: { __proto__: null, hehe: 1 } })
 		expect(ctx.p).toBe(53)
 	}
 })

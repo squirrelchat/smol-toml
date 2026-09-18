@@ -65,7 +65,7 @@ it('parses nested arrays', () => {
 })
 
 it('parses inline table values', () => {
-	expect(parseArray(mkctx('[ { a = "uwu", b = 1, c = false } ]'))).toStrictEqual([{ a: 'uwu', b: 1, c: false }])
+	expect(parseArray(mkctx('[ { a = "uwu", b = 1, c = false } ]'))).toStrictEqual([{ __proto__: null, a: 'uwu', b: 1, c: false }])
 })
 
 it('handles multiline arrays', () => {
@@ -121,7 +121,7 @@ it('consumes only an array and aborts', () => {
 
 	{
 		const ctx = mkctx('[ { a = "uwu", b = 1, c = false, d = [ 1 ] } ]\nnext-value = 10')
-		expect(parseArray(ctx)).toStrictEqual([{ a: 'uwu', b: 1, c: false, d: [1] }])
+		expect(parseArray(ctx)).toStrictEqual([{ __proto__: null, a: 'uwu', b: 1, c: false, d: [1] }])
 		expect(ctx.p).toBe(46)
 	}
 })

@@ -31,13 +31,31 @@ import { parse } from '../src/parse.ts'
 import { TomlError } from '../src/error.ts'
 
 it('parses a simple key-value', () => {
-	expect(parse('key = "value"')).toStrictEqual({ key: 'value' })
-	expect(parse('key = "value"\nother = 1')).toStrictEqual({ key: 'value', other: 1 })
-	expect(parse('key = "value"\r\nother = 1')).toStrictEqual({ key: 'value', other: 1 })
+	expect(parse('key = "value"'))
+		.toStrictEqual({ __proto__: null, key: 'value' })
+
+	expect(parse('key = "value"\nother = 1'))
+		.toStrictEqual({ __proto__: null, key: 'value', other: 1 })
+
+	expect(parse('key = "value"\r\nother = 1'))
+		.toStrictEqual({ __proto__: null,  key: 'value', other: 1 })
 })
 
 it('parses dotted key-values', () => {
-	expect(parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true')).toStrictEqual({ fruit: { apple: { color: 'red', taste: { sweet: true } } } })
+	expect(parse('fruit.apple.color = "red"\nfruit.apple.taste.sweet = true')).toStrictEqual({
+		__proto__: null,
+		fruit: {
+			__proto__: null,
+			apple: {
+				__proto__: null,
+				color: 'red',
+				taste: {
+					__proto__: null,
+					sweet: true,
+				},
+			},
+		},
+	})
 })
 
 it('handles comments', () => {
@@ -47,24 +65,24 @@ key = "value"  # This is a comment at the end of a line
 another = "# This is not a comment"
 `.trim()
 
-	expect(parse(doc)).toStrictEqual({ key: 'value', another: '# This is not a comment' })
+	expect(parse(doc)).toStrictEqual({ __proto__: null, key: 'value', another: '# This is not a comment' })
 })
 
 it('handles escapes in strings', () => {
-	expect(parse('key = "value \\" value"')).toStrictEqual({ key: 'value " value' })
+	expect(parse('key = "value \\" value"')).toStrictEqual({ __proto__: null, key: 'value " value' })
 
 	// Reference: https://github.com/squirrelchat/smol-toml/issues/37
-	expect(parse('key = "value \\\\\\" value"')).toStrictEqual({ key: 'value \\" value' })
-	expect(parse('key = "value \\\\\\\\\\" value"')).toStrictEqual({ key: 'value \\\\" value' })
+	expect(parse('key = "value \\\\\\" value"')).toStrictEqual({ __proto__: null, key: 'value \\" value' })
+	expect(parse('key = "value \\\\\\\\\\" value"')).toStrictEqual({ __proto__: null, key: 'value \\\\" value' })
 
 	// Reference: https://github.com/squirrelchat/smol-toml/issues/45
-	expect(parse('key = "\\\\"')).toStrictEqual({ key: '\\' })
-	expect(parse('key = "\\\\\\\\"')).toStrictEqual({ key: '\\\\' })
-	expect(parse('key = "\\\\\\\\\\\\"')).toStrictEqual({ key: '\\\\\\' })
+	expect(parse('key = "\\\\"')).toStrictEqual({ __proto__: null, key: '\\' })
+	expect(parse('key = "\\\\\\\\"')).toStrictEqual({ __proto__: null, key: '\\\\' })
+	expect(parse('key = "\\\\\\\\\\\\"')).toStrictEqual({ __proto__: null, key: '\\\\\\' })
 
-	expect(parse('key = ["\\\\"]')).toStrictEqual({ key: ['\\'] })
-	expect(parse('key = ["\\\\\\\\"]')).toStrictEqual({ key: ['\\\\'] })
-	expect(parse('key = ["\\\\\\\\\\\\"]')).toStrictEqual({ key: ['\\\\\\'] })
+	expect(parse('key = ["\\\\"]')).toStrictEqual({ __proto__: null, key: ['\\'] })
+	expect(parse('key = ["\\\\\\\\"]')).toStrictEqual({ __proto__: null, key: ['\\\\'] })
+	expect(parse('key = ["\\\\\\\\\\\\"]')).toStrictEqual({ __proto__: null, key: ['\\\\\\'] })
 })
 
 it('rejects unspecified values', () => {
@@ -98,12 +116,13 @@ key2 = 456
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		'table-1': { key1: 'some string', key2: 123 },
-		'table-2': { key1: 'another string', key2: 456 },
+		__proto__: null,
+		'table-1': { __proto__: null, key1: 'some string', key2: 123 },
+		'table-2': { __proto__: null, key1: 'another string', key2: 456 },
 	})
 
-	expect(parse('[uwu]\nx = 1')).toStrictEqual({ uwu: { x: 1 } })
-	expect(parse('[uwu]  \nx = 1')).toStrictEqual({ uwu: { x: 1 } })
+	expect(parse('[uwu]\nx = 1')).toStrictEqual({ __proto__: null, uwu: { __proto__: null, x: 1 } })
+	expect(parse('[uwu]  \nx = 1')).toStrictEqual({ __proto__: null, uwu: { __proto__: null, x: 1 } })
 })
 
 it('rejects unfinished tables', () => {
@@ -120,7 +139,7 @@ it('parses docs with dotted table and dotted keys', () => {
 type.name = "pug"
 `.trim()
 
-	expect(parse(doc)).toStrictEqual({ dog: { 'tater.man': { type: { name: 'pug' } } } })
+	expect(parse(doc)).toStrictEqual({ __proto__: null, dog: { __proto__: null, 'tater.man': { __proto__: null, type: { __proto__: null, name: 'pug' } } } })
 })
 
 it('ignores spaces in keys', () => {
@@ -139,15 +158,16 @@ uwu = "owo"
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		a: { b: { c: { uwu: 'owo' } } },
-		d: { e: { f: { uwu: 'owo' } } },
-		g: { h: { i: { uwu: 'owo' } } },
-		j: { ʞ: { l: { uwu: 'owo' } } },
+		__proto__: null,
+		a: { __proto__: null, b: { __proto__: null, c: { __proto__: null, uwu: 'owo' } } },
+		d: { __proto__: null, e: { __proto__: null, f: { __proto__: null, uwu: 'owo' } } },
+		g: { __proto__: null, h: { __proto__: null, i: { __proto__: null, uwu: 'owo' } } },
+		j: { __proto__: null, ʞ: { __proto__: null, l: { __proto__: null, uwu: 'owo' } } },
 	})
 })
 
 it('handles empty tables', () => {
-	expect(parse('[uwu]\n')).toStrictEqual({ uwu: {} })
+	expect(parse('[uwu]\n')).toStrictEqual({ __proto__: null, uwu: { __proto__: null } })
 })
 
 it('lets super table be defined afterwards', () => {
@@ -160,7 +180,18 @@ b = 0
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		x: { b: 0, y: { z: { w: { a: 0 } } } },
+		__proto__: null,
+		x: {
+			__proto__: null,
+			b: 0,
+			y: {
+				__proto__: null,
+				z: {
+					__proto__: null,
+					w: { __proto__: null, a: 0 },
+				},
+			},
+		},
 	})
 })
 
@@ -174,7 +205,22 @@ smooth = true
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		fruit: { apple: { color: 'red', taste: { sweet: true }, texture: { smooth: true } } },
+		__proto__: null,
+		fruit: {
+			__proto__: null,
+			apple: {
+				__proto__: null,
+				color: 'red',
+				taste: {
+					__proto__: null,
+					sweet: true,
+				},
+				texture: {
+					__proto__: null,
+					smooth: true,
+				},
+			},
+		},
 	})
 })
 
@@ -206,11 +252,16 @@ color = "gray"
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
-		products: [{ name: 'Hammer', sku: 738594937 }, {}, { name: 'Nail', sku: 284758393, color: 'gray' }],
+		__proto__: null,
+		products: [
+			{ __proto__: null, name: 'Hammer', sku: 738594937 },
+			{ __proto__: null },
+			{ __proto__: null, name: 'Nail', sku: 284758393, color: 'gray' },
+		],
 	})
 
-	expect(parse('[[uwu]]\nx = 1')).toStrictEqual({ uwu: [{ x: 1 }] })
-	expect(parse('[[uwu]]  \nx = 1')).toStrictEqual({ uwu: [{ x: 1 }] })
+	expect(parse('[[uwu]]\nx = 1')).toStrictEqual({ __proto__: null, uwu: [{ __proto__: null, x: 1 }] })
+	expect(parse('[[uwu]]  \nx = 1')).toStrictEqual({ __proto__: null, uwu: [{ __proto__: null, x: 1 }] })
 })
 
 it('rejects invalid arrays of table', () => {
@@ -245,19 +296,23 @@ name = "plantain"
 `.trim()
 
 	expect(parse(doc)).toStrictEqual({
+		__proto__: null,
 		fruits: [
 			{
+				__proto__: null,
 				name: 'apple',
 				physical: {
+					__proto__: null,
 					color: 'red',
 					shape: 'round',
-					cute: { uwu: true },
+					cute: { __proto__: null, uwu: true },
 				},
-				varieties: [{ name: 'red delicious' }, { name: 'granny smith' }],
+				varieties: [{ __proto__: null, name: 'red delicious' }, { __proto__: null, name: 'granny smith' }],
 			},
 			{
+				__proto__: null,
 				name: 'banana',
-				varieties: [{ name: 'plantain' }],
+				varieties: [{ __proto__: null, name: 'plantain' }],
 			},
 		],
 	})
@@ -418,7 +473,8 @@ hehe = true
 `.trim()
 
 		expect(parse(doc)).toStrictEqual({
-			uwu: [{ owo: { hehe: true } }, { owo: { hehe: true } }],
+			__proto__: null,
+			uwu: [{ __proto__: null, owo: { __proto__: null, hehe: true } }, { __proto__: null, owo: { __proto__: null, hehe: true } }],
 		})
 	})
 
@@ -435,10 +491,36 @@ meow = "nya"
 `.trim()
 
 		expect(parse(doc)).toStrictEqual({
+			__proto__: null,
 			uwu: {
-				owo: [{ hehe: true }, { hehe: false }],
+				__proto__: null,
+				owo: [{ __proto__: null, hehe: true }, { __proto__: null, hehe: false }],
 				meow: 'nya',
 			},
 		})
 	})
+})
+
+it('handles JS quirks', () => {
+	const nullproto = (obj: any) => {
+		Object.setPrototypeOf(obj, null)
+		for (const v of Object.values(obj))
+			if (typeof v === 'object' && !Array.isArray(obj))
+				nullproto(v)
+		return obj
+	}
+
+	const mkobj = (json: string) => nullproto(JSON.parse(json))
+
+	expect(parse('__proto__ = 3'))
+		.toStrictEqual(mkobj('{"__proto__":3}'))
+
+	expect(parse('__proto__.uwu = "owo"'))
+		.toStrictEqual(mkobj('{"__proto__":{"uwu":"owo"}}'))
+
+	expect(parse('prototype = false'))
+		.toStrictEqual(mkobj('{"prototype":false}'))
+
+	expect(parse('hasOwnProperty = false'))
+		.toStrictEqual(mkobj('{"hasOwnProperty":false}'))
 })

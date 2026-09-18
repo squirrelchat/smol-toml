@@ -280,7 +280,7 @@ it('extracts value of correct type', () => {
 	}
 	{
 		const ctx = mkctx('[ {}, 2 ]', { ptr: 2 })
-		expect(extractValue(ctx, 0x5d /* ] */)).toStrictEqual({})
+		expect(extractValue(ctx, 0x5d /* ] */)).toStrictEqual({ __proto__: null })
 		expect(ctx.p).toBe(4)
 	}
 	{

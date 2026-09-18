@@ -61,7 +61,7 @@ function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type
 
 	for (let i = 0; i < key.length; i++) {
 		if (i) {
-			t = hasOwn! ? t[k!] : (t[k!] = {})
+			t = hasOwn! ? t[k!] : (t[k!] = Object.create(null))
 			m = (state = m[k!]!).c
 
 			if (type === Type.DOTTED && (state.t === Type.EXPLICIT || state.t === Type.ARRAY)) {
@@ -92,7 +92,7 @@ function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type
 					: type,
 				d: false,
 				i: 0,
-				c: {},
+				c: Object.create(null),
 			}
 		}
 	}
@@ -109,8 +109,8 @@ function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type
 			t[k!] = []
 		}
 
-		t[k!].push(t = {})
-		state.c[state.i++] = (state = { t: Type.EXPLICIT, d: false, i: 0, c: {} })
+		t[k!].push(t = Object.create(null))
+		state.c[state.i++] = (state = { t: Type.EXPLICIT, d: false, i: 0, c: Object.create(null) })
 	}
 
 	if (state.d) {
@@ -120,7 +120,7 @@ function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type
 
 	state.d = true
 	if (type === Type.EXPLICIT) {
-		t = hasOwn ? t[k!] : (t[k!] = {})
+		t = hasOwn ? t[k!] : (t[k!] = Object.create(null))
 	} else if (type === Type.DOTTED && hasOwn) {
 		return null
 	}
@@ -146,8 +146,8 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLega
 		ld: useLegacyDate,
 	}
 
-	let res = {}
-	let meta = {}
+	let res = Object.create(null)
+	let meta = Object.create(null)
 
 	let tmp
 	let tbl = res
