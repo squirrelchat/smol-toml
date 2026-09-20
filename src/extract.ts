@@ -276,7 +276,7 @@ function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
 	if (c = ctx.s.charCodeAt(ctx.p)) {
 		if (c === 0x5a /* Z */ || c === 0x7a /* z */) {
 			let t = ctx.s.slice(startPtr, ctx.p++)
-			return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.ZonedDateTime, t + '[UTC]', startPtr)
+			return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.ZonedDateTime, t + '[+00:00]', startPtr)
 		}
 
 		if (c === 0x2b /* + */ || c === 0x2d /* - */) {

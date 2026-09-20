@@ -26,82 +26,139 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { bench, do_not_optimize, run, summary } from 'mitata'
+import { group, bench, do_not_optimize, run, summary } from 'mitata'
+
+class A { }
+class B extends A { }
+class C extends B { }
+class D extends C { }
+class E extends D { }
+class F extends E { }
+class G extends F { }
+
+const TEST_VALUES = [
+	['plain object', {}],
+	['class instance with deep proto chain', new G()],
+	['Temporal.Instant', Temporal.Instant.from('2001-09-21T10:17:00+02:00')],
+	['Temporal.ZonedDateTime', Temporal.ZonedDateTime.from('2001-09-21T10:17:00+02:00[Europe/Paris]')],
+	['Temporal.PlainDateTime', Temporal.PlainDateTime.from('2001-09-21T10:17:00')],
+	['Temporal.PlainDate', Temporal.PlainDate.from('2001-09-21')],
+	['Temporal.PlainTime', Temporal.PlainTime.from('10:17:00')],
+	['Temporal.Duration', Temporal.Duration.from('PT3H54M')],
+	['Temporal.PlainMonthDay', Temporal.PlainMonthDay.from('09-21')],
+	['Temporal.PlainYearMonth', Temporal.PlainYearMonth.from('2001-09')],
+] as const
 
 summary(() => {
-	bench('instanceof without gate', function* () {
-		yield {
-			[0]() {
-				return {}
-			},
-			bench(val: any) {
-				return do_not_optimize(
-					val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime,
-				)
-			},
-		}
-	})
+	for (const [name, value] of TEST_VALUES) {
+		group(name, () => {
+			function instanceofDumb(obj: any) {
+				if (
+					obj instanceof Temporal.Instant ||
+					obj instanceof Temporal.ZonedDateTime ||
+					obj instanceof Temporal.PlainDateTime ||
+					obj instanceof Temporal.PlainDate ||
+					obj instanceof Temporal.PlainTime ||
+					obj instanceof Temporal.PlainMonthDay ||
+					obj instanceof Temporal.PlainYearMonth ||
+					obj instanceof Temporal.Duration
+				) return 'temporal'
+				return 'object'
+			}
 
-	bench('instanceof with gate (truthy)', function* () {
-		yield {
-			[0]() {
-				return {}
-			},
-			bench(val: any) {
-				return do_not_optimize(
-					val.since && (
-						val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime
-					),
-				)
-			},
-		}
-	})
+			bench('simple instanceof chain', function* () {
+				yield {
+					[0]() {
+						return value
+					},
+					bench(val: any) {
+						return do_not_optimize(instanceofDumb(val))
+					},
+				}
+			})
 
-	bench('instanceof with gate (typeof is function)', function* () {
-		yield {
-			[0]() {
-				return {}
-			},
-			bench(val: any) {
-				return do_not_optimize(
-					typeof val.since === 'function' && (
-						val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime
-					),
-				)
-			},
-		}
-	})
+			function instanceofGateTruthy(obj: any) {
+				if (
+					(obj.since && (
+						obj instanceof Temporal.Instant ||
+						obj instanceof Temporal.ZonedDateTime ||
+						obj instanceof Temporal.PlainDateTime ||
+						obj instanceof Temporal.PlainDate ||
+						obj instanceof Temporal.PlainTime ||
+						obj instanceof Temporal.PlainMonthDay ||
+						obj instanceof Temporal.PlainYearMonth
+					)) ||
+					(obj.negated && obj instanceof Temporal.Duration)
+				) return 'temporal'
+				return 'object'
+			}
 
-	bench('instanceof with gate (in)', function* () {
-		yield {
-			[0]() {
-				return {}
-			},
-			bench(val: any) {
-				return do_not_optimize(
-					'since' in val && (
-						val instanceof Temporal.Instant ||
-						val instanceof Temporal.PlainDate ||
-						val instanceof Temporal.PlainDateTime ||
-						val instanceof Temporal.PlainTime ||
-						val instanceof Temporal.ZonedDateTime
-					),
-				)
-			},
-		}
-	})
+			bench('truthy gate', function* () {
+				yield {
+					[0]() {
+						return value
+					},
+					bench(val: any) {
+						return do_not_optimize(instanceofGateTruthy(val))
+					},
+				}
+			})
+
+			function instanceofGateTypeof(obj: any) {
+				if (
+					(typeof obj.since === 'function' && (
+						obj instanceof Temporal.Instant ||
+						obj instanceof Temporal.ZonedDateTime ||
+						obj instanceof Temporal.PlainDateTime ||
+						obj instanceof Temporal.PlainDate ||
+						obj instanceof Temporal.PlainTime ||
+						obj instanceof Temporal.PlainMonthDay ||
+						obj instanceof Temporal.PlainYearMonth
+					)) ||
+					(typeof obj.negated === 'function' && obj instanceof Temporal.Duration)
+				) return 'temporal'
+				return 'object'
+			}
+
+			bench('typeof gate', function* () {
+				yield {
+					[0]() {
+						return value
+					},
+					bench(val: any) {
+						return do_not_optimize(instanceofGateTypeof(val))
+					},
+				}
+			})
+
+			function instanceofGateIn(obj: any) {
+				if (
+					('since' in obj && (
+						obj instanceof Temporal.Instant ||
+						obj instanceof Temporal.ZonedDateTime ||
+						obj instanceof Temporal.PlainDateTime ||
+						obj instanceof Temporal.PlainDate ||
+						obj instanceof Temporal.PlainTime ||
+						obj instanceof Temporal.PlainMonthDay ||
+						obj instanceof Temporal.PlainYearMonth
+					)) ||
+					('negated' in obj && obj instanceof Temporal.Duration)
+				) return 'temporal'
+				return 'object'
+			}
+
+			bench('in gate', function* () {
+				yield {
+					[0]() {
+						return value
+					},
+					bench(val: any) {
+						return do_not_optimize(instanceofGateIn(val))
+					},
+				}
+			})
+		})
+	}
 })
 
 await run()

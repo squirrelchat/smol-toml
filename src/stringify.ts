@@ -26,8 +26,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { AnyTemporalDateTime } from './util.ts'
-
 let BARE_KEY = /^[a-z0-9-_]+$/i
 
 type ExtendedType = ReturnType<typeof extendedTypeOf>
@@ -36,17 +34,19 @@ function extendedTypeOf(obj: any) {
 	if (type === 'object') {
 		if (Array.isArray(obj)) return 'array'
 		if (typeof obj.getUTCDate === 'function' && obj instanceof Date) return 'date'
-		if (
-			globalThis.Temporal &&
-			// check for the 'until' property as an early bailout that avoids running all 5 instanceof checks
-			typeof obj.until === 'function' &&
-			(obj instanceof Temporal.Instant ||
-				obj instanceof Temporal.PlainDate ||
-				obj instanceof Temporal.PlainDateTime ||
-				obj instanceof Temporal.PlainTime ||
-				obj instanceof Temporal.ZonedDateTime)
-		) {
-			return 'temporal'
+		if (globalThis.Temporal) {
+			if (obj.until) {
+				if (obj instanceof Temporal.ZonedDateTime) return 'temporal/tz+uc'
+				if (obj instanceof Temporal.PlainDateTime || obj instanceof Temporal.PlainDate) return 'temporal/uc'
+				if (obj instanceof Temporal.PlainTime || obj instanceof Temporal.Instant) return 'temporal'
+				if (obj instanceof Temporal.PlainYearMonth) return 'temporal/x'
+			}
+			else if (
+				(obj.toPlainDate && obj instanceof Temporal.PlainMonthDay) ||
+				(obj.negated && obj instanceof Temporal.Duration)
+			) {
+				return 'temporal/x'
+			}
 		}
 	}
 
@@ -75,14 +75,7 @@ function formatKey(s: string) {
 	return formatWellFormedStringUnchecked(s)
 }
 
-function stringifyTemporal(temporal: AnyTemporalDateTime) {
-	return temporal.toString({
-		calendarName: 'never',
-		timeZoneName: 'never',
-	})
-}
-
-function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFloat: boolean) {
+function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFloat: boolean, strictTemporal: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}
@@ -96,6 +89,7 @@ function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFlo
 			if (Number.isInteger(val) && (numberAsFloat || !Number.isSafeInteger(val))) return val.toFixed(1)
 		case 'bigint':
 		case 'boolean':
+		case 'temporal':
 			return val.toString()
 
 		case 'string':
@@ -106,17 +100,50 @@ function stringifyValue(val: any, type: ExtendedType, depth: number, numberAsFlo
 			return val.toISOString()
 
 		case 'object':
-			return stringifyInlineTable(val, depth, numberAsFloat)
+			return stringifyInlineTable(val, depth, numberAsFloat, strictTemporal)
 
 		case 'array':
-			return stringifyArray(val, depth, numberAsFloat)
+			return stringifyArray(val, depth, numberAsFloat, strictTemporal)
 
-		case 'temporal':
-			return stringifyTemporal(val)
+		// @ts-expect-error -- intentional fallthrough case
+		case 'temporal/tz+uc':
+			if (strictTemporal) {
+				let tz = val.timeZoneId
+				let tzc = tz.charCodeAt(0)
+				if (
+					// Classic offset
+					tzc !== 0x2b /* + */ && tzc !== 0x2d /* - */ &&
+					(
+						// Fast pre-check pass; see below for the actually accepted values
+						(tzc !== 0x55 /* U */ && tzc !== 0x47 /* G */ && tzc !== 0x5a /* Z */ && tzc !== 0x45 /* E */) ||
+						(
+							// UTC and its aliases; Temporal implementations don't all canonicalise unfortunately
+							tz !== 'UTC' && tz !== 'UCT' && tz !== 'Universal' && tz !== 'Zulu' &&
+							// GMT is a TZ but it's for all intents and purposes equivalent to UTC. Safe to downgrade.
+							!tz.startsWith('GMT') && tz !== 'Greenwich' &&
+							// Etc/* are all safe to downgrade to offset (either UTC, GMT, or offset)
+							!tz.startsWith('Etc/')
+						)
+					)
+				) {
+					throw new TypeError('Temporal objects with an IANA timezone are not allowed in Temporal strict mode')
+				}
+			}
+		case 'temporal/uc':
+			if (strictTemporal && val.calendarId !== 'iso8601')
+				throw new TypeError('Temporal objects with a non-default calendar are not allowed in Temporal strict mode')
+
+			return val.toString({
+				calendarName: 'never',
+				timeZoneName: 'never',
+			})
+
+		case 'temporal/x':
+			throw new TypeError('Unsupported ' + val[Symbol.toStringTag])
 	}
 }
 
-function stringifyInlineTable(obj: any, depth: number, numberAsFloat: boolean) {
+function stringifyInlineTable(obj: any, depth: number, numberAsFloat: boolean, strictTemporal: boolean) {
 	let keys = Object.keys(obj)
 	if (keys.length === 0) return '{}'
 
@@ -125,13 +152,13 @@ function stringifyInlineTable(obj: any, depth: number, numberAsFloat: boolean) {
 		let k = keys[i]!
 		if (i) res += ', '
 
-		res += formatKey(k) + ' = ' + stringifyValue(obj[k], extendedTypeOf(obj[k]), depth - 1, numberAsFloat)
+		res += formatKey(k) + ' = ' + stringifyValue(obj[k], extendedTypeOf(obj[k]), depth - 1, numberAsFloat, strictTemporal)
 	}
 
 	return res + ' }'
 }
 
-function stringifyArray(array: any[], depth: number, numberAsFloat: boolean) {
+function stringifyArray(array: any[], depth: number, numberAsFloat: boolean, strictTemporal: boolean) {
 	if (array.length === 0) return '[]'
 
 	let res = '[ '
@@ -141,13 +168,13 @@ function stringifyArray(array: any[], depth: number, numberAsFloat: boolean) {
 			throw new TypeError('arrays cannot contain null or undefined values')
 		}
 
-		res += stringifyValue(array[i], extendedTypeOf(array[i]), depth - 1, numberAsFloat)
+		res += stringifyValue(array[i], extendedTypeOf(array[i]), depth - 1, numberAsFloat, strictTemporal)
 	}
 
 	return res + ' ]'
 }
 
-function stringifyArrayTable(array: any[], key: string, depth: number, numberAsFloat: boolean) {
+function stringifyArrayTable(array: any[], key: string, depth: number, numberAsFloat: boolean, strictTemporal: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}
@@ -155,13 +182,13 @@ function stringifyArrayTable(array: any[], key: string, depth: number, numberAsF
 	let res = ''
 	for (let i = 0; i < array.length; i++) {
 		res += `${res && '\n'}[[${key}]]\n`
-		res += stringifyTable(0, array[i], key, depth, numberAsFloat)
+		res += stringifyTable(0, array[i], key, depth, numberAsFloat, strictTemporal)
 	}
 
 	return res
 }
 
-function stringifyTable(tableKey: string | 0, obj: any, prefix: string, depth: number, numberAsFloat: boolean) {
+function stringifyTable(tableKey: string | 0, obj: any, prefix: string, depth: number, numberAsFloat: boolean, strictTemporal: boolean) {
 	if (depth === 0) {
 		throw new Error('Could not stringify the object: maximum object depth exceeded')
 	}
@@ -179,16 +206,15 @@ function stringifyTable(tableKey: string | 0, obj: any, prefix: string, depth: n
 			}
 
 			let key = formatKey(k)
-
 			if (type === 'array' && isArrayOfTables(obj[k])) {
-				tables += (tables && '\n') + stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat)
+				tables += (tables && '\n') + stringifyArrayTable(obj[k], prefix ? `${prefix}.${key}` : key, depth - 1, numberAsFloat, strictTemporal)
 			} else if (type === 'object') {
 				let tblKey = prefix ? `${prefix}.${key}` : key
-				tables += (tables && '\n') + stringifyTable(tblKey, obj[k], tblKey, depth - 1, numberAsFloat)
+				tables += (tables && '\n') + stringifyTable(tblKey, obj[k], tblKey, depth - 1, numberAsFloat, strictTemporal)
 			} else {
 				preamble += key
 				preamble += ' = '
-				preamble += stringifyValue(obj[k], type, depth, numberAsFloat)
+				preamble += stringifyValue(obj[k], type, depth, numberAsFloat, strictTemporal)
 				preamble += '\n'
 			}
 		}
@@ -204,13 +230,13 @@ function stringifyTable(tableKey: string | 0, obj: any, prefix: string, depth: n
 
 export function stringify (
 	obj: any,
-	{ maxDepth = 1000, numbersAsFloat = false }: { maxDepth?: number, numbersAsFloat?: boolean } = {},
+	{ maxDepth = 1000, numbersAsFloat = false, strictTemporal = false }: { maxDepth?: number, numbersAsFloat?: boolean, strictTemporal?: boolean } = {},
 ) {
 	if (extendedTypeOf(obj) !== 'object') {
 		throw new TypeError('stringify can only be called with an object')
 	}
 
-	let str = stringifyTable(0, obj, '', maxDepth, numbersAsFloat)
+	let str = stringifyTable(0, obj, '', maxDepth, numbersAsFloat, strictTemporal)
 	if (str[str.length - 1] !== '\n') return str + '\n'
 	return str
 }

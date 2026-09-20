@@ -223,20 +223,20 @@ describe.skipIf(!globalThis.Temporal)('Temporal', () => {
 	it('parses datetimes', () => {
 		expect(extractValue(mkctx('1979-05-27T07:32:00', { date: false }), undefined)).toStrictEqual(Temporal.PlainDateTime.from('1979-05-27T07:32:00'))
 		expect(extractValue(mkctx('1979-05-27T00:32:00.999999', { date: false }), undefined)).toStrictEqual(Temporal.PlainDateTime.from('1979-05-27T00:32:00.999999'))
-		expect(extractValue(mkctx('1979-05-27T07:32:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[UTC]'))
+		expect(extractValue(mkctx('1979-05-27T07:32:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[+00:00]'))
 		expect(extractValue(mkctx('1979-05-27T00:32:00-07:00', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T00:32:00-07:00[-07:00]'))
 		expect(extractValue(mkctx('1979-05-27T00:32:00.999999-07:00', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T00:32:00.999999-07:00[-07:00]'))
 		expect(extractValue(mkctx('1979-05-27T07:32', { date: false }), undefined)).toStrictEqual(Temporal.PlainDateTime.from('1979-05-27T07:32:00'))
-		expect(extractValue(mkctx('1979-05-27T07:32Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[UTC]'))
+		expect(extractValue(mkctx('1979-05-27T07:32Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[+00:00]'))
 		expect(extractValue(mkctx('1979-05-27T00:32-07:00', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T00:32:00-07:00[-07:00]'))
 	})
 
 	it('parses datetimes with a space instead of T', () => {
-		expect(extractValue(mkctx('1979-05-27 07:32:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[UTC]'))
+		expect(extractValue(mkctx('1979-05-27 07:32:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[+00:00]'))
 	})
 
 	it('parses datetimes with lowercase T', () => {
-		expect(extractValue(mkctx('1979-05-27t07:32:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[UTC]'))
+		expect(extractValue(mkctx('1979-05-27t07:32:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('1979-05-27T07:32:00Z[+00:00]'))
 	})
 
 	it('parses dates', () => {
@@ -255,13 +255,13 @@ describe.skipIf(!globalThis.Temporal)('Temporal', () => {
 	})
 
 	it('handles extreme datetimes', () => {
-		expect(extractValue(mkctx('0001-01-01 00:00:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('0001-01-01 00:00:00Z[UTC]'))
+		expect(extractValue(mkctx('0001-01-01 00:00:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('0001-01-01 00:00:00Z[+00:00]'))
 		expect(extractValue(mkctx('0001-01-01 00:00:00', { date: false }), undefined)).toStrictEqual(Temporal.PlainDateTime.from('0001-01-01 00:00:00'))
-		expect(extractValue(mkctx('0001-01-01 00:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('0001-01-01 00:00:00Z[UTC]'))
+		expect(extractValue(mkctx('0001-01-01 00:00Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('0001-01-01 00:00:00Z[+00:00]'))
 		expect(extractValue(mkctx('0001-01-01 00:00', { date: false }), undefined)).toStrictEqual(Temporal.PlainDateTime.from('0001-01-01 00:00:00'))
 		expect(extractValue(mkctx('0001-01-01', { date: false }), undefined)).toStrictEqual(Temporal.PlainDate.from('0001-01-01'))
 
-		expect(extractValue(mkctx('9999-12-31 23:59:59Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('9999-12-31 23:59:59Z[UTC]'))
+		expect(extractValue(mkctx('9999-12-31 23:59:59Z', { date: false }), undefined)).toStrictEqual(Temporal.ZonedDateTime.from('9999-12-31 23:59:59Z[+00:00]'))
 		expect(extractValue(mkctx('9999-12-31 23:59:59', { date: false }), undefined)).toStrictEqual(Temporal.PlainDateTime.from('9999-12-31 23:59:59'))
 		expect(extractValue(mkctx('9999-12-31', { date: false }), undefined)).toStrictEqual(Temporal.PlainDate.from('9999-12-31'))
 	})

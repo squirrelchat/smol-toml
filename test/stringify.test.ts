@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { stringify } from '../src/stringify.js'
 import { TomlDate } from '../src/date.js'
 
@@ -114,32 +114,6 @@ date5 = 1979-05-27T15:32:00.000Z
 		date3: new TomlDate('1979-05-27'),
 		date4: new TomlDate('07:32:00'),
 		date5: new Date('1979-05-27T07:32:00-08:00'),
-	}
-
-	expect(stringify(obj)).toBe(expected)
-})
-
-it.skipIf(!globalThis.Temporal)('stringifies Temporal values properly', () => {
-		const expected = `
-zonedDateTime = 1979-05-27T07:32:00+09:00
-offsetDateTime = 1979-05-27T07:32:00+09:00
-localDateTime = 1979-05-27T07:32:00
-localDate = 1979-05-27
-localTime = 07:32:00
-instant = 1979-05-26T22:32:00Z
-`.trimStart()
-
-	const obj = {
-		zonedDateTime: Temporal.ZonedDateTime.from({
-			year: 1979, month: 5, day: 27,
-			hour: 7, minute: 32, second: 0,
-			timeZone: "Asia/Tokyo",
-		}),
-		offsetDateTime: Temporal.ZonedDateTime.from("1979-05-27T07:32:00[+09:00]"),
-		localDateTime: Temporal.PlainDateTime.from("1979-05-27T07:32:00"),
-		localDate: Temporal.PlainDate.from("1979-05-27"),
-		localTime: Temporal.PlainTime.from("07:32:00"),
-		instant: Temporal.Instant.from("1979-05-27T07:32:00+09:00"),
 	}
 
 	expect(stringify(obj)).toBe(expected)
@@ -416,4 +390,114 @@ it('rejects functions and symbols', () => {
 
 it('rejects invalid dates', () => {
 	expect(() => stringify({ a: new Date('Invalid Date') })).toThrow(TypeError)
+})
+
+describe.skipIf(!globalThis.Temporal)('Temporal', () => {
+	const TEST_DATE_TIME = Temporal.ZonedDateTime.from('2001-09-21T10:17:00+02:00[Europe/Paris]')
+	const TEST_DURATION = Temporal.Duration.from('PT3H54M')
+
+	it('stringifies Temporal values properly', () => {
+		const fmt = (value: any) => stringify({ value })
+		expect(fmt(TEST_DATE_TIME)).toBe('value = 2001-09-21T10:17:00+02:00\n')
+		expect(fmt(TEST_DATE_TIME.toPlainDateTime())).toBe('value = 2001-09-21T10:17:00\n')
+		expect(fmt(TEST_DATE_TIME.toPlainDate())).toBe('value = 2001-09-21\n')
+		expect(fmt(TEST_DATE_TIME.toPlainTime())).toBe('value = 10:17:00\n')
+		expect(() => fmt(TEST_DATE_TIME.toPlainDate().toPlainMonthDay())).toThrow('Unsupported Temporal.PlainMonthDay')
+		expect(() => fmt(TEST_DATE_TIME.toPlainDate().toPlainYearMonth())).toThrow('Unsupported Temporal.PlainYearMonth')
+		expect(() => fmt(TEST_DURATION)).toThrow('Unsupported Temporal.Duration')
+	})
+
+	it('handles timezones properly', () => {
+		const fmt = (value: any) => stringify({ value })
+
+		// Classic IANA TZ
+		expect(fmt(TEST_DATE_TIME)).toBe('value = 2001-09-21T10:17:00+02:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Asia/Tokyo'))).toBe('value = 2001-09-21T17:17:00+09:00\n')
+
+		// Classic offset
+		expect(fmt(TEST_DATE_TIME.withTimeZone('+02:00'))).toBe('value = 2001-09-21T10:17:00+02:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('-02:00'))).toBe('value = 2001-09-21T06:17:00-02:00\n')
+
+		// UTC (and its aliases/equivalents)
+		expect(fmt(TEST_DATE_TIME.withTimeZone('UTC'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('UCT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Universal'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Zulu'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/UTC'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/UCT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/Universal'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/Zulu'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT+0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT-0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Greenwich'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT+0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT-0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/Greenwich'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+
+		// Alternative offset notation -- Keep in mind that GMT is actually wired up "backwards"
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT-2'))).toBe('value = 2001-09-21T10:17:00+02:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT+2'))).toBe('value = 2001-09-21T06:17:00-02:00\n')
+	})
+
+	const ANY_NON_STD_CAL_MAYBE = Intl.supportedValuesOf('calendar').find((c) => c !== 'iso8601')
+	it.skipIf(!ANY_NON_STD_CAL_MAYBE)('handles non-standard calandars as expected', () => {
+		const ANY_NON_STD_CAL = ANY_NON_STD_CAL_MAYBE!
+		const fmt = (value: any) => stringify({ value })
+
+		expect(fmt(TEST_DATE_TIME.withCalendar(ANY_NON_STD_CAL))).toBe('value = 2001-09-21T10:17:00+02:00\n')
+		expect(fmt(TEST_DATE_TIME.toPlainDateTime().withCalendar(ANY_NON_STD_CAL))).toBe('value = 2001-09-21T10:17:00\n')
+		expect(fmt(TEST_DATE_TIME.toPlainDate().withCalendar(ANY_NON_STD_CAL))).toBe('value = 2001-09-21\n')
+	})
+
+	it('rejects IANA timezones in Temporal strict mode', () => {
+		const fmt = (value: any) => stringify({ value }, { strictTemporal: true })
+
+		// Classic IANA TZ
+		expect(() => fmt(TEST_DATE_TIME)).toThrow(/IANA timezone.*Temporal strict mode/)
+		expect(() => fmt(TEST_DATE_TIME.withTimeZone('Asia/Tokyo'))).toThrow(/IANA timezone.*Temporal strict mode/)
+
+		// Classic offset
+		expect(fmt(TEST_DATE_TIME.withTimeZone('+02:00'))).toBe('value = 2001-09-21T10:17:00+02:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('-02:00'))).toBe('value = 2001-09-21T06:17:00-02:00\n')
+
+		// UTC (and its aliases/equivalents)
+		expect(fmt(TEST_DATE_TIME.withTimeZone('UTC'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('UCT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Universal'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Zulu'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/UTC'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/UCT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/Universal'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/Zulu'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT+0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('GMT-0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Greenwich'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT+0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT-0'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/Greenwich'))).toBe('value = 2001-09-21T08:17:00+00:00\n')
+
+		// Alternative offset notation -- Keep in mind that GMT is actually wired up "backwards"
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT-2'))).toBe('value = 2001-09-21T10:17:00+02:00\n')
+		expect(fmt(TEST_DATE_TIME.withTimeZone('Etc/GMT+2'))).toBe('value = 2001-09-21T06:17:00-02:00\n')
+	})
+
+	it.skipIf(!ANY_NON_STD_CAL_MAYBE)('rejects non-default calendars in Temporal strict mode', () => {
+		const ANY_NON_STD_CAL = ANY_NON_STD_CAL_MAYBE!
+		const TEST_DATE_TIME_OFFSET = TEST_DATE_TIME.withTimeZone('+02:00')
+		const fmt = (value: any) => stringify({ value }, { strictTemporal: true })
+
+		expect(() => fmt(TEST_DATE_TIME_OFFSET.withCalendar(ANY_NON_STD_CAL))).toThrow(/non-default calendar.*Temporal strict mode/)
+		expect(() => fmt(TEST_DATE_TIME_OFFSET.toPlainDateTime().withCalendar(ANY_NON_STD_CAL))).toThrow(/non-default calendar.*Temporal strict mode/)
+		expect(() => fmt(TEST_DATE_TIME_OFFSET.toPlainDate().withCalendar(ANY_NON_STD_CAL))).toThrow(/non-default calendar.*Temporal strict mode/)
+	})
 })
