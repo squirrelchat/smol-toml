@@ -191,7 +191,7 @@ function parseNumber(
 
 	// Single-char number; we can fast-path these very easily.
 	if (!state) {
-		let val = startChr - 0x30 /* 0 */
+		let val = (startChr - 0x30 /* 0 */) * (sign || 1)
 		return ctx.bi === true ? BigInt(val) : val
 	}
 
