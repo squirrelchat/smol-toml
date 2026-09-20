@@ -39,7 +39,7 @@
 		"@tsconfig/node-lts": "^24.0.1",
 		"@tsconfig/node-ts": "^23.6.4",
 		"@tsconfig/strictest": "^2.0.8",
-		"@types/node": "^26.6.1",
+		"@types/node": "^26.6.2",
 		"mitata": "^1.0.34",
 		"pin-github-action": "^3.5.2",
 		"rolldown": "^1.2.9",
@@ -50,7 +50,7 @@
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
-			"version": "12.4.2",
+			"version": "12.5.1",
 			"onFail": "error"
 		},
 		"runtime": {
