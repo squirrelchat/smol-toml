@@ -27,7 +27,8 @@
  */
 
 import type { ParseContext } from './parse.ts'
-import type { AnyTemporalDateTimeCtor, TomlValue } from './util.js'
+import type { TomlValue } from './util.js'
+import type { TomlDateFastTypeId } from './date.ts'
 import { parseString } from './primitive.js'
 import { parseArray, parseInlineTable } from './struct.js'
 import { TomlError } from './error.js'
@@ -250,7 +251,7 @@ function parseInteger(ctx: ParseContext, str: string, base: NumberBase, startPtr
 }
 
 function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
-	let startPtr = ctx.p++
+	let startPtr = ctx.p++, unsafeSeparator
 
 	if (
 		!isDigit(c) ||
@@ -261,9 +262,9 @@ function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
 		return parseNumber(ctx, ctx.p = startPtr, c, 0, endChr)
 	}
 
-	if (!(c = ctx.s.charCodeAt(ctx.p += 6)) || ((c !== 0x20 || !isDigit(ctx.s.charCodeAt(ctx.p + 1))) && c !== 0x54 /* T */ && c !== 0x74 /* t */)) {
+	if ((ctx.p += 6) >= ctx.s.length || (((c = ctx.s.charCodeAt(ctx.p)) !== 0x20 || (unsafeSeparator = true, !isDigit(ctx.s.charCodeAt(ctx.p + 1)))) && c !== 0x54 /* T */ && c !== 0x74 /* t */)) {
 		let t = ctx.s.slice(startPtr, ctx.p)
-		return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.PlainDate, t, startPtr)
+		return readDate(ctx, t, 3, false, startPtr)
 	}
 
 	if (ctx.s.charCodeAt(ctx.p += 3) !== 0x3a /* : */)
@@ -275,20 +276,20 @@ function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
 
 	if (c = ctx.s.charCodeAt(ctx.p)) {
 		if (c === 0x5a /* Z */ || c === 0x7a /* z */) {
-			let t = ctx.s.slice(startPtr, ctx.p++)
-			return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.ZonedDateTime, t + '[+00:00]', startPtr)
+			let t = ctx.s.slice(startPtr, ++ctx.p)
+			return readDate(ctx, t, 1, unsafeSeparator, startPtr, '[+00:00]')
 		}
 
 		if (c === 0x2b /* + */ || c === 0x2d /* - */) {
 			// Temporal's ZonedDateTime is weird asf when it comes to dealing with traditional offsets...
 			// It's 1.2x faster to allocate a new string to pass to ZDT than use Instant.toZonedDateTimeISO
 			let t = ctx.s.slice(startPtr, ctx.p += 6)
-			return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.ZonedDateTime, t + '[' + ctx.s.slice(ctx.p - 6, ctx.p) + ']', startPtr)
+			return readDate(ctx, t, 1, unsafeSeparator, startPtr, !ctx.ld && ('[' + ctx.s.slice(ctx.p - 6, ctx.p) + ']'))
 		}
 	}
 
 	let t = ctx.s.slice(startPtr, ctx.p)
-	return ctx.ld ? tomlDateFrom(ctx, t, startPtr) : temporalSafeFrom(ctx, Temporal.PlainDateTime, t, startPtr)
+	return readDate(ctx, t, 2, unsafeSeparator, startPtr)
 }
 
 function parseTime(ctx: ParseContext, c: number, endChr: number | undefined) {
@@ -303,19 +304,25 @@ function parseTime(ctx: ParseContext, c: number, endChr: number | undefined) {
 		while (isDigit(ctx.s.charCodeAt(++ctx.p))) ;
 
 	let t = ctx.s.slice(start, ctx.p)
-	return ctx.ld ? tomlDateFrom(ctx, t, start) : temporalSafeFrom(ctx, Temporal.PlainTime, t, start)
+	return readDate(ctx, t, 4, false, start)
 }
 
-function tomlDateFrom(ctx: ParseContext, str: string, errPtr: number) {
-	let date = new TomlDate(str)
-	if (!date.isValid()) TomlError.x('invalid date', ctx, errPtr)
-	return date
-}
+function readDate(ctx: ParseContext, str: string, type: TomlDateFastTypeId, unsafeDelim: boolean | undefined, errPtr: number, temporalSuffix?: string | false) {
+	if (ctx.ld) {
+		let date = new TomlDate(str, type, unsafeDelim)
+		if (!date.isValid()) TomlError.x('invalid date', ctx, errPtr)
+		return date
+	}
 
-function temporalSafeFrom(ctx: ParseContext, t: AnyTemporalDateTimeCtor, str: string, errPtr: number) {
 	try {
-		return t.from(str)
+		if (temporalSuffix) str += temporalSuffix
+		switch (type) {
+			case 1: return Temporal.ZonedDateTime.from(str)
+			case 2: return Temporal.PlainDateTime.from(str)
+			case 3: return Temporal.PlainDate.from(str)
+			case 4: return Temporal.PlainTime.from(str)
+		}
 	} catch (e) {
-		TomlError.x(e instanceof Error ? e.message : e?.toString()!, ctx, errPtr)
+		TomlError.x(e instanceof Error ? e.message : ''+e, ctx, errPtr)
 	}
 }

@@ -48,14 +48,6 @@ export type AnyTemporalDateTime =
 	| Temporal.ZonedDateTime
 
 /** @internal */
-export type AnyTemporalDateTimeCtor =
-	| Temporal.InstantConstructor
-	| Temporal.PlainDateConstructor
-	| Temporal.PlainDateTimeConstructor
-	| Temporal.PlainTimeConstructor
-	| Temporal.ZonedDateTimeConstructor
-
-/** @internal */
 export function skipComment(ctx: ParseContext) {
 	for (; ctx.p < ctx.s.length; ctx.p++) {
 		let c = ctx.s.charCodeAt(ctx.p)!
