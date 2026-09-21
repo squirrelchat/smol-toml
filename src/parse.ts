@@ -35,7 +35,20 @@ const enum Type { DOTTED, EXPLICIT, ARRAY, ARRAY_DOTTED }
 
 type MetaState = { t: Type; d: boolean; i: number; c: MetaRecord }
 type MetaRecord = { [k: string]: MetaState }
-type PeekResult = [string, TomlTable, MetaRecord] | null
+
+// null -> illegal ;; false -> drop
+type PeekResult = [string, TomlTable, MetaRecord] | null | false
+
+export type UnsafeKeyBehaviour =
+	/** Preserve the unsafe key in the final object. */
+	| 'keep'
+	/** Silently drop the unsafe key from the final object. */
+	| 'drop'
+	/** Reject documents with unsafe keys. */
+	| 'throw'
+
+/** @internal */
+export type UnsafeKeyBehaviourCode = /* KEEP */ 0 | /* DROP */ 1 | /* THROW */ 2
 
 /** @internal */
 export type ParseContext = {
@@ -50,9 +63,11 @@ export type ParseContext = {
 	readonly bi: IntegersAsBigInt
 	/** Whether to use the legacy TomlDate instead of Temporal. */
 	readonly ld: boolean
+	/** Whether to reject `__proto__` and constructor keys. */
+	readonly uk: UnsafeKeyBehaviourCode
 }
 
-function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
+function peekTable(ctx: ParseContext, key: string[], table: TomlTable, meta: MetaRecord, type: Type): PeekResult {
 	let t: any = table
 	let m = meta
 	let k: string
@@ -81,7 +96,10 @@ function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type
 		}
 
 		if (!hasOwn) {
-			if (k === '__proto__') {
+			let unsafe = k === '__proto__'
+			if (ctx.uk && (unsafe || k === 'constructor')) return false
+
+			if (unsafe) {
 				Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
 				Object.defineProperty(m, k, { enumerable: true, configurable: true, writable: true })
 			}
@@ -128,28 +146,73 @@ function peekTable(key: string[], table: TomlTable, meta: MetaRecord, type: Type
 	return [k!, t, state.c]
 }
 
+function validateTablePeek(ctx: ParseContext, peek: PeekResult, ptr: number) {
+	if (peek === null || ctx.uk === 2)
+		TomlError.x(
+			peek === null
+				? 'trying to redefine an already defined table or value'
+				: 'document contains an unsafe property',
+			ctx,
+			ptr
+		)
+}
+
 export interface ParseOptions {
-	maxDepth?: number
+	/**
+	 * Whether to parse integers as {@link BigInt} or not.
+	 *
+	 * Use the special value `"asNeeded"` to only use {@link BigInt} for
+	 * integers that cannot be safely represented as JavaScript numbers.
+	 *
+	 * @defaultValue `false`
+	 * @since 1.4.0
+	 */
 	integersAsBigInt?: IntegersAsBigInt
+
+	/**
+	 * Whether to use the legacy {@link TomlDate}, instead of the new
+	 * {@link https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Temporal | Temporal API}.
+	 *
+	 * @defaultValue `true`
+	 * @since 1.9.0
+	 */
 	useLegacyDate?: boolean
+
+	/**
+	 * Behaviour of the library when encountering a potentially unsafe property (`__proto__`, `constructor`).
+	 *
+	 * @defaultValue `'keep'`
+	 * @since 1.9.0
+	 */
+	unsafeKeyBehaviour?: UnsafeKeyBehaviour
+
+	/**
+	 * Maximum permitted inline object/array depth.
+	 *
+	 * @defaultValue `1000`
+	 * @since 1.9.0
+	 */
+	maxDepth?: number
 }
 
 export function parse(toml: string, options?: ParseOptions & { integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false> }): TomlTable
 export function parse(toml: string, options?: ParseOptions): TomlTableWithoutBigInt
-export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLegacyDate = true }: ParseOptions = {}): TomlTable {
+export function parse(toml: string, options: ParseOptions = {}): TomlTable {
 	let ctx: ParseContext = {
 		s: toml,
 		p: 0,
-		d: maxDepth,
+		d: options.maxDepth ?? 1000,
 
-		bi: integersAsBigInt,
-		ld: useLegacyDate,
+		bi: options.integersAsBigInt ?? false,
+		ld: options.useLegacyDate ?? true,
+		uk: options.unsafeKeyBehaviour === 'throw' ? 2 : options.unsafeKeyBehaviour === 'drop' ? 1 : 0,
 	}
 
 	let res = Object.create(null)
 	let meta = Object.create(null)
 
 	let tmp
+	let skipping = false
 	let tbl = res
 	let m = meta
 
@@ -162,6 +225,7 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLega
 		if (toml.charCodeAt(ctx.p) === 0x5b /* [ */) {
 			let isTableArray = toml.charCodeAt(++ctx.p) === 0x5b /* [ */
 			tmp = ctx.p += +isTableArray
+			skipping = false
 
 			let k = parseKey(ctx, 0x5d /* ] */)
 			if (isTableArray) {
@@ -172,19 +236,24 @@ export function parse(toml: string, { maxDepth = 1000, integersAsBigInt, useLega
 				ctx.p++
 			}
 
-			let p = peekTable(k, res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
-			if (!p) TomlError.x('trying to redefine an already defined table or value', ctx, tmp)
-
-			m = p[2]
-			tbl = p[1]
+			let p = peekTable(ctx, k, res, meta, isTableArray ? Type.ARRAY : Type.EXPLICIT)
+			if (!p) {
+				validateTablePeek(ctx, p, tmp)
+				skipping = true
+			} else {
+				m = p[2]
+				tbl = p[1]
+			}
 		} else {
 			tmp = ctx.p
 			let k = parseKey(ctx)
-			let p = peekTable(k, tbl, m, Type.DOTTED)
-			if (!p) TomlError.x('trying to redefine an already defined table or value', ctx, tmp)
+			let p = peekTable(ctx, k, tbl, m, Type.DOTTED)
+			if (!p && !skipping) validateTablePeek(ctx, p, tmp)
 
 			skipVoid(ctx, true, true)
-			p[1][p[0]] = extractValue(ctx, void 0)
+			let v = extractValue(ctx, void 0)
+
+			if (p && !skipping) p[1][p[0]] = v
 		}
 
 		skipVoid(ctx, true)

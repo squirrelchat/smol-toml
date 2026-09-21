@@ -26,6 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import { inspect } from 'node:util'
 import { describe, it, expect } from 'vitest'
 import { parse } from '../src/parse.ts'
 import { TomlError } from '../src/error.ts'
@@ -501,7 +502,7 @@ meow = "nya"
 	})
 })
 
-it('handles JS quirks', () => {
+describe('JS\'s quirky props', () => {
 	const nullproto = (obj: any) => {
 		Object.setPrototypeOf(obj, null)
 		for (const v of Object.values(obj))
@@ -512,15 +513,127 @@ it('handles JS quirks', () => {
 
 	const mkobj = (json: string) => nullproto(JSON.parse(json))
 
-	expect(parse('__proto__ = 3'))
-		.toStrictEqual(mkobj('{"__proto__":3}'))
+	it('assigns special JS props properly', () => {
+		expect(parse('a = 1\n__proto__ = 3', { unsafeKeyBehaviour: 'keep' })).toStrictEqual(mkobj('{"a":1,"__proto__":3}'))
+		expect(parse('a = 1\n__proto__.uwu = "owo"', { unsafeKeyBehaviour: 'keep' })).toStrictEqual(mkobj('{"a":1,"__proto__":{"uwu":"owo"}}'))
+		expect(parse('a = 1\nconstructor = false', { unsafeKeyBehaviour: 'keep' })).toStrictEqual(mkobj('{"a":1,"constructor":false}'))
+		expect(parse('a = 1\nprototype = false', { unsafeKeyBehaviour: 'keep' })).toStrictEqual(mkobj('{"a":1,"prototype":false}'))
+		expect(parse('a = 1\nhasOwnProperty = false', { unsafeKeyBehaviour: 'keep' })).toStrictEqual(mkobj('{"a":1,"hasOwnProperty":false}'))
 
-	expect(parse('__proto__.uwu = "owo"'))
-		.toStrictEqual(mkobj('{"__proto__":{"uwu":"owo"}}'))
+		const doc = `
+[t1.__proto__]
+a = 1
 
-	expect(parse('prototype = false'))
-		.toStrictEqual(mkobj('{"prototype":false}'))
+[t2.constructor]
+a = 1
 
-	expect(parse('hasOwnProperty = false'))
-		.toStrictEqual(mkobj('{"hasOwnProperty":false}'))
+[t3.a]
+__proto__ = 1
+
+[t4.a]
+constructor = 1
+
+[t5]
+t5-1 = { __proto__ = { a = 1, b = 2 }, c = 3 }
+t5-2 = { constructor = { a = 1, b = 2 }, c = 3 }
+t5-3 = { a = { __proto__ = 1, b = 2 }, c = 3 }
+t5-4 = { a = { constructor = 1, b = 2 }, c = 3 }
+`.trim()
+
+		const expected = `
+{
+	"t1": { "__proto__": { "a": 1 } },
+	"t2": { "constructor": { "a": 1 } },
+	"t3": { "a": { "__proto__": 1 } },
+	"t4": { "a": { "constructor": 1 } },
+	"t5": {
+		"t5-1": { "__proto__": { "a": 1, "b": 2 }, "c": 3 },
+		"t5-2": { "constructor": { "a": 1, "b": 2 }, "c": 3 },
+		"t5-3": { "a": { "__proto__": 1, "b": 2 }, "c": 3 },
+		"t5-4": { "a": { "constructor": 1, "b": 2 }, "c": 3 }
+	}
+}
+`.trim()
+
+		// toStrictEqual itself is getting confused at our whack object lmao
+		// expect(parse(doc, { unsafeKeyBehaviour: 'keep' })).toStrictEqual(mkobj(expected))
+		const expectedInspect = inspect(parse(doc, { unsafeKeyBehaviour: 'keep' }))
+		const actualInspect = inspect(mkobj(expected))
+		expect(actualInspect).toBe(expectedInspect)
+	})
+
+	it('drops special JS props', () => {
+		expect(parse('a = 1\n__proto__ = 3', { unsafeKeyBehaviour: 'drop' })).toStrictEqual(mkobj('{"a":1}'))
+		expect(parse('a = 1\n__proto__.uwu = "owo"', { unsafeKeyBehaviour: 'drop' })).toStrictEqual(mkobj('{"a":1}'))
+		expect(parse('a = 1\nconstructor = false', { unsafeKeyBehaviour: 'drop' })).toStrictEqual(mkobj('{"a":1}'))
+		expect(parse('a = 1\nprototype = false', { unsafeKeyBehaviour: 'drop' })).toStrictEqual(mkobj('{"a":1,"prototype":false}'))
+		expect(parse('a = 1\nhasOwnProperty = false', { unsafeKeyBehaviour: 'drop' })).toStrictEqual(mkobj('{"a":1,"hasOwnProperty":false}'))
+
+		const doc = `
+[t1.__proto__]
+a = 1
+
+[t2.constructor]
+a = 1
+
+[t3.a]
+__proto__ = 1
+
+[t4.a]
+constructor = 1
+
+[t5]
+t5-1 = { __proto__ = { a = 1, b = 2 }, c = 3 }
+t5-2 = { constructor = { a = 1, b = 2 }, c = 3 }
+t5-3 = { a = { __proto__ = 1, b = 2 }, c = 3 }
+t5-4 = { a = { constructor = 1, b = 2 }, c = 3 }
+`.trim()
+
+		const expected = `
+{
+	"t1": {},
+	"t2": {},
+	"t3": { "a": {} },
+	"t4": { "a": {} },
+	"t5": {
+		"t5-1": { "c": 3 },
+		"t5-2": { "c": 3 },
+		"t5-3": { "a": { "b": 2 }, "c": 3 },
+		"t5-4": { "a": { "b": 2 }, "c": 3 }
+	}
+}
+`.trim()
+
+		expect(parse(doc, { unsafeKeyBehaviour: 'drop' })).toStrictEqual(mkobj(expected))
+	})
+
+	it('rejects special JS props', () => {
+		expect(() => parse('a = 1\n__proto__ = 3', { unsafeKeyBehaviour: 'throw' })).toThrow(TomlError)
+		expect(() => parse('a = 1\n__proto__.uwu = "owo"', { unsafeKeyBehaviour: 'throw' })).toThrow(TomlError)
+		expect(() => parse('a = 1\nconstructor = false', { unsafeKeyBehaviour: 'throw' })).toThrow(TomlError)
+		expect(parse('a = 1\nprototype = false', { unsafeKeyBehaviour: 'throw' })).toStrictEqual(mkobj('{"a":1,"prototype":false}'))
+		expect(parse('a = 1\nhasOwnProperty = false', { unsafeKeyBehaviour: 'throw' })).toStrictEqual(mkobj('{"a":1,"hasOwnProperty":false}'))
+
+		const doc = `
+[t1.__proto__]
+a = 1
+
+[t2.constructor]
+a = 1
+
+[t3.a]
+__proto__ = 1
+
+[t4.a]
+constructor = 1
+
+[t5]
+t5-1 = { __proto__ = { a = 1, b = 2 }, c = 3 }
+t5-2 = { constructor = { a = 1, b = 2 }, c = 3 }
+t5-3 = { a = { __proto__ = 1, b = 2 }, c = 3 }
+t5-4 = { a = { constructor = 1, b = 2 }, c = 3 }
+`.trim()
+
+		expect(() => parse(doc, { unsafeKeyBehaviour: 'throw' })).toThrow(TomlError)
+	})
 })

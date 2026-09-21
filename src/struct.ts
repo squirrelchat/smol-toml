@@ -119,7 +119,13 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 				TomlError.x('trying to redefine an already defined value', ctx, errPtr)
 			}
 
-			if (!hasOwn && k === '__proto__') {
+			let unsafe = k === '__proto__'
+			if (ctx.uk && (unsafe || k === 'constructor')) {
+				t = ctx.uk !== 1 && TomlError.x('document contains an unsafe property', ctx, errPtr)
+				break
+			}
+
+			if (!hasOwn && unsafe) {
 				Object.defineProperty(t, k, { enumerable: true, configurable: true, writable: true })
 			}
 		}
@@ -130,7 +136,7 @@ export function parseInlineTable(ctx: ParseContext): TomlTable {
 
 		skipVoid(ctx, true, true)
 		let value = extractValue(ctx, 0x7d /* } */)
-		if (typeof (t[k!] = value) === 'object') seen.add(value)
+		if (t && typeof (t[k!] = value) === 'object') seen.add(value)
 
 		skipVoid(ctx)
 		if ((c = ctx.s.charCodeAt(ctx.p++)) === 0x7d /* } */) {
