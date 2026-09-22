@@ -46,20 +46,22 @@ function tagObject(obj) {
 		return { type: type, value: obj.toISOString() }
 	}
 
-	if (obj instanceof Temporal.ZonedDateTime) {
-		return { type: 'datetime', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
-	}
+	if (globalThis.Temporal) {
+		if (obj instanceof Temporal.ZonedDateTime) {
+			return { type: 'datetime', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
+		}
 
-	if (obj instanceof Temporal.PlainDateTime) {
-		return { type: 'datetime-local', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
-	}
+		if (obj instanceof Temporal.PlainDateTime) {
+			return { type: 'datetime-local', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
+		}
 
-	if (obj instanceof Temporal.PlainDate) {
-		return { type: 'date-local', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
-	}
+		if (obj instanceof Temporal.PlainDate) {
+			return { type: 'date-local', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
+		}
 
-	if (obj instanceof Temporal.PlainTime) {
-		return { type: 'time-local', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
+		if (obj instanceof Temporal.PlainTime) {
+			return { type: 'time-local', value: obj.toString({ calendarName: 'never', timeZoneName: 'never' }) }
+		}
 	}
 
 	if (Array.isArray(obj)) {
@@ -75,7 +77,7 @@ let toml = ''
 process.stdin.setEncoding('utf8')
 process.stdin.on('data', (t) => (toml += t))
 process.stdin.on('end', () => {
-	const parsed = parse(toml, { integersAsBigInt: true, useLegacyDate: false })
+	const parsed = parse(toml, { integersAsBigInt: true, useLegacyDate: process.versions.node.split('.')[0] < 26 })
 	const tagged = tagObject(parsed)
 	console.log(JSON.stringify(tagged, null, 2))
 })

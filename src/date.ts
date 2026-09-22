@@ -52,9 +52,14 @@ export class TomlDate extends Date {
 		let c
 
 		if (typeof date === 'string') {
-			if (fasttype) {
+			if (fasttype) prep: {
 				// Date-time
 				if (fasttype < 3) {
+					if (+date.slice(11, 13) > 23) {
+						date = ''
+						break prep
+					}
+
 					// Local
 					if (fasttype === 2) {
 						offset = null
@@ -69,7 +74,7 @@ export class TomlDate extends Date {
 				}
 				// Time
 				else if (fasttype === 4) {
-					date = `0000-01-01T${date}Z`
+					date = +date.slice(0, 2) > 23 ? '' : `0000-01-01T${date}Z`
 				}
 
 				hasDate = fasttype !== 4

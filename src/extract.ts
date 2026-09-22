@@ -262,7 +262,11 @@ function parseDate(ctx: ParseContext, c: number, endChr: number | undefined) {
 		return parseNumber(ctx, ctx.p = startPtr, c, 0, endChr)
 	}
 
-	if ((ctx.p += 6) >= ctx.s.length || (((c = ctx.s.charCodeAt(ctx.p)) !== 0x20 || (unsafeSeparator = true, !isDigit(ctx.s.charCodeAt(ctx.p + 1)))) && c !== 0x54 /* T */ && c !== 0x74 /* t */)) {
+	ctx.p += 5
+	if (!isDigit(ctx.s.charCodeAt(ctx.p++)))
+		TomlError.x('invalid date-time: date part is malformed', ctx, startPtr)
+
+	if (ctx.p >= ctx.s.length || (((c = ctx.s.charCodeAt(ctx.p)) !== 0x20 || (unsafeSeparator = true, !isDigit(ctx.s.charCodeAt(ctx.p + 1)))) && c !== 0x54 /* T */ && c !== 0x74 /* t */)) {
 		let t = ctx.s.slice(startPtr, ctx.p)
 		return readDate(ctx, t, 3, false, startPtr)
 	}

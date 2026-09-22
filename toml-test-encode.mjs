@@ -40,16 +40,24 @@ function untagObject(obj) {
 				if (obj.value === '-inf') return -Infinity
 				return Number(obj.value)
 			case 'datetime':
+				if (process.versions.node.split('.')[0] < 26)
+					return new TomlDate(obj.value)
 				return Temporal.ZonedDateTime.from(
 					obj.value[obj.value.length - 1].toUpperCase() === 'Z'
 						? obj.value + '[+00:00]'
 						: obj.value + '[' + obj.value.slice(obj.value.length - 6) + ']'
 				)
 			case 'datetime-local':
+				if (process.versions.node.split('.')[0] < 26)
+					return new TomlDate(obj.value)
 				return Temporal.PlainDateTime.from(obj.value)
 			case 'date-local':
+				if (process.versions.node.split('.')[0] < 26)
+					return new TomlDate(obj.value)
 				return Temporal.PlainDate.from(obj.value)
 			case 'time-local':
+				if (process.versions.node.split('.')[0] < 26)
+					return new TomlDate(obj.value)
 				return Temporal.PlainTime.from(obj.value)
 		}
 

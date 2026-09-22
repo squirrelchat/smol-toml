@@ -393,8 +393,9 @@ it('rejects invalid dates', () => {
 })
 
 describe.skipIf(!globalThis.Temporal)('Temporal', () => {
-	const TEST_DATE_TIME = Temporal.ZonedDateTime.from('2001-09-21T10:17:00+02:00[Europe/Paris]')
-	const TEST_DURATION = Temporal.Duration.from('PT3H54M')
+	// NOTE: The definition function is always ran even if skipped.
+	const TEST_DATE_TIME = globalThis.Temporal && Temporal.ZonedDateTime.from('2001-09-21T10:17:00+02:00[Europe/Paris]')
+	const TEST_DURATION = globalThis.Temporal && Temporal.Duration.from('PT3H54M')
 
 	it('stringifies Temporal values properly', () => {
 		const fmt = (value: any) => stringify({ value })
