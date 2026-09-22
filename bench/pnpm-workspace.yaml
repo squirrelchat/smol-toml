@@ -1,2 +1,5 @@
 allowBuilds:
   core-js-pure: false
+
+minimumReleaseAgeExclude:
+  - '@decimalturn/toml-patch@3.1.2'

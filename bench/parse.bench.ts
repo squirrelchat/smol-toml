@@ -32,7 +32,18 @@ const toml5MB = await readFile(new URL('./testfiles/5mb-mixed.toml', import.meta
 summary(() => {
 	for (const [name, toml] of [['spec document', tomlSpec], ['5MB document', toml5MB]] as const) {
 		group(name, () => {
-			bench('smol-toml', function* () {
+			bench('smol-toml (Date)', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(smolTomlParse(toml, { useLegacyDate: true }))
+					},
+				}
+			})
+
+			bench('smol-toml (Temporal)', function* () {
 				yield {
 					[0]() {
 						return toml
@@ -76,7 +87,7 @@ summary(() => {
 				}
 			})
 
-			bench("deno's @std/toml", function* () {
+			bench('@std/toml', function* () {
 				yield {
 					[0]() {
 						return toml
@@ -87,7 +98,18 @@ summary(() => {
 				}
 			})
 
-			bench('node-toml', function* () {
+			bench('toml (Date/string)', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(nodeTomlParse(toml, { useTemporal: false }))
+					},
+				}
+			})
+
+			bench('toml (Temporal)', function* () {
 				yield {
 					[0]() {
 						return toml
@@ -109,7 +131,18 @@ summary(() => {
 				}
 			})
 
-			bench('@decimalturn/toml-patch', function* () {
+			bench('@decimalturn/toml-patch (Date)', function* () {
+				yield {
+					[0]() {
+						return toml
+					},
+					bench(toml: string) {
+						return do_not_optimize(dtTomlPatchParse(toml, { temporal: false }))
+					},
+				}
+			})
+
+			bench('@decimalturn/toml-patch (Temporal)', function* () {
 				yield {
 					[0]() {
 						return toml

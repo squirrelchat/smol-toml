@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@decimalturn/toml-patch':
-        specifier: 3.0.2
-        version: 3.0.2
+        specifier: 3.1.2
+        version: 3.1.2
       '@iarna/toml':
         specifier: 3.0.0
         version: 3.0.0
@@ -51,15 +51,15 @@ packages:
   '@chevrotain/utils@12.0.0':
     resolution: {integrity: sha512-lB59uJoaGIfOOL9knQqQRfhl9g7x8/wqFkp13zTdkRu1huG9kg6IJs1O8hqj9rs6h7orGxHJUKb+mX3rPbWGhA==}
 
-  '@decimalturn/toml-patch@3.0.2':
-    resolution: {integrity: sha512-0qEaybovbKCOTCmOiXj7PgajYsoMhiphka0sjWqT/up5WE9LQF/SRDFcL65CG6IhyyxmKrxjcLROqgDNHMMGWw==}
+  '@decimalturn/toml-patch@3.1.2':
+    resolution: {integrity: sha512-WNPcymRQUP38PxvZTRlY6WdGYPVtvd1t8PN+CQVZ/HvV8qMEwc0eEiMiYfajt7LXy93oaQd91TktaufK8oGlqw==}
     engines: {node: '>=16'}
 
   '@iarna/toml@3.0.0':
     resolution: {integrity: sha512-td6ZUkz2oS3VeleBcN+m//Q6HlCFCPrnI0FZhrt/h4XqLEdOyYp2u21nd8MdsR+WJy5r9PTDaHTDDfhf4H4l6Q==}
 
-  '@jsr/std__collections@1.2.0':
-    resolution: {integrity: sha512-R58weKPNZ3sFOo9pRAhasq0m0aIVEJau4/bid0VFWp9hoQZ07qpa1vtDLFWNrQK96ZJS0ql6IuOHVrXXsHOE/w==, tarball: https://npm.jsr.io/~/11/@jsr/std__collections/1.2.0.tgz}
+  '@jsr/std__collections@1.3.0':
+    resolution: {integrity: sha512-oJ5V5ZvsWyO5VLdGk3TaRHaVibfVKHvDC8KJdgmxIucHN2QzAXlMt36ApyTUBncfrhXdN/5Q3yMNvloAKym8RA==, tarball: https://npm.jsr.io/~/11/@jsr/std__collections/1.3.0.tgz}
 
   '@jsr/std__toml@1.0.11':
     resolution: {integrity: sha512-+LZAizoPAPwMDmRZr86/xPrbO8E0Oq0BJ70mr1fNMobJ/6X6v15Jk16ZClFGukWgzBMd8ggiMWnzp24+N3VNZg==, tarball: https://npm.jsr.io/~/11/@jsr/std__toml/1.0.11.tgz}
@@ -108,15 +108,15 @@ snapshots:
 
   '@chevrotain/utils@12.0.0': {}
 
-  '@decimalturn/toml-patch@3.0.2': {}
+  '@decimalturn/toml-patch@3.1.2': {}
 
   '@iarna/toml@3.0.0': {}
 
-  '@jsr/std__collections@1.2.0': {}
+  '@jsr/std__collections@1.3.0': {}
 
   '@jsr/std__toml@1.0.11':
     dependencies:
-      '@jsr/std__collections': 1.2.0
+      '@jsr/std__collections': 1.3.0
 
   '@ltd/j-toml@1.38.0': {}
 
