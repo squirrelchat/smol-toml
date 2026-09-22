@@ -30,6 +30,14 @@ import type { ParseContext } from './parse.js'
 import type { TomlDate } from './date.js'
 import { TomlError } from './error.js'
 
+type _Temporal = typeof globalThis extends { Temporal: infer T } ? T : never
+type AnyTemporalDateTime =
+	| InstanceType<_Temporal['Instant']>
+	| InstanceType<_Temporal['PlainDate']>
+	| InstanceType<_Temporal['PlainDateTime']>
+	| InstanceType<_Temporal['PlainTime']>
+	| InstanceType<_Temporal['ZonedDateTime']>
+
 export type IntegersAsBigInt = undefined | boolean | 'asNeeded'
 
 export type TomlPrimitive = string | number | bigint | boolean | TomlDate | AnyTemporalDateTime
@@ -38,14 +46,6 @@ export type TomlValue = TomlPrimitive | TomlValue[] | TomlTable
 
 export type TomlTableWithoutBigInt = { [key: string]: TomlValueWithoutBigInt }
 export type TomlValueWithoutBigInt = Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt
-
-/** @internal */
-export type AnyTemporalDateTime =
-	| Temporal.Instant
-	| Temporal.PlainDate
-	| Temporal.PlainDateTime
-	| Temporal.PlainTime
-	| Temporal.ZonedDateTime
 
 /** @internal */
 export function skipComment(ctx: ParseContext) {
