@@ -27,6 +27,7 @@
  */
 
 let BARE_KEY = /^[a-z0-9-_]+$/i
+let HAS_WELLFORMED = !!(''.isWellFormed)
 
 type ExtendedType = ReturnType<typeof extendedTypeOf>
 function extendedTypeOf(obj: any) {
@@ -66,12 +67,12 @@ function formatWellFormedStringUnchecked(s: string) {
 }
 
 function formatString(s: string) {
-	return formatWellFormedStringUnchecked(s.toWellFormed())
+	return formatWellFormedStringUnchecked(HAS_WELLFORMED ? s.toWellFormed() : s)
 }
 
 function formatKey(s: string) {
 	if (BARE_KEY.test(s)) return s
-	if (!s.isWellFormed()) throw new RangeError('key contains illegal lone surrogates')
+	if (HAS_WELLFORMED && !s.isWellFormed()) throw new RangeError('key contains illegal lone surrogates')
 	return formatWellFormedStringUnchecked(s)
 }
 
