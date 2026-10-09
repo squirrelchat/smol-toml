@@ -182,7 +182,7 @@ function parseNumber(
 		else if ((state === 1 || state === 3) && (c === 0x65 /* e */ || c === 0x45 /* E */)) state = 4
 
 		// + and - are permitted in state 4 only (handled before entering the function for state 0)
-		else if (state === 4 && (c === 0x2b /* + */ || c === 0x2d /* - */)) { state++ }
+		else if (state === 4 && (c === 0x2b /* + */ || c === 0x2d /* - */)) { state = 6 }
 
 		// All special cases have been handled; only digits are allowed here
 		else if (!isDigit(c)) TomlError.x(`illegal character in numeric literal`, ctx)

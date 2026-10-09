@@ -137,6 +137,7 @@ it('rejects invalid floats', () => {
 	expect(() => extractValue(mkctx('7.'), undefined)).toThrow(TomlError)
 	expect(() => extractValue(mkctx('3.e+20'), undefined)).toThrow(TomlError)
 	expect(() => extractValue(mkctx('3e++20'), undefined)).toThrow(TomlError)
+	expect(() => extractValue(mkctx('3e+'), undefined)).toThrow(TomlError)
 })
 
 it('parses floats with underscores', () => {
