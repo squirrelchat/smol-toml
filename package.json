@@ -7,6 +7,7 @@
 		"serializer",
 		"toml"
 	],
+	"homepage": "https://github.com/squirrelchat/smol-toml",
 	"bugs": "https://github.com/squirrelchat/smol-toml/issues",
 	"license": "BSD-3-Clause",
 	"author": "Cynthia Rey <cynthia@cynthia.dev>",
