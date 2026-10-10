@@ -10,7 +10,10 @@
 	"bugs": "https://github.com/squirrelchat/smol-toml/issues",
 	"license": "BSD-3-Clause",
 	"author": "Cynthia Rey <cynthia@cynthia.dev>",
-	"repository": "github:squirrelchat/smol-toml",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/squirrelchat/smol-toml.git"
+	},
 	"funding": "https://github.com/sponsors/cyyynthia",
 	"files": [
 		"README.md",
@@ -18,6 +21,7 @@
 		"dist"
 	],
 	"type": "module",
+	"sideEffects": false,
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
