@@ -45,3 +45,17 @@ it('handles extreme datetimes', () => {
 	expect(new TomlDate('9999-12-31 23:59:59').toISOString()).toBe('9999-12-31T23:59:59.000')
 	expect(new TomlDate('9999-12-31').toISOString()).toBe('9999-12-31')
 })
+
+it('rejects dates that do not exist', () => {
+	for (const date of ['1988-02-30', '1900-02-29', '2001-02-29', '1988-04-31', '1988-13-01', '1988-00-01', '1988-01-00', '1988-01-32']) {
+		expect(new TomlDate(date).isValid()).toBe(false)
+		expect(new TomlDate(`${date}T15:15:15`).isValid()).toBe(false)
+		expect(new TomlDate(`${date}T15:15:15Z`).isValid()).toBe(false)
+		expect(new TomlDate(`${date} 15:15:15-07:00`).isValid()).toBe(false)
+	}
+
+	expect(new TomlDate('2000-02-29').isValid()).toBe(true)
+	expect(new TomlDate('2024-02-29T15:15:15Z').toISOString()).toBe('2024-02-29T15:15:15.000Z')
+	expect(new TomlDate('1988-01-31').isValid()).toBe(true)
+	expect(new TomlDate('1988-04-30 23:59:59').isValid()).toBe(true)
+})

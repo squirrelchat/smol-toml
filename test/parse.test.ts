@@ -637,3 +637,17 @@ t5-4 = { a = { constructor = 1, b = 2 }, c = 3 }
 		expect(() => parse(doc, { unsafeKeyBehaviour: 'throw' })).toThrow(TomlError)
 	})
 })
+
+it('rejects dates that do not exist', () => {
+	expect(() => parse('d = 1988-02-30')).toThrow(/invalid date/)
+	expect(() => parse('d = 1988-02-30T15:15:15')).toThrow(/invalid date/)
+	expect(() => parse('d = 1988-02-30T15:15:15Z')).toThrow(/invalid date/)
+	expect(() => parse('d = 1988-02-30 15:15:15-07:00')).toThrow(/invalid date/)
+	expect(() => parse('d = 1900-02-29')).toThrow(/invalid date/)
+	expect(() => parse('d = 1988-04-31')).toThrow(/invalid date/)
+	expect(() => parse('d = 1988-13-01')).toThrow(/invalid date/)
+	expect(() => parse('d = 1988-01-00')).toThrow(/invalid date/)
+
+	expect(parse('d = 2000-02-29').d.toISOString()).toBe('2000-02-29')
+	expect(parse('d = 2024-02-29T15:15:15Z').d.toISOString()).toBe('2024-02-29T15:15:15.000Z')
+})

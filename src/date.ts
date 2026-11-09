@@ -36,6 +36,22 @@ let DATE_TIME_RE = /^(\d{4}-\d{2}-\d{2})?[Tt ]?(?:(\d{2}):\d{2}(?::\d{2}(?:\.\d+
 /** @internal */
 export type TomlDateFastTypeId = /* OFFSET */ 1 | /* PLAIN DT */ 2 | /* PLAIN D */ 3  | /* PLAIN T */ 4
 
+// Date rolls a day that does not exist over into the next month (1988-02-30
+// becomes 1988-03-01); TOML requires the date to be valid.
+function isValidCalendarDate(date: string) {
+	let month = +date.slice(5, 7)
+	let day = +date.slice(8, 10)
+	if (month < 1 || month > 12 || day < 1) return false
+	if (day <= 28) return true
+
+	let year = +date.slice(0, 4)
+	let max = month === 2
+		? (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 29 : 28)
+		: (month === 4 || month === 6 || month === 9 || month === 11 ? 30 : 31)
+
+	return day <= max
+}
+
 export class TomlDate extends Date {
 	#hasDate = false
 	#hasTime = false
@@ -53,6 +69,11 @@ export class TomlDate extends Date {
 
 		if (typeof date === 'string') {
 			if (fasttype) prep: {
+				if (fasttype !== 4 && !isValidCalendarDate(date)) {
+					date = ''
+					break prep
+				}
+
 				// Date-time
 				if (fasttype < 3) {
 					if (+date.slice(11, 13) > 23) {
@@ -81,7 +102,9 @@ export class TomlDate extends Date {
 				hasTime = fasttype !== 3
 			} else {
 				let match = date.match(DATE_TIME_RE)
-				if (match) {
+				if (match && match[1] && !isValidCalendarDate(match[1])) {
+					date = ''
+				} else if (match) {
 					if (!match[1]) {
 						hasDate = false
 						date = `0000-01-01T${date}`
